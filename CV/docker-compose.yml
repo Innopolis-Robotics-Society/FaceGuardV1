@@ -1,0 +1,18 @@
+services:
+  face-recognition:
+    build: .
+    container_name: face-recognition-app
+
+    devices:
+      - "/dev/video0:/dev/video0"
+
+    volumes:
+      - ./faces:/app/faces
+      - ./face_model.yml:/app/face_model.yml
+      - ./labels.json:/app/labels.json
+      - ./access_log.txt:/app/access_log.txt
+
+    environment:
+      - DISPLAY=${DISPLAY}
+
+    network_mode: host
