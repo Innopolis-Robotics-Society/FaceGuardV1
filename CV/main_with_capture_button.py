@@ -16,6 +16,13 @@ LABELS_FILE = "labels.json"
 RECOGNITION_THRESHOLD = 65
 ACTION_COOLDOWN_SECONDS = 5
 
+CAPTURED_PHOTOS_DIR = "captured_photos"
+
+CAPTURE_BUTTON_TOP_LEFT = (20, 20)
+CAPTURE_BUTTON_BOTTOM_RIGHT = (230, 70)
+
+capture_requested = False
+
 
 # ==========================
 # ACTION ON RECOGNITION
@@ -30,21 +37,62 @@ def action_on_recognized(name: str):
     except Exception:
         pass
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    logs_dir = os.path.join(script_dir, "logs")
-    log_path = os.path.join(logs_dir, "access_log.txt")
+    with open("access_log.txt", "a", encoding="utf-8") as file:
+        file.write(f"{time.ctime()} - recognized: {name}\n")
 
-    try:
-        os.makedirs(logs_dir, exist_ok=True)
 
-        with open(log_path, "a", encoding="utf-8") as file:
-            file.write(f"{time.ctime()} - recognized: {name}\n")
 
-        print(f"[LOG] Saved to: {log_path}")
+# ==========================
+# PHOTO CAPTURE
+# ==========================
 
-    except OSError as error:
-        print(f"[WARNING] Could not save access log: {error}")
-        print("[WARNING] Face recognition will continue.")
+def camera_mouse_callback(event, x, y, flags, param):
+    global capture_requested
+
+    if event != cv2.EVENT_LBUTTONDOWN:
+        return
+
+    x1, y1 = CAPTURE_BUTTON_TOP_LEFT
+    x2, y2 = CAPTURE_BUTTON_BOTTOM_RIGHT
+
+    if x1 <= x <= x2 and y1 <= y <= y2:
+        capture_requested = True
+
+
+def draw_capture_button(frame):
+    x1, y1 = CAPTURE_BUTTON_TOP_LEFT
+    x2, y2 = CAPTURE_BUTTON_BOTTOM_RIGHT
+
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (60, 160, 60), -1)
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 2)
+
+    cv2.putText(
+        frame,
+        "TAKE PHOTO",
+        (x1 + 18, y1 + 34),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (255, 255, 255),
+        2
+    )
+
+
+def save_photo(frame):
+    os.makedirs(CAPTURED_PHOTOS_DIR, exist_ok=True)
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    milliseconds = int((time.time() % 1) * 1000)
+
+    filename = f"capture_{timestamp}_{milliseconds:03d}.jpg"
+    photo_path = os.path.join(CAPTURED_PHOTOS_DIR, filename)
+
+    if not cv2.imwrite(photo_path, frame):
+        raise RuntimeError(f"Failed to save photo: {photo_path}")
+
+    absolute_path = os.path.abspath(photo_path)
+    print(f"[PHOTO] Saved: {absolute_path}")
+
+    return filename
 
 
 # ==========================
@@ -173,6 +221,8 @@ def load_model():
 # ==========================
 
 def run_camera():
+    global capture_requested
+
     recognizer, label_map = load_model()
     face_detector = get_face_detector()
 
@@ -181,10 +231,20 @@ def run_camera():
     if not camera.isOpened():
         raise RuntimeError("Failed to open camera.")
 
+    window_name = "Face Recognition"
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, camera_mouse_callback)
+
+    os.makedirs(CAPTURED_PHOTOS_DIR, exist_ok=True)
+
     last_action_time = {}
+    saved_photo_name = None
+    saved_message_until = 0
 
     print("[INFO] Camera started.")
+    print("[INFO] Click TAKE PHOTO or press C to save a photo.")
     print("[INFO] Press Q to exit.")
+    print(f"[INFO] Photos folder: {os.path.abspath(CAPTURED_PHOTOS_DIR)}")
 
     while True:
         ret, frame = camera.read()
@@ -192,6 +252,9 @@ def run_camera():
         if not ret:
             print("[ERROR] Failed to read frame from camera.")
             break
+
+        raw_frame = frame.copy()
+        display_frame = frame.copy()
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -221,14 +284,19 @@ def run_camera():
                     last_action_time[name] = current_time
 
             else:
-                name = "Unknown"
                 text = f"Unknown ({confidence:.1f})"
                 color = (0, 0, 255)
 
-            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            cv2.rectangle(
+                display_frame,
+                (x, y),
+                (x + w, y + h),
+                color,
+                2
+            )
 
             cv2.putText(
-                frame,
+                display_frame,
                 text,
                 (x, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -237,11 +305,31 @@ def run_camera():
                 2
             )
 
-        cv2.imshow("Face Recognition", frame)
+        if capture_requested:
+            saved_photo_name = save_photo(raw_frame)
+            saved_message_until = time.time() + 2
+            capture_requested = False
+
+        draw_capture_button(display_frame)
+
+        if saved_photo_name and time.time() < saved_message_until:
+            cv2.putText(
+                display_frame,
+                f"Saved: {saved_photo_name}",
+                (20, display_frame.shape[0] - 25),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                (0, 255, 0),
+                2
+            )
+
+        cv2.imshow(window_name, display_frame)
 
         key = cv2.waitKey(1) & 0xFF
 
-        if key == ord("q"):
+        if key == ord("c"):
+            capture_requested = True
+        elif key == ord("q"):
             break
 
     camera.release()

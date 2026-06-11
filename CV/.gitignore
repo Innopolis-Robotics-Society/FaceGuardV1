@@ -6,4 +6,6 @@ labels.json
 access_log.txt
 
 faces/
+captured_photos/
+logs/
 .env

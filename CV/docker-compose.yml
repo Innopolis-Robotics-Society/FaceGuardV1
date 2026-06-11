@@ -10,7 +10,7 @@ services:
       - ./faces:/app/faces
       - ./face_model.yml:/app/face_model.yml
       - ./labels.json:/app/labels.json
-      - ./access_log.txt:/app/access_log.txt
+      - ./logs:/app/logs
 
     environment:
       - DISPLAY=${DISPLAY}
