@@ -9,37 +9,37 @@ so that **I can quickly manage their access rights**.
 
 ### Notes and constraints
 
-Just a simple list of everyone who has access. Name, what they can open, when they last came in. Search and filter would be nice.
+The list should show each authorized person, access status, and last access event. Search and filtering can be added later.
 
 ---
 
-## US-02: Grant access to people
+## US-02: Add a person to the access list
 
 **Requirement status:** Active
 **MoSCoW priority:** Must Have
 
 As an **admin**,
-I want to **grant access to specific people**,
-so that **they can enter certain places**.
+I want to **add a person to the access list**,
+so that **the system can treat this person as authorized**.
 
 ### Notes and constraints
 
-Pick a person, pick which rooms they can enter. Maybe add time limits like "only during work hours". Works with face and fingerprint.
+The first version should store basic person data and access status. Schedules and advanced permission rules are outside the first scope.
 
 ---
 
-## US-03: Detect people wearing masks correctly
+## US-03: View system dashboard
 
 **Requirement status:** Active
 **MoSCoW priority:** Must Have
 
 As an **admin**,
-I want the **system to correctly identify people wearing masks**,
-so that **restricted rooms remain secure**.
+I want to **see a dashboard with the main access control metrics**,
+so that **I can quickly understand the current system state**.
 
 ### Notes and constraints
 
-Need to recognize people even when half their face is covered. IR cameras should help. Admin can tweak how strict the check is.
+The dashboard should show registered people, access attempts, granted and denied events, and the latest access decision. MVP v0 may use mock data.
 
 ---
 
@@ -50,7 +50,7 @@ Need to recognize people even when half their face is covered. IR cameras should
 
 As an **admin**,
 I want the **system to scan people correctly in the dark**,
-so that **the room stays secure at all times**.
+so that **the protected area stays secure at all times**.
 
 ### Notes and constraints
 
@@ -58,18 +58,18 @@ Hallways and entrances can be dark. Use IR or thermal. Should just work without 
 
 ---
 
-## US-05: Fingerprint scanner support
+## US-05: Monitor service status
 
 **Requirement status:** Active
 **MoSCoW priority:** Should Have
 
 As an **admin**,
-I want a **fingerprint scanner**,
-so that **the system can recognise people not only by their faces**.
+I want to **see the status of the main services**,
+so that **I can notice when the camera, recognition service, or server is unavailable**.
 
 ### Notes and constraints
 
-Backup when camera fails. Need to register fingerprints when giving someone access. Not critical for first version since IR handles dark/masks pretty well.
+MVP v0 may show mocked statuses such as Online, Warning, or Offline. Real service monitoring can be implemented later.
 
 ---
 
@@ -80,11 +80,11 @@ Backup when camera fails. Need to register fingerprints when giving someone acce
 
 As a **user**,
 I want **a clear signal (light/sound) from the scanner indicating its decision**,
-so that **I know whether I have access to this place**.
+so that **I know whether I am allowed to enter**.
 
 ### Notes and constraints
 
-Green light + short beep = come in. Red light + long beep = nope. Should be visible in the dark. Nobody wants to stand there wondering.
+Green status means access granted. Red status means access denied. The signal should be clear and easy to understand.
 
 ---
 
@@ -95,11 +95,11 @@ Green light + short beep = come in. Red light + long beep = nope. Should be visi
 
 As an **admin**,
 I want a **clear and visually appealing web UI panel**,
-so that **I can quickly change and manage access rights for different places**.
+so that **I can quickly manage access rights without technical knowledge**.
 
 ### Notes and constraints
 
-Looks good, works on phone too. Shows who came in today, how many got rejected. Not a janky internal tool - something you're not embarrassed to use.
+The interface should be readable, responsive, and focused on the main access control actions.
 
 ---
 
@@ -133,15 +133,15 @@ Shows who tried, when, where, and why they got rejected (mask, dark, no rights).
 
 ---
 
-## US-10: Suspicious attempt notifications
+## US-10: Edit or remove existing users
 
 **Requirement status:** Active
-**MoSCoW priority:** Could Have
+**MoSCoW priority:** Should Have
 
 As an **admin**,
-I want to **receive real-time notifications (email/telegram) about suspicious access attempts**,
-so that **I can respond immediately to potential security breaches**.
+I want to **edit or remove existing users from the access list**,
+so that **access data stays correct when a person's status changes**.
 
 ### Notes and constraints
 
-Get a ping if someone fails 5 times in a minute or tries to get in at 3am. Nice to have, not mandatory for launch.
+The admin should be able to update basic user information and deactivate or remove access. Destructive actions should require confirmation in later versions.
