@@ -1,0 +1,16 @@
+[Unit]
+Description=FaceGuard Raspberry Pi Agent
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/faceguard/raspberry-agent
+EnvironmentFile=/opt/faceguard/raspberry-agent/.env
+ExecStart=/opt/faceguard/raspberry-agent/.venv/bin/python main.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

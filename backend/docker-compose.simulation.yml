@@ -1,0 +1,16 @@
+services:
+  faceguard-agent:
+    build: .
+    container_name: faceguard-agent-simulation
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CAMERA_INDEX: "999"
+      CAMERA_ALLOW_SIMULATION: "true"
+      HARDWARE_MODE: "mock"
+      SYSTEM_COMMANDS_ENABLED: "false"
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data:/app/data
