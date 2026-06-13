@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: faceguard_db
+    environment:
+      POSTGRES_USER: faceguard
+      POSTGRES_PASSWORD: faceguard
+      POSTGRES_DB: faceguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faceguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: faceguard_backend
+    environment:
+      APP_NAME: "FaceGuard API"
+      APP_VERSION: "0.1.0"
+      APP_ENV: "development"
+      DATABASE_URL: "postgresql://faceguard:faceguard@db:5432/faceguard"
+      DATA_DIR: "/data"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

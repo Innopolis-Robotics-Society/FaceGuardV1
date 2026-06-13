@@ -1,0 +1,4 @@
+# Replace "pi" if the service runs under a different Linux user.
+# Install as /etc/sudoers.d/faceguard-agent and validate with visudo -cf.
+pi ALL=(root) NOPASSWD: /usr/bin/systemctl restart faceguard-agent
+pi ALL=(root) NOPASSWD: /usr/bin/systemctl reboot
