@@ -104,17 +104,33 @@ The prototype also explores later stories:
 
 Permission to record was obtained before recording began. Permission for private instructor sharing and publication of the sanitized English transcript was also confirmed.
 
-## Required evidence screenshots
+## Screenshots and Evidence
 
-The following screenshots must be added to `reports/week2/images/` before submission and embedded in this report:
+The following screenshots document the repository workflow, pull request review process, deployment pipeline, and the running MVP v0 web client.
 
-| Suggested filename | What to capture |
-|---|---|
-| `branch_protection_main.png` | GitHub Settings showing the active ruleset or branch protection for `main`. |
-| `reviewed_pr.png` | A merged PR page showing changed files and at least one approval from another team member. |
-| `lychee_success.png` | Successful **Check links** workflow run on `main`. |
-| `mvp_v0_deployment.png` | The deployed MVP v0 dashboard with the browser address bar visible. |
-| `github_pages_success.png` | Successful Pages deployment or the GitHub Pages settings showing the public URL. |
+![Branch protection rules](./images/01_branch_protection_rules.png)
+
+**Figure 1. Branch protection rules.** The repository is configured to require pull requests before merging into `main`, at least one approving review, and conversation resolution before merge. This protects the main branch from direct unreviewed changes.
+
+![Approved final report pull request](./images/02_week2_final_report_pr_approved.png)
+
+**Figure 2. Approved final Week 2 report pull request.** Pull request #9 was approved by a reviewer with write access. The required checks passed and GitHub reported no conflicts with the base branch.
+
+![Merged final report pull request](./images/03_week2_final_report_pr_merged.png)
+
+**Figure 3. Successfully merged final Week 2 report pull request.** The approved pull request was merged into the `main` branch after review and successful checks.
+
+![Successful GitHub Actions deployment](./images/04_github_actions_pages_deploy_success.png)
+
+**Figure 4. GitHub Actions deployment result.** The deployment workflow completed successfully: the frontend build passed and the application was deployed to GitHub Pages.
+
+![Local MVP v0 dashboard](./images/05_mvp_local_dashboard.png)
+
+**Figure 5. MVP v0 running locally.** The FaceGuard admin dashboard is running in the local/internal network. The interface shows access statistics, system status, recent recognition activity, and access event charts.
+
+![Deployed MVP v0 dashboard](./images/06_mvp_github_pages_dashboard.png)
+
+**Figure 6. MVP v0 deployed on GitHub Pages.** The deployed web client opens through the GitHub Pages URL and displays the FaceGuard dashboard successfully.
 
 ## Analysis
 
