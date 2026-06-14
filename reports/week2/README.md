@@ -58,12 +58,12 @@ The primary external interface is a graphical administrator web application.
 ## Repository workflow
 
 - Pull request template: [.github/pull_request_template.md](../../.github/pull_request_template.md)
-- Example reviewed pull requests: [PR #5](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/5), [PR #6](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/6)
-- Lychee configuration: [.lychee.toml](../../.lychee.toml)
+- Example reviewed pull requests: [PR #7](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/7), [PR #9](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/9), [PR #10](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/10), [PR #11](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/11) - Lychee configuration: [.lychee.toml](../../.lychee.toml)
 - Link-check workflow: [.github/workflows/links.yml](../../.github/workflows/links.yml)
 - Link-check runs: <https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/workflows/links.yml>
 - GitHub Pages workflow: [.github/workflows/deploy-pages.yml](../../.github/workflows/deploy-pages.yml)
 - GitHub Pages runs: <https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/workflows/deploy-pages.yml>
+- Latest successful link-check run on main: https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/27501443032
 
 ## Excluded Lychee links
 
