@@ -72,6 +72,9 @@ The university VM is accessible through the university network or VPN. GitHub Pa
 |---|---|---|
 | Private IP addresses, including `10.90.138.70` | Automated GitHub-hosted runners cannot access services inside the university network or VPN. `.lychee.toml` uses `exclude_all_private = true`. | Open the VM URL while connected to the university network or VPN and complete the documented smoke check. |
 | Figma and Yandex Disk links | These services may block or rate-limit automated link-checking clients. | Open both links in a private browser window and confirm view-only access before submission. |
+| Unsplash attribution links | Unsplash returns HTTP 401 to the automated client. | Open the attribution links manually when reviewing `frontend/prototype/ATTRIBUTIONS.md`. |
+| GitHub Pages deployment URL | The URL returns 404 until the first deployment from `main`, creating a circular dependency for the PR check. | Verify the URL after the Pages workflow succeeds on `main`. |
+| `frontend/faceguard-web/index.html` | The unused Vite starter references `/favicon.svg` as a web-root asset; Lychee resolves it as a repository-root file. | The Assignment 2 MVP uses `frontend/prototype`; verify its build instead. |
 
 All other repository Markdown and HTML links are checked automatically by Lychee. The excluded links require the manual checks described above. HTTP 429 is accepted because some public services rate-limit automated checks.
 

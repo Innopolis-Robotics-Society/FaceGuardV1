@@ -12,9 +12,12 @@ include_fragments = true
 exclude_all_private = true
 exclude = [
   '^https://www\.figma\.com/',
-  '^https://disk\.yandex\.ru/'
+  '^https://disk\.yandex\.ru/',
+  '^https://unsplash\.com/',
+  '^https://innopolis-robotics-society\.github\.io/FaceGuardV1/'
 ]
 exclude_path = [
   "frontend/prototype/package-lock.json",
-  "frontend/faceguard-web/package-lock.json"
+  "frontend/faceguard-web/package-lock.json",
+  "frontend/faceguard-web/index.html"
 ]
