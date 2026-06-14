@@ -5,15 +5,19 @@
 - ChatGPT
 - Codex
 - Figma AI
+- Kontur AI meeting transcription and summary service
 
-## How tools were used
+## How the tools were used
 
-- Drafting the Week 2 report structure
-- Improving wording of user stories and documentation
-- Checking Assignment 2 coverage against the required checklist
-- Translating meeting with customer transcript to English
-- Assisting creating admin panel design for MVP v0
+- ChatGPT and Codex assisted with drafting and editing Week 2 documentation.
+- Codex compared repository artifacts with the Assignment 2 checklist and helped identify missing files and evidence.
+- Codex assisted with the English translation and sanitization of the customer meeting transcript.
+- Figma AI assisted with generating and refining the FaceGuard admin-panel prototype.
+- Kontur AI generated the initial Russian meeting transcription, protocol, and summary from the recording.
+- The team used AI suggestions to improve wording, structure user stories, and prepare repeatable smoke-check documentation.
 
-## Validating
+## Human validation
 
-The team reviewed and edited all generated text before using it in the repository. Final decisions about product scope, user stories, design, customer communication, and implementation priorities were made by the team.
+The team reviewed the recording and corrected the AI-generated meeting materials before using them. AI output was treated as a draft because automated transcription can misidentify speakers and technical terms.
+
+The team made the final decisions about product scope, priorities, interface design, customer communication, architecture, and implementation. No credentials, private production data, or unsanitized personal information were intentionally included in public AI prompts or repository artifacts.
