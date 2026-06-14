@@ -8,18 +8,23 @@ import { AccessLogs } from "./components/pages/AccessLogs";
 import { System } from "./components/pages/System";
 import { Settings } from "./components/pages/Settings";
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      Component: Layout,
+      children: [
+        { index: true, Component: Dashboard },
+        { path: "camera", Component: LiveCamera },
+        { path: "people", Component: People },
+        { path: "people/:id", Component: PersonProfile },
+        { path: "logs", Component: AccessLogs },
+        { path: "system", Component: System },
+        { path: "settings", Component: Settings },
+      ],
+    },
+  ],
   {
-    path: "/",
-    Component: Layout,
-    children: [
-      { index: true, Component: Dashboard },
-      { path: "camera", Component: LiveCamera },
-      { path: "people", Component: People },
-      { path: "people/:id", Component: PersonProfile },
-      { path: "logs", Component: AccessLogs },
-      { path: "system", Component: System },
-      { path: "settings", Component: Settings },
-    ],
-  },
-]);
+    basename: "/FaceGuardV1",
+  }
+);
