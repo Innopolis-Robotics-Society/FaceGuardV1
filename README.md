@@ -1,40 +1,48 @@
 # Face Guard
 
-Face Guard is an access control system for managing entry to restricted rooms and protected areas. The system helps administrators manage people and permissions, view access events, and show a clear access decision after scanning.
+Face Guard is an access-control system for restricted rooms and protected areas. It combines an administrator web interface, backend services, and a Raspberry Pi device agent.
 
-## Project status
+## Project structure
 
-The current repository contains:
+- `frontend/prototype` - interactive MVP v0 administrator interface
+- `backend` - Raspberry Pi/local access-control backend
+- `backend-service` - central backend service and database API
+- `raspberry-agent` - Raspberry Pi agent experiments
+- `reports/week2` - Assignment 2 documentation
 
-- a React frontend foundation in `frontend/faceguard-web`;
-- early computer vision experiments in `CV`;
-- Week 2 report files in `reports/week2`.
+## Local MVP v0 setup
 
-## Planned features
-
-- Access management panel
-- People access list
-- Scanner demo with access granted / denied result
-- Access event logs
-- Future face recognition integration
-
-## Local setup
+Prerequisites: Node.js 20.19 or later and npm.
 
 ```bash
-cd frontend/faceguard-web
-npm install
+cd frontend/prototype
+npm ci
 npm run dev
 ```
 
-## MVP v0
+Open the URL printed by Vite, normally `http://localhost:5173`.
 
-MVP v0 is planned as a runnable frontend foundation with mock data and a scanner demo. Real face recognition, production authentication, camera input, and database integration are not part of MVP v0 yet.
+## Production-style frontend container
 
-[MVP v0 report](reports/week2/mvp-v0-report.md)
+```bash
+cd frontend/prototype
+docker build -t faceguard-prototype .
+docker run --rm -p 3000:80 faceguard-prototype
+```
+
+Open <http://localhost:3000>.
+
+## Deployed MVP v0
+
+- University VM: <http://10.90.138.70:3000> (university network or VPN)
+- Public frontend demonstration: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
+- [MVP v0 report and smoke check](reports/week2/mvp-v0-report.md)
+
+The public GitHub Pages site contains the static frontend demonstration. Real recognition, production authentication, camera input, and persistent backend integration remain outside MVP v0.
 
 ## Week 2 report
 
-[Week 2 Report](reports/week2/README.md)
+[Assignment 2 / Week 2 report](reports/week2/README.md)
 
 ## License
 

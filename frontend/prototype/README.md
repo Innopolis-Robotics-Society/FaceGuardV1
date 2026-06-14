@@ -1,11 +1,32 @@
+# FaceGuard Admin Panel Prototype
 
-  # FaceGuard Admin Panel Design
+This directory contains the interactive MVP v0 administrator interface generated from and refined after the FaceGuard Figma prototype.
 
-  This is a code bundle for FaceGuard Admin Panel Design. The original project is available at https://www.figma.com/design/SRfKSsmTXU7thEWzW2f78g/FaceGuard-Admin-Panel-Design.
+## Local development
 
-  ## Running the code
+Prerequisites: Node.js 20.19 or later and npm.
 
-  Run `npm i` to install the dependencies.
+```bash
+npm ci
+npm run dev
+```
 
-  Run `npm run dev` to start the development server.
-  
+## Production build
+
+```bash
+npm ci
+npm run build
+```
+
+The generated static files are written to `dist/`.
+
+## Deployment
+
+- University VM: build and serve the included Dockerfile on port 3000.
+- GitHub Pages: `.github/workflows/deploy-pages.yml` builds this directory after changes reach `main`.
+
+The application uses hash-based routing so that client-side routes work on static hosting.
+
+## Source design
+
+<https://www.figma.com/design/SRfKSsmTXU7thEWzW2f78g/FaceGuard-Admin-Panel-Design>
