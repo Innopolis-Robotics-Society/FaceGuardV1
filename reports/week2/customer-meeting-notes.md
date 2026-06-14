@@ -1,12 +1,11 @@
 # Customer Meeting Notes - Meeting 2
 
 **Date:** June 13, 2026
+
 **Format:** Remote review with screen sharing
-**Participants:** Customer representative, team presenter, and three additional team members
 
-## Evidence status
+**Participants:** Customer and developers team
 
-These notes supplement the sanitized transcript. Permission to record was obtained before recording began, and permission for private instructor sharing and publication of the sanitized English transcript was confirmed.
 
 ## Chronological notes
 

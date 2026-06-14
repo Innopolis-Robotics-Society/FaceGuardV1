@@ -54,7 +54,6 @@ The primary external interface is a graphical administrator web application.
 - Local setup instructions: [root README](../../README.md)
 - Detailed report and repeatable smoke check: [mvp-v0-report.md](./mvp-v0-report.md)
 
-The university VM is accessible through the university network or VPN. GitHub Pages provides a public static frontend demonstration. MVP v0 uses mock data and does not yet include production recognition, authentication, camera input, or persistent storage.
 
 ## Repository workflow
 
@@ -96,7 +95,6 @@ The prototype also explores later stories:
 - People edit/removal flow: US-10
 - Responsive administrator interface: US-07 and US-08
 
-The MVP v0 foundation and repeatable validation procedure are documented in [mvp-v0-report.md](./mvp-v0-report.md).
 
 ## Customer review
 

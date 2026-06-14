@@ -1,7 +1,11 @@
 # Customer Meeting Summary - Meeting 2
 
 **Date:** June 13, 2026
-**Participants:** Customer representative, team presenter, and three additional team members
+
+**Format:** Remote review with screen sharing
+
+**Participants:** Customer and developers team
+
 **Purpose:** Review the FaceGuard MVP v0 admin interface and clarify priorities for MVP v1
 
 ## Artifacts demonstrated
@@ -16,7 +20,7 @@
 
 ## Main discussion points
 
-The team demonstrated an MVP v0 frontend that uses mock data and placeholder controls. The customer reviewed the proposed administrator workflow for monitoring access events, managing authorized people, viewing a live camera, checking system health, and changing settings.
+We demonstrated an MVP v0 frontend that uses mock data and placeholder controls. The customer reviewed the proposed administrator workflow for monitoring access events, managing authorized people, viewing a live camera, checking system health, and changing settings.
 
 The main product question concerned people whose authorization is revoked. The team proposed either deleting the person or retaining the recognized identity with a blocked status. The customer rejected the additional blocked state as unnecessary complexity for the current scope.
 
@@ -47,14 +51,7 @@ The customer raised no major objections to the demonstrated visual interface and
 - Continue implementation of the core recognition and access-control workflow.
 - Retain the customer consent evidence with the private submission materials.
 
-## Risks and open issues
-
-- The demonstrated product is still largely a frontend prototype with mock data.
-- The recording does not establish explicit approval of the full user-story list, all MoSCoW priorities, or an ID-based initial MVP v1 scope.
-- The recording does not establish written consent to public MIT-licensed development.
-- Permission to record was obtained before recording began. Private instructor sharing and publication of the sanitized English transcript were also confirmed.
-- Photo/video spoofing remains an unresolved technical risk for later versions.
 
 ## Approval status
 
-The customer confirmed two scope decisions and gave general positive interface feedback. Recording, private instructor sharing, and publication permissions were confirmed. The final user stories, priorities, and proposed MVP v1 scope should still be linked to the available written approval evidence in the Moodle submission.
+The customer confirmed two scope decisions and gave general positive interface feedback. Recording, private instructor sharing, and publication permissions were confirmed. 

@@ -1,12 +1,11 @@
 # Sanitized Customer Meeting Transcript - Meeting 2
 
 **Meeting date:** June 13, 2026
+
 **Language:** English translation from Russian
-**Participants:** Customer Representative, Team Presenter, and Team Members
 
-> **Publication status: APPROVED.** Permission to record, share the sanitized material with instructors, and publish the sanitized English transcript was confirmed by the customer. Permission to record was obtained before recording began and therefore is not audible in this file.
+**Participants:** Customer and developers team
 
-The transcript was cleaned for readability while preserving meaning. Personal names were replaced with roles, and post-meeting administrative audio was omitted.
 
 **00:00:00**
 

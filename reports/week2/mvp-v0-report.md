@@ -4,12 +4,11 @@
 
 MVP v0 is a runnable frontend foundation for Face Guard. It demonstrates the administrator interface, navigation, representative data, and mock interactions before the recognition and backend integrations are complete.
 
-## Deployment URL / runnable artifact
+## Deployment
 
 - University VM deployment: <http://10.90.138.70:3000>
-- Public GitHub Pages deployment: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
+- Public GitHub Page: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
 
-The university VM address is available from the university network or its VPN. The GitHub Pages deployment is a public static demonstration generated from `frontend/prototype` by `.github/workflows/deploy-pages.yml`.
 
 ## Public video demonstration
 
@@ -44,7 +43,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite, normally `http://localhost:5173`.
+Open the URL printed by Vite: `http://localhost:5173`.
 
 ## Repeatable smoke check
 
