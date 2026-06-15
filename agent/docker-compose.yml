@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: faceguard_agent
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
+      - DEVICE_CODE=${DEVICE_CODE:-rpi-main-001}
+      - HARDWARE_MODE=${HARDWARE_MODE:-development}
+      - RECOGNITION_THRESHOLD=${RECOGNITION_THRESHOLD:-70}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+      - /dev/video0:/dev/video0  # Camera device (Linux only)
+    devices:
+      - /dev/video0:/dev/video0  # Camera access
+    privileged: true  # Required for GPIO on Raspberry Pi
+    networks:
+      - faceguard_network
+
+networks:
+  faceguard_network:
+    external: true
+    name: faceguard_network
