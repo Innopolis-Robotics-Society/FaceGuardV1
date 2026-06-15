@@ -279,10 +279,10 @@ class BackendClient:
                 "completed_at": datetime.utcnow().isoformat()
             }
 
-            if result:
-                update_data["result"] = str(result)
+            if result is not None:
+                update_data["result"] = result
 
-            if error:
+            if error is not None:
                 update_data["error_message"] = error
 
             response = await client.patch(
@@ -295,7 +295,12 @@ class BackendClient:
             return True
 
         except httpx.HTTPError as e:
-            logger.error(f"Failed to update command status: {e}")
+            logger.error(
+        "Failed to update command status: HTTP %s; body=%s; payload=%r",
+        e.response.status_code,
+        e.response.text,
+        update_data,
+    )
             return False
 
     async def check_connection(self) -> bool:
