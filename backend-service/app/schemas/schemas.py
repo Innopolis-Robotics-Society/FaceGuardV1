@@ -182,7 +182,7 @@ class TelemetryResponse(TelemetryBase):
 class DeviceCommandBase(BaseModel):
     device_id: UUID
     command_type: str = Field(..., min_length=1, max_length=100)
-    parameters: Optional[str] = None
+    parameters: Optional[dict] = None
 
 
 class DeviceCommandCreate(DeviceCommandBase):
@@ -193,7 +193,7 @@ class DeviceCommandUpdate(BaseModel):
     status: Optional[str] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    result: Optional[str] = None
+    result: Optional[dict] = None
     error_message: Optional[str] = None
 
 
@@ -204,7 +204,7 @@ class DeviceCommandResponse(DeviceCommandBase):
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    result: Optional[str] = None
+    result: Optional[dict] = None
     error_message: Optional[str] = None
 
     class Config:

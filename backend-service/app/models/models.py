@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -120,13 +120,13 @@ class DeviceCommand(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=False, index=True)
     command_type = Column(String(100), nullable=False)
-    parameters = Column(Text, nullable=True)
+    parameters = Column(JSON, nullable=True)
     status = Column(String(50), default="pending", nullable=False, index=True)
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
-    result = Column(Text, nullable=True)
+    result = Column(JSON, nullable=True)
     error_message = Column(Text, nullable=True)
 
     device = relationship("Device", back_populates="commands")

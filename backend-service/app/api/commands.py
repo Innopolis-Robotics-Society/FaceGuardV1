@@ -237,16 +237,14 @@ def create_capture_photos_command(
     4. Загружает на сервер через POST /api/v1/people/{person_id}/photos
     5. Обновляет статус команды на "completed"
     """
-    import json
-
     command_data = DeviceCommandCreate(
         device_id=device_id,
         command_type="capture_photos",
-        parameters=json.dumps({
+        parameters={
             "person_id": str(person_id),
             "count": count,
             "angle_variations": angle_variations,
-        }),
+        },
     )
 
     return create_command(command_data, db)
@@ -294,14 +292,12 @@ def create_open_door_command(
     3. Возвращает в исходное положение
     4. Создает событие "manual_open"
     """
-    import json
-
     command_data = DeviceCommandCreate(
         device_id=device_id,
         command_type="open_door",
-        parameters=json.dumps({
+        parameters={
             "duration": duration,
-        }),
+        },
     )
 
     return create_command(command_data, db)
@@ -323,14 +319,12 @@ def create_reboot_command(
     2. Отправляет подтверждение команды
     3. Выполняет `sudo reboot`
     """
-    import json
-
     command_data = DeviceCommandCreate(
         device_id=device_id,
         command_type="reboot_device",
-        parameters=json.dumps({
+        parameters={
             "delay": delay,
-        }),
+        },
     )
 
     return create_command(command_data, db)
