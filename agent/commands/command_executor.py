@@ -113,6 +113,14 @@ class CommandExecutor:
             strict_face_detection=True
         )
 
+        # Upload captured photos to backend
+        uploaded_count = 0
+        if result.get("success") and result.get("captured_count", 0) > 0:
+            logger.info(f"Uploading {result['captured_count']} photos to backend...")
+            uploaded_count = await self._upload_photos_to_backend(person_id, result["photos"])
+            result["uploaded_count"] = uploaded_count
+            logger.info(f"Successfully uploaded {uploaded_count}/{result['captured_count']} photos")
+
         return result
 
     async def _handle_rebuild_model(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -242,3 +250,56 @@ class CommandExecutor:
             "success": True,
             "message": "Stream stopped"
         }
+
+    async def _upload_photos_to_backend(self, person_id: str, photos: list) -> int:
+        """Upload captured photos to backend server"""
+        import httpx
+        from pathlib import Path
+
+        uploaded_count = 0
+
+        # Get backend client
+        from agent.sync.backend_client import BackendClient
+        backend = BackendClient()
+
+        try:
+            client = await backend._get_client()
+
+            for photo in photos:
+                if not photo.get("original_path"):
+                    continue
+
+                try:
+                    # Build full path to photo
+                    photo_path = Path(Config.DATA_DIR) / photo["original_path"]
+
+                    if not photo_path.exists():
+                        logger.warning(f"Photo file not found: {photo_path}")
+                        continue
+
+                    # Read photo file
+                    with open(photo_path, "rb") as f:
+                        files = {
+                            "files": (photo_path.name, f, "image/jpeg")
+                        }
+
+                        # Upload to backend
+                        response = await client.post(
+                            f"/api/v1/people/{person_id}/photos",
+                            files=files
+                        )
+
+                        if response.status_code in (200, 201):
+                            uploaded_count += 1
+                            logger.debug(f"Uploaded photo: {photo_path.name}")
+                        else:
+                            logger.error(f"Failed to upload photo {photo_path.name}: HTTP {response.status_code}")
+
+                except Exception as e:
+                    logger.error(f"Error uploading photo {photo.get('original_path')}: {e}")
+                    continue
+
+        except Exception as e:
+            logger.error(f"Failed to upload photos to backend: {e}")
+
+        return uploaded_count
