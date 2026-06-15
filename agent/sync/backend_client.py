@@ -1,6 +1,7 @@
 """API client for backend communication"""
 
 import httpx
+import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
@@ -295,12 +296,12 @@ class BackendClient:
             return True
 
         except httpx.HTTPError as e:
-            logger.error(
-        "Failed to update command status: HTTP %s; body=%s; payload=%r",
-        e.response.status_code,
-        e.response.text,
-        update_data,
-    )
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(
+                    f"Failed to update command status: HTTP {e.response.status_code}; body={e.response.text}; payload={update_data}"
+                )
+            else:
+                logger.error(f"Failed to update command status: {e}; payload={update_data}")
             return False
 
     async def check_connection(self) -> bool:
