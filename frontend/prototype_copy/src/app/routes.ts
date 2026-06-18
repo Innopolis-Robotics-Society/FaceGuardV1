@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/pages/Dashboard";
+import { LiveCamera } from "./components/pages/LiveCamera";
 import { People } from "./components/pages/People";
 import { PersonProfile } from "./components/pages/PersonProfile";
 import { AccessLogs } from "./components/pages/AccessLogs";
@@ -14,6 +15,7 @@ export const router = createBrowserRouter(
       Component: Layout,
       children: [
         { index: true, Component: Dashboard },
+        { path: "camera", Component: LiveCamera },
         { path: "people", Component: People },
         { path: "people/:id", Component: PersonProfile },
         { path: "logs", Component: AccessLogs },
