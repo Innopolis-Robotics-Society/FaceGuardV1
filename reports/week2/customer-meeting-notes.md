@@ -55,17 +55,6 @@ The customer had no major interface objections, considered the demonstrated dire
 - Defer photo/video spoofing defense until after core MVP v1 functionality if necessary.
 - Continue with the current admin-interface direction and focus next on recognition algorithms and functional integration.
 
-## Approval and consent status
-
-Permission to record, private instructor sharing, and publication of the sanitized English transcript were confirmed. The meeting recording itself does not explicitly capture approval of:
-
-- the complete documented user-story set;
-- every MoSCoW priority;
-- a clearly enumerated initial proposed MVP v1 scope by stable story ID;
-- written consent to the public MIT-licensed development model;
-
-These approvals require separate written evidence or a follow-up meeting.
-
 ## Action items
 
 - Update the user stories and constraints to remove the separate blocked-user state.
