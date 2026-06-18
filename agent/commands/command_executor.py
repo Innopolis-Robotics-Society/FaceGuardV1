@@ -106,7 +106,8 @@ class CommandExecutor:
 
         logger.info(f"Capturing {count} photos for person {person_id}")
 
-        result = self.capture_service.capture_person_photos(
+        result = await asyncio.to_thread(
+            self.capture_service.capture_person_photos,
             person_id=person_id,
             count=count,
             interval=interval,
@@ -127,7 +128,7 @@ class CommandExecutor:
         """Handle rebuild_model command"""
         logger.info("Rebuilding recognition model...")
 
-        result = self.recognition.train_model()
+        result = await asyncio.to_thread(self.recognition.train_model)
 
         return result
 
@@ -135,7 +136,7 @@ class CommandExecutor:
         """Handle reload_model command"""
         logger.info("Reloading recognition model...")
 
-        self.recognition.reload_model()
+        await asyncio.to_thread(self.recognition.reload_model)
 
         return {
             "success": True,
@@ -148,7 +149,7 @@ class CommandExecutor:
 
         logger.info(f"Manual door open for {duration} seconds")
 
-        success = self.door.open_door(duration)
+        success = await asyncio.to_thread(self.door.open_door, duration)
 
         return {
             "success": success,
@@ -161,7 +162,7 @@ class CommandExecutor:
 
         # This would be handled by the main agent loop
         # For now, just reload the model
-        self.recognition.reload_model()
+        await asyncio.to_thread(self.recognition.reload_model)
 
         return {
             "success": True,
