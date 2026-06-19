@@ -1,5 +1,6 @@
 """Event handler for recognition events"""
 
+import asyncio
 from datetime import datetime
 from typing import Optional
 
@@ -34,7 +35,7 @@ class EventHandler:
         logger.info(f"Person recognized: {person_id} (confidence: {confidence:.1f})")
 
         # Open door
-        door_opened = self.door.open_door()
+        door_opened = await asyncio.to_thread(self.door.open_door)
 
         # Create event
         event_data = {

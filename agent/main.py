@@ -8,6 +8,7 @@ import asyncio
 import signal
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add agent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -77,25 +78,45 @@ class FaceGuardAgent:
         )
 
         # Background tasks
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.heartbeat_task = None
         self.telemetry_task = None
 
         logger.info("Agent initialized successfully")
 
     def _on_recognized_wrapper(self, person_id: str, confidence: float, snapshot_path: str):
-        """Wrapper for synchronous callback"""
-        asyncio.create_task(
+        """Schedule recognized-person handling from the recognition thread."""
+        self._schedule_event_handler(
             self.event_handler.on_person_recognized(person_id, confidence, snapshot_path)
         )
 
     def _on_unknown_wrapper(self, confidence: float, snapshot_path: str):
-        """Wrapper for synchronous callback"""
-        asyncio.create_task(
+        """Schedule unknown-person handling from the recognition thread."""
+        self._schedule_event_handler(
             self.event_handler.on_unknown_person(confidence, snapshot_path)
         )
 
+    def _schedule_event_handler(self, coroutine):
+        """Run an event handler coroutine on the main asyncio loop."""
+        if self.loop is None or self.loop.is_closed():
+            logger.error("Cannot schedule event handler: asyncio loop is not running")
+            coroutine.close()
+            return
+
+        future = asyncio.run_coroutine_threadsafe(coroutine, self.loop)
+
+        def log_callback_error(done_future):
+            try:
+                done_future.result()
+            except Exception as e:
+                logger.error(f"Error in event handler callback: {e}", exc_info=True)
+
+        future.add_done_callback(log_callback_error)
+
     async def start(self):
         """Start all agent services"""
+        self.loop = asyncio.get_running_loop()
+
         logger.info("Starting FaceGuard Agent...")
         logger.info(f"Hardware mode: {Config.HARDWARE_MODE}")
         logger.info(f"Backend URL: {Config.BACKEND_URL}")
