@@ -18,13 +18,14 @@ export class ApiClient {
   private eventListeners: Set<(event: Event) => void> = new Set();
 
   constructor(
-    baseUrl: string = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1",
-    apiKey: string = import.meta.env.VITE_API_KEY || "your-api-key",
-    wsUrl: string = import.meta.env.VITE_WS_URL || "ws://localhost:8000/ws"
+    baseUrl: string = import.meta.env.VITE_API_URL || "http://localhost:8081/api/v1",
+    apiKey: string = import.meta.env.VITE_API_KEY || "key",
+    wsUrl: string = import.meta.env.VITE_WS_URL || "ws://localhost:8081/ws"
   ) {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
     this.wsUrl = wsUrl;
+    console.log('📡 API Client создан:');
   }
 
   private async request<T>(
@@ -40,6 +41,8 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, {
+        mode: 'cors', 
+        credentials: 'include',
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
@@ -57,6 +60,7 @@ export class ApiClient {
     }
   }
 
+  
   // Health & Status
   async getHealth(): Promise<HealthResponse> {
     return this.request<HealthResponse>("GET", "/health");
@@ -152,4 +156,8 @@ export class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient();
+export const apiClient = new ApiClient(
+  '/api/v1',  
+  import.meta.env.VITE_API_KEY || "key",
+  import.meta.env.VITE_WS_URL || "ws://localhost:8081/ws"
+);
