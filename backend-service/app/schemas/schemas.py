@@ -136,7 +136,7 @@ class AccessEventBase(BaseModel):
     device_id: UUID
     person_id: Optional[UUID] = None
     event_type: str = Field(..., min_length=1, max_length=50)
-    confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+    confidence: Optional[float] = Field(None, ge=0.0)
     door_opened: bool = False
     photo_path: Optional[str] = None
     video_path: Optional[str] = None
