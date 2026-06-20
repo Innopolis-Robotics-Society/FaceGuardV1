@@ -16,11 +16,12 @@ C:\Users\hitoe\PycharmProjects\FaceGuardV1-mvp1-camera
 
 - Runs the `agent` device agent from `privel/FaceGuardV1` locally on the laptop camera through a local API bridge.
 - Shows the real MJPEG camera stream in the React site.
-- Registers a person by capturing photos from the laptop camera.
+- Registers a person with a guided camera flow: one shot per second with pose prompts.
 - Creates the person record in the central `backend-service` database.
-- Retrains the local OpenCV LBPH recognition model.
+- Retrains the local OpenCV LBPH recognition model after guided capture.
+- Uses stricter recognition defaults: lower LBPH threshold, multi-frame consensus, and capture quality gates.
 - Polls recognition events from the local agent.
-- Reads the People and Profile screens from the central `backend-service` at `http://10.93.26.183:8000`.
+- Reads Dashboard, Access Logs, System, Settings, People, and Profile screens from live agent/backend data where available.
 
 The browser does not receive the local agent API key. Vite proxies `/agent/*` to `http://127.0.0.1:8081/*` and injects `X-Agent-Key` on the dev-server side. Vite also proxies `/backend/*` to `http://10.93.26.183:8000/*` so the browser talks to one local origin.
 
@@ -77,6 +78,10 @@ Useful values for local laptop testing:
 BACKEND_URL=http://10.93.26.183:8000
 CAMERA_INDEX=0
 HARDWARE_MODE=development
+RECOGNITION_THRESHOLD=50
+RECOGNITION_CONSENSUS_FRAMES=4
+RECOGNITION_CONSENSUS_WINDOW=7
+UNKNOWN_CONSENSUS_FRAMES=5
 ```
 
 ## Demo Flow
@@ -86,11 +91,18 @@ HARDWARE_MODE=development
 3. Open `/FaceGuardV1/camera`.
 4. Confirm the live camera stream appears.
 5. Enter a person name.
-6. Keep one clear face in frame.
-7. Click `Capture and Train`.
-8. Wait for the success toast.
+6. Click `Start Guided Capture`.
+7. Follow the on-screen pose prompts; the agent captures one photo per second.
+8. Wait for capture and model training to complete.
 9. Stay in frame and watch recognition events appear.
 10. Open `/FaceGuardV1/people` and confirm the person appears from the backend database.
+
+## Live Admin Panels
+
+- Dashboard reads live people, telemetry, and local recognition events.
+- Access Logs reads the local agent SQLite event table and can export CSV or clear local events.
+- System reads agent health, telemetry, model status, backend readiness, and can retrain the model.
+- Settings updates runtime agent settings through `/agent/api/v1/settings`.
 
 ## Rollback / Cleanup
 

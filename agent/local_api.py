@@ -13,6 +13,7 @@ import secrets
 import sqlite3
 import threading
 import time
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,18 +36,53 @@ from agent.telemetry.telemetry_service import TelemetryService
 
 
 API_KEY = os.getenv("AGENT_API_KEY", "change-me-agent-key")
+DEFAULT_CAPTURE_STEPS = [
+    "Look straight at the camera",
+    "Turn your head slightly left",
+    "Turn your head slightly right",
+    "Lift your chin a little",
+    "Lower your chin a little",
+    "Move a little closer",
+    "Move a little farther back",
+    "Look straight again",
+    "Turn left again",
+    "Turn right again",
+    "Use a neutral expression",
+    "Make a small smile",
+]
 
 
 class CaptureRequest(BaseModel):
     display_name: str = Field(min_length=1, max_length=100)
     count: int = Field(default=12, ge=1, le=60)
-    interval_seconds: float = Field(default=0.3, ge=0.05, le=5)
+    interval_seconds: float = Field(default=1.0, ge=0.05, le=5)
     strict_face_detection: bool = True
+
+
+class CaptureSessionRequest(BaseModel):
+    display_name: str = Field(min_length=1, max_length=100)
+    steps: list[str] = Field(default_factory=lambda: DEFAULT_CAPTURE_STEPS.copy())
+    interval_seconds: float = Field(default=1.0, ge=0.5, le=5)
+    strict_face_detection: bool = True
+    train_after_capture: bool = True
 
 
 class DoorOpenRequest(BaseModel):
     duration_seconds: float | None = Field(default=None, ge=0.1, le=30)
     reason: str = Field(default="manual", max_length=100)
+
+
+class SettingsUpdate(BaseModel):
+    recognition_threshold: float | None = Field(default=None, ge=25, le=90)
+    recognition_consensus_frames: int | None = Field(default=None, ge=1, le=10)
+    recognition_consensus_window: int | None = Field(default=None, ge=3, le=20)
+    unknown_consensus_frames: int | None = Field(default=None, ge=1, le=12)
+    recognition_process_interval_seconds: float | None = Field(default=None, ge=0.05, le=2)
+    action_cooldown_seconds: int | None = Field(default=None, ge=1, le=60)
+    door_open_duration: int | None = Field(default=None, ge=1, le=30)
+    min_blur_score: float | None = Field(default=None, ge=0, le=200)
+    min_brightness: float | None = Field(default=None, ge=0, le=255)
+    max_brightness: float | None = Field(default=None, ge=0, le=255)
 
 
 camera = CameraService()
@@ -56,6 +92,8 @@ door = DoorController()
 database = Database()
 telemetry = TelemetryService()
 recognition_loop: RecognitionLoop | None = None
+capture_sessions: dict[str, dict[str, Any]] = {}
+capture_sessions_lock = threading.Lock()
 
 
 def require_api_key(x_agent_key: str | None = Header(default=None)) -> None:
@@ -119,7 +157,7 @@ def _list_events(limit: int) -> list[dict[str, Any]]:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             """
-            SELECT id, event_type, person_id, confidence, photo_path, created_at, synced
+            SELECT id, event_type, person_id, confidence, door_opened, photo_path, created_at, synced
             FROM events
             ORDER BY created_at DESC
             LIMIT ?
@@ -137,6 +175,7 @@ def _list_events(limit: int) -> list[dict[str, Any]]:
                 "person_id": person_id,
                 "person_name": metadata.get("name"),
                 "recognition_distance": row["confidence"],
+                "door_opened": bool(row["door_opened"]),
                 "photo_path": row["photo_path"],
                 "created_at": row["created_at"],
                 "synced": bool(row["synced"]),
@@ -174,6 +213,127 @@ def _ensure_recognition_loop() -> None:
         recognition_loop = RecognitionLoop(camera, recognition, on_recognized=_on_recognized, on_unknown=_on_unknown)
     if recognition.is_trained and not recognition_loop.is_active():
         recognition_loop.start()
+
+
+def _settings_payload() -> dict[str, Any]:
+    return {
+        "recognition_threshold": Config.RECOGNITION_THRESHOLD,
+        "recognition_consensus_frames": Config.RECOGNITION_CONSENSUS_FRAMES,
+        "recognition_consensus_window": Config.RECOGNITION_CONSENSUS_WINDOW,
+        "unknown_consensus_frames": Config.UNKNOWN_CONSENSUS_FRAMES,
+        "recognition_process_interval_seconds": Config.RECOGNITION_PROCESS_INTERVAL_SECONDS,
+        "action_cooldown_seconds": Config.ACTION_COOLDOWN_SECONDS,
+        "door_open_duration": Config.DOOR_OPEN_DURATION,
+        "min_blur_score": Config.MIN_BLUR_SCORE,
+        "min_brightness": Config.MIN_BRIGHTNESS,
+        "max_brightness": Config.MAX_BRIGHTNESS,
+        "camera_width": Config.CAMERA_WIDTH,
+        "camera_height": Config.CAMERA_HEIGHT,
+        "camera_fps": Config.CAMERA_FPS,
+        "camera_index": Config.CAMERA_INDEX,
+        "hardware_mode": Config.HARDWARE_MODE,
+        "backend_url": Config.BACKEND_URL,
+    }
+
+
+def _event_stats() -> dict[str, Any]:
+    events = _list_events(1000)
+    today = datetime.now().date()
+    today_events = []
+    for event in events:
+        try:
+            event_date = datetime.fromisoformat(str(event["created_at"]).replace("Z", "+00:00")).date()
+        except ValueError:
+            event_date = today
+        if event_date == today:
+            today_events.append(event)
+
+    return {
+        "total_events": len(events),
+        "today_events": len(today_events),
+        "recognized_today": sum(1 for event in today_events if event["event_type"] == "recognized"),
+        "unknown_today": sum(1 for event in today_events if event["event_type"] == "unknown"),
+        "door_opened_today": sum(1 for event in today_events if event["door_opened"]),
+        "recent_events": events[:10],
+    }
+
+
+def _session_snapshot(session_id: str) -> dict[str, Any]:
+    with capture_sessions_lock:
+        session = capture_sessions.get(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Capture session not found")
+        return dict(session)
+
+
+def _update_session(session_id: str, **updates: Any) -> None:
+    with capture_sessions_lock:
+        if session_id in capture_sessions:
+            capture_sessions[session_id].update(updates)
+            capture_sessions[session_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+
+def _run_capture_session(session_id: str, person_id: str, payload: CaptureSessionRequest) -> None:
+    captured = 0
+    skipped = 0
+    steps = [step.strip() for step in payload.steps if step.strip()] or DEFAULT_CAPTURE_STEPS
+    try:
+        _write_person_metadata(person_id, payload.display_name)
+        _update_session(session_id, status="running", total_steps=len(steps), current_index=0)
+
+        for index, prompt in enumerate(steps, start=1):
+            _update_session(
+                session_id,
+                current_index=index,
+                current_prompt=prompt,
+                last_result=None,
+            )
+            time.sleep(payload.interval_seconds)
+
+            result = capture_service.capture_person_photos(
+                person_id=person_id,
+                count=1,
+                interval=0,
+                strict_face_detection=payload.strict_face_detection,
+            )
+            step_result = {
+                "index": index,
+                "prompt": prompt,
+                "captured_count": result["captured_count"],
+                "skipped_count": result["skipped_count"],
+                "skipped": result.get("skipped", []),
+            }
+            captured += result["captured_count"]
+            skipped += result["skipped_count"]
+
+            with capture_sessions_lock:
+                session = capture_sessions[session_id]
+                session["steps"].append(step_result)
+                session["captured_count"] = captured
+                session["skipped_count"] = skipped
+                session["last_result"] = step_result
+                session["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        training_result = None
+        if payload.train_after_capture and captured > 0:
+            _update_session(session_id, status="training", current_prompt="Training recognition model")
+            training_result = train_model()
+
+        _update_session(
+            session_id,
+            status="completed",
+            current_prompt="Registration complete",
+            training_result=training_result,
+            completed_at=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as exc:
+        _update_session(
+            session_id,
+            status="failed",
+            error=str(exc),
+            current_prompt="Registration failed",
+            completed_at=datetime.now(timezone.utc).isoformat(),
+        )
 
 
 @asynccontextmanager
@@ -241,6 +401,49 @@ def get_telemetry() -> dict[str, Any]:
     }
 
 
+@app.get("/api/v1/stats", dependencies=[Depends(require_api_key)])
+def stats() -> dict[str, Any]:
+    event_stats = _event_stats()
+    local_people = _list_local_people()
+    return {
+        **event_stats,
+        "local_people_count": len(local_people),
+        "local_training_photos": sum(person["processed_photos"] for person in local_people),
+        "recognition_ready": recognition.is_trained,
+        "model_people_count": len(recognition.label_map),
+        "settings": _settings_payload(),
+    }
+
+
+@app.get("/api/v1/settings", dependencies=[Depends(require_api_key)])
+def get_settings() -> dict[str, Any]:
+    return _settings_payload()
+
+
+@app.patch("/api/v1/settings", dependencies=[Depends(require_api_key)])
+def update_settings(payload: SettingsUpdate) -> dict[str, Any]:
+    updates = payload.model_dump(exclude_none=True)
+    mapping = {
+        "recognition_threshold": "RECOGNITION_THRESHOLD",
+        "recognition_consensus_frames": "RECOGNITION_CONSENSUS_FRAMES",
+        "recognition_consensus_window": "RECOGNITION_CONSENSUS_WINDOW",
+        "unknown_consensus_frames": "UNKNOWN_CONSENSUS_FRAMES",
+        "recognition_process_interval_seconds": "RECOGNITION_PROCESS_INTERVAL_SECONDS",
+        "action_cooldown_seconds": "ACTION_COOLDOWN_SECONDS",
+        "door_open_duration": "DOOR_OPEN_DURATION",
+        "min_blur_score": "MIN_BLUR_SCORE",
+        "min_brightness": "MIN_BRIGHTNESS",
+        "max_brightness": "MAX_BRIGHTNESS",
+    }
+    for key, value in updates.items():
+        setattr(Config, mapping[key], value)
+    if Config.RECOGNITION_CONSENSUS_FRAMES > Config.RECOGNITION_CONSENSUS_WINDOW:
+        Config.RECOGNITION_CONSENSUS_WINDOW = Config.RECOGNITION_CONSENSUS_FRAMES
+    if Config.MIN_BRIGHTNESS > Config.MAX_BRIGHTNESS:
+        Config.MIN_BRIGHTNESS, Config.MAX_BRIGHTNESS = Config.MAX_BRIGHTNESS, Config.MIN_BRIGHTNESS
+    return _settings_payload()
+
+
 @app.get("/api/v1/camera/snapshot", dependencies=[Depends(require_api_key)])
 def camera_snapshot() -> Response:
     frame = camera.get_frame()
@@ -284,6 +487,39 @@ def capture_person(person_id: str, payload: CaptureRequest) -> dict[str, Any]:
     return result
 
 
+@app.post("/api/v1/people/{person_id}/capture-session", dependencies=[Depends(require_api_key)])
+def start_capture_session(person_id: str, payload: CaptureSessionRequest) -> dict[str, Any]:
+    session_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    with capture_sessions_lock:
+        capture_sessions[session_id] = {
+            "session_id": session_id,
+            "person_id": person_id,
+            "display_name": payload.display_name,
+            "status": "queued",
+            "current_index": 0,
+            "total_steps": len(payload.steps or DEFAULT_CAPTURE_STEPS),
+            "current_prompt": "Preparing camera",
+            "captured_count": 0,
+            "skipped_count": 0,
+            "steps": [],
+            "last_result": None,
+            "training_result": None,
+            "error": None,
+            "created_at": now,
+            "updated_at": now,
+            "completed_at": None,
+        }
+
+    threading.Thread(target=_run_capture_session, args=(session_id, person_id, payload), daemon=True).start()
+    return _session_snapshot(session_id)
+
+
+@app.get("/api/v1/capture-sessions/{session_id}", dependencies=[Depends(require_api_key)])
+def capture_session(session_id: str) -> dict[str, Any]:
+    return _session_snapshot(session_id)
+
+
 @app.post("/api/v1/recognition/train", dependencies=[Depends(require_api_key)])
 def train_model() -> dict[str, Any]:
     result = recognition.train_model()
@@ -314,6 +550,35 @@ def open_door(payload: DoorOpenRequest) -> dict[str, Any]:
 @app.get("/api/v1/events", dependencies=[Depends(require_api_key)])
 def events(limit: int = Query(default=50, ge=1, le=500)) -> list[dict[str, Any]]:
     return _list_events(limit)
+
+
+@app.delete("/api/v1/events", dependencies=[Depends(require_api_key)])
+def clear_events() -> dict[str, Any]:
+    if not Config.DATABASE_FILE.exists():
+        return {"deleted": 0}
+    with sqlite3.connect(str(Config.DATABASE_FILE)) as connection:
+        cursor = connection.execute("DELETE FROM events")
+        connection.commit()
+        return {"deleted": cursor.rowcount}
+
+
+@app.get("/api/v1/events/{event_id}/snapshot", dependencies=[Depends(require_api_key)])
+def event_snapshot(event_id: int) -> Response:
+    if not Config.DATABASE_FILE.exists():
+        raise HTTPException(status_code=404, detail="Event database not found")
+    with sqlite3.connect(str(Config.DATABASE_FILE)) as connection:
+        connection.row_factory = sqlite3.Row
+        row = connection.execute("SELECT photo_path FROM events WHERE id = ?", (event_id,)).fetchone()
+    if not row or not row["photo_path"]:
+        raise HTTPException(status_code=404, detail="Event snapshot not found")
+
+    target = (Config.DATA_DIR / row["photo_path"]).resolve()
+    data_root = Config.DATA_DIR.resolve()
+    if data_root not in target.parents and target != data_root:
+        raise HTTPException(status_code=400, detail="Invalid snapshot path")
+    if not target.exists():
+        raise HTTPException(status_code=404, detail="Snapshot file not found")
+    return Response(content=target.read_bytes(), media_type="image/jpeg")
 
 
 if __name__ == "__main__":

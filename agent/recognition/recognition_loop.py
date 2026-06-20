@@ -3,6 +3,7 @@
 import cv2
 import time
 import threading
+from collections import Counter, deque
 from datetime import datetime
 from typing import Optional, Callable
 from pathlib import Path
@@ -34,6 +35,7 @@ class RecognitionLoop:
         self.is_running = False
         self.loop_thread: Optional[threading.Thread] = None
         self.last_action_time = {}
+        self.recent_results = deque(maxlen=Config.RECOGNITION_CONSENSUS_WINDOW)
 
     def start(self):
         """Start recognition loop"""
@@ -80,18 +82,47 @@ class RecognitionLoop:
                     time.sleep(0.1)
                     continue
 
-                # Process recognition result
-                if result["recognized"]:
-                    self._handle_recognized(result, frame)
-                else:
-                    self._handle_unknown(result, frame)
+                self._process_result(result, frame)
 
                 # Small delay to prevent CPU overload
-                time.sleep(0.1)
+                time.sleep(Config.RECOGNITION_PROCESS_INTERVAL_SECONDS)
 
             except Exception as e:
                 logger.error(f"Error in recognition loop: {e}", exc_info=True)
                 time.sleep(1)
+
+    def _process_result(self, result: dict, frame):
+        """Require a stable multi-frame decision before emitting an event."""
+        candidate = result["person_id"] if result["recognized"] else "unknown"
+        self.recent_results.append(
+            {
+                "candidate": candidate,
+                "confidence": float(result["confidence"]),
+                "frame": frame.copy(),
+            }
+        )
+
+        counts = Counter(item["candidate"] for item in self.recent_results)
+        best_candidate, count = counts.most_common(1)[0]
+
+        if best_candidate == "unknown":
+            if count >= Config.UNKNOWN_CONSENSUS_FRAMES:
+                same = [item for item in self.recent_results if item["candidate"] == "unknown"]
+                avg_confidence = sum(item["confidence"] for item in same) / len(same)
+                self._handle_unknown({"confidence": avg_confidence}, same[-1]["frame"])
+                self.recent_results.clear()
+            return
+
+        if count < Config.RECOGNITION_CONSENSUS_FRAMES:
+            return
+
+        same = [item for item in self.recent_results if item["candidate"] == best_candidate]
+        avg_confidence = sum(item["confidence"] for item in same) / len(same)
+        if avg_confidence >= Config.RECOGNITION_THRESHOLD:
+            return
+
+        self._handle_recognized({"person_id": best_candidate, "confidence": avg_confidence}, same[-1]["frame"])
+        self.recent_results.clear()
 
     def _handle_recognized(self, result: dict, frame):
         """Handle recognized person"""

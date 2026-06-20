@@ -28,10 +28,17 @@ class Config:
     CAMERA_FPS: int = int(os.getenv("CAMERA_FPS", "30"))
 
     # Recognition settings
-    RECOGNITION_THRESHOLD: float = float(os.getenv("RECOGNITION_THRESHOLD", "70"))
+    RECOGNITION_THRESHOLD: float = float(os.getenv("RECOGNITION_THRESHOLD", "50"))
+    RECOGNITION_CONSENSUS_FRAMES: int = int(os.getenv("RECOGNITION_CONSENSUS_FRAMES", "4"))
+    RECOGNITION_CONSENSUS_WINDOW: int = int(os.getenv("RECOGNITION_CONSENSUS_WINDOW", "7"))
+    UNKNOWN_CONSENSUS_FRAMES: int = int(os.getenv("UNKNOWN_CONSENSUS_FRAMES", "5"))
+    RECOGNITION_PROCESS_INTERVAL_SECONDS: float = float(os.getenv("RECOGNITION_PROCESS_INTERVAL_SECONDS", "0.25"))
     MIN_FACE_SIZE: int = int(os.getenv("MIN_FACE_SIZE", "80"))
     FACE_SCALE_FACTOR: float = float(os.getenv("FACE_SCALE_FACTOR", "1.2"))
     FACE_MIN_NEIGHBORS: int = int(os.getenv("FACE_MIN_NEIGHBORS", "5"))
+    MIN_BLUR_SCORE: float = float(os.getenv("MIN_BLUR_SCORE", "25"))
+    MIN_BRIGHTNESS: float = float(os.getenv("MIN_BRIGHTNESS", "45"))
+    MAX_BRIGHTNESS: float = float(os.getenv("MAX_BRIGHTNESS", "215"))
 
     # Door control
     SERVO_GPIO_PIN: int = int(os.getenv("SERVO_GPIO_PIN", "17"))

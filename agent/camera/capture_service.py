@@ -31,6 +31,24 @@ class CaptureService:
 
         return detector
 
+    def _quality_metrics(self, gray_face) -> Dict[str, float]:
+        blur_score = float(cv2.Laplacian(gray_face, cv2.CV_64F).var())
+        brightness_score = float(gray_face.mean())
+        return {"blur_score": blur_score, "brightness_score": brightness_score}
+
+    def _quality_error(self, gray_face) -> Optional[str]:
+        metrics = self._quality_metrics(gray_face)
+        if metrics["blur_score"] < Config.MIN_BLUR_SCORE:
+            return "blurry_face"
+        if metrics["brightness_score"] < Config.MIN_BRIGHTNESS:
+            return "too_dark"
+        if metrics["brightness_score"] > Config.MAX_BRIGHTNESS:
+            return "too_bright"
+        return None
+
+    def _preprocess_face(self, gray_face):
+        return cv2.equalizeHist(cv2.resize(gray_face, (200, 200)))
+
     def capture_person_photos(
         self,
         person_id: str,
@@ -107,9 +125,17 @@ class CaptureService:
 
                 # Process and save face
                 if len(faces) > 0:
-                    x, y, w, h = faces[0]
+                    x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
                     face_roi = gray[y:y + h, x:x + w]
-                    face_resized = cv2.resize(face_roi, (200, 200))
+                    quality_error = self._quality_error(face_roi)
+                    if strict_face_detection and quality_error:
+                        logger.warning(f"Low quality face in frame {i + 1}/{count}: {quality_error}")
+                        skipped_photos.append({"index": i + 1, "reason": quality_error})
+                        time.sleep(interval)
+                        continue
+
+                    metrics = self._quality_metrics(face_roi)
+                    face_resized = self._preprocess_face(face_roi)
 
                     processed_filename = f"face_{timestamp}_{i + 1:03d}.jpg"
                     processed_path = processed_dir / processed_filename
@@ -121,7 +147,8 @@ class CaptureService:
                         "original_path": str(original_path.relative_to(Config.DATA_DIR)),
                         "processed_path": str(processed_path.relative_to(Config.DATA_DIR)),
                         "face_detected": True,
-                        "face_bbox": {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
+                        "face_bbox": {"x": int(x), "y": int(y), "w": int(w), "h": int(h)},
+                        **metrics,
                     })
 
                     logger.info(f"Captured photo {i + 1}/{count} for {person_id}")
@@ -218,9 +245,10 @@ class CaptureService:
         }
 
         if len(faces) > 0:
-            x, y, w, h = faces[0]
+            x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
             face_roi = gray[y:y + h, x:x + w]
-            face_resized = cv2.resize(face_roi, (200, 200))
+            metrics = self._quality_metrics(face_roi)
+            face_resized = self._preprocess_face(face_roi)
 
             processed_filename = f"face_{timestamp}_{filename}"
             processed_path = processed_dir / processed_filename
@@ -229,6 +257,7 @@ class CaptureService:
 
             result["processed_path"] = str(processed_path.relative_to(Config.DATA_DIR))
             result["face_bbox"] = {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
+            result.update(metrics)
 
             logger.info(f"Photo processed successfully for {person_id}")
         else:

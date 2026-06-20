@@ -13,76 +13,41 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AGENT_API,
+  CENTRAL_API,
+  type AgentHealth,
+  type ApiPerson,
+  type CaptureSession,
+  type LocalPerson,
+  type RecognitionEvent,
+  type Telemetry,
+  agentJson,
+  backendJson,
+  eventName,
+  formatTime,
+  matchQuality,
+} from "../../lib/faceguardApi";
 
-const CENTRAL_API =
-  (import.meta.env.VITE_FACEGUARD_API_URL as string | undefined) ?? "/backend";
-const AGENT_API = "/agent/api/v1";
-
-type AgentHealth = {
-  status: "ok" | "degraded";
-  device_id: string;
-  version: string;
-  platform: string;
-  camera_ready: boolean;
-  camera_simulated: boolean;
-  recognition_ready: boolean;
-  hardware_mode: string;
-  timestamp: string;
-};
-
-type CentralHealth = {
-  status: string;
-  service: string;
-  version: string;
-  environment: string;
-  time: string;
-};
-
-type Telemetry = {
-  camera_fps: number;
-  camera_ready: boolean;
-  camera_simulated: boolean;
-  recognition_ready: boolean;
-  model_people_count: number;
-  cpu_percent: number;
-  memory_percent: number;
-};
-
-type LocalPerson = {
-  person_id: string;
-  name: string;
-  original_photos: number;
-  processed_photos: number;
-};
-
-type RecognitionEvent = {
-  id: string;
-  event_type: string;
-  person_id: string | null;
-  person_name: string | null;
-  recognition_distance: number | null;
-  created_at: string;
-};
+const GUIDED_STEPS = [
+  "Look straight at the camera",
+  "Turn your head slightly left",
+  "Turn your head slightly right",
+  "Lift your chin a little",
+  "Lower your chin a little",
+  "Move a little closer",
+  "Move a little farther back",
+  "Look straight again",
+  "Turn left again",
+  "Turn right again",
+  "Use a neutral expression",
+  "Make a small smile",
+];
 
 const cardStyle = {
   background: "#111111",
   border: "1px solid rgba(255,255,255,0.08)",
 };
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
-  if (!response.ok) {
-    let message = `${response.status} ${response.statusText}`;
-    try {
-      const body = await response.json();
-      message = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
-    } catch {
-      // Keep the HTTP status message.
-    }
-    throw new Error(message);
-  }
-  return response.json() as Promise<T>;
-}
 
 function makePersonId(name: string) {
   const slug =
@@ -124,35 +89,44 @@ function Metric({ label, value, color }: { label: string; value: string; color?:
   );
 }
 
+function ProgressBar({ value }: { value: number }) {
+  return (
+    <div className="h-1.5 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+      <div className="h-full rounded-full transition-all" style={{ width: `${value}%`, background: "#10b981" }} />
+    </div>
+  );
+}
+
 export function LiveCamera() {
   const [agentHealth, setAgentHealth] = useState<AgentHealth | null>(null);
-  const [centralHealth, setCentralHealth] = useState<CentralHealth | null>(null);
+  const [centralReady, setCentralReady] = useState(false);
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
   const [people, setPeople] = useState<LocalPerson[]>([]);
   const [events, setEvents] = useState<RecognitionEvent[]>([]);
   const [name, setName] = useState("");
-  const [photoCount, setPhotoCount] = useState(12);
   const [strictFaceDetection, setStrictFaceDetection] = useState(true);
   const [busy, setBusy] = useState(false);
   const [streamTick, setStreamTick] = useState(0);
-  const [lastTraining, setLastTraining] = useState<string>("not trained in this session");
+  const [session, setSession] = useState<CaptureSession | null>(null);
 
   const streamUrl = useMemo(() => `${AGENT_API}/camera/stream?refresh=${streamTick}`, [streamTick]);
+  const registrationActive = session?.status === "queued" || session?.status === "running" || session?.status === "training";
+  const progress = session ? Math.round((session.current_index / Math.max(1, session.total_steps)) * 100) : 0;
 
   async function refreshStatus(showToast = false) {
     const results = await Promise.allSettled([
-      fetchJson<AgentHealth>(`${AGENT_API}/health`),
-      fetchJson<Telemetry>(`${AGENT_API}/telemetry`),
-      fetchJson<LocalPerson[]>(`${AGENT_API}/people`),
-      fetchJson<RecognitionEvent[]>(`${AGENT_API}/events?limit=8`),
-      fetchJson<CentralHealth>(`${CENTRAL_API}/api/v1/system/health`),
+      agentJson<AgentHealth>("/health"),
+      agentJson<Telemetry>("/telemetry"),
+      agentJson<LocalPerson[]>("/people"),
+      agentJson<RecognitionEvent[]>("/events?limit=8"),
+      backendJson<{ status: string }>("/api/v1/system/readiness"),
     ]);
 
     if (results[0].status === "fulfilled") setAgentHealth(results[0].value);
     if (results[1].status === "fulfilled") setTelemetry(results[1].value);
     if (results[2].status === "fulfilled") setPeople(results[2].value);
     if (results[3].status === "fulfilled") setEvents(results[3].value);
-    if (results[4].status === "fulfilled") setCentralHealth(results[4].value);
+    setCentralReady(results[4].status === "fulfilled" && results[4].value.status === "ready");
 
     if (showToast) {
       const failed = results.filter((result) => result.status === "rejected").length;
@@ -169,6 +143,27 @@ export function LiveCamera() {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!session || !registrationActive) return;
+    const timer = window.setInterval(async () => {
+      try {
+        const next = await agentJson<CaptureSession>(`/capture-sessions/${session.session_id}`);
+        setSession(next);
+        if (next.status === "completed") {
+          toast.success(`${next.display_name} registered and model retrained`);
+          setName("");
+          await refreshStatus();
+        }
+        if (next.status === "failed") {
+          toast.error(next.error ?? "Registration failed");
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
+    }, 650);
+    return () => window.clearInterval(timer);
+  }, [registrationActive, session?.session_id]);
+
   async function registerPerson() {
     const displayName = name.trim();
     if (!displayName) {
@@ -181,46 +176,36 @@ export function LiveCamera() {
       let personId = makePersonId(displayName);
 
       try {
-        const centralPerson = await fetchJson<{ id: string }>(`${CENTRAL_API}/api/v1/people/`, {
+        const centralPerson = await backendJson<ApiPerson>("/api/v1/people/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: displayName,
-            description: "Created from local MVP v1 camera demo",
+            description: "Created from guided local MVP v1 registration",
             access_enabled: true,
           }),
         });
         personId = centralPerson.id;
       } catch (error) {
         console.warn("Central backend person creation failed; continuing with local agent only", error);
-        toast.warning("Central backend unavailable; saving person in local camera agent");
+        toast.warning("Backend-service unavailable; saving person in local camera agent");
       }
 
-      toast.info("Look at the camera while photos are captured");
-      await fetchJson(`${AGENT_API}/people/${encodeURIComponent(personId)}/capture`, {
+      const started = await agentJson<CaptureSession>(`/people/${encodeURIComponent(personId)}/capture-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           display_name: displayName,
-          count: photoCount,
-          interval_seconds: 0.28,
+          steps: GUIDED_STEPS,
+          interval_seconds: 1,
           strict_face_detection: strictFaceDetection,
+          train_after_capture: true,
         }),
       });
-
-      const training = await fetchJson<{ people_count: number; image_count: number; skipped_count: number }>(
-        `${AGENT_API}/recognition/train`,
-        { method: "POST" },
-      );
-      setLastTraining(
-        `${training.people_count} people, ${training.image_count} images, ${training.skipped_count} skipped`,
-      );
-      setName("");
-      toast.success(`${displayName} registered and recognition model retrained`);
-      await refreshStatus();
+      setSession(started);
+      toast.info("Guided registration started");
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error(message);
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
     }
@@ -229,7 +214,7 @@ export function LiveCamera() {
   async function openDoor() {
     setBusy(true);
     try {
-      await fetchJson(`${AGENT_API}/door/open`, {
+      await agentJson("/door/open", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ duration_seconds: 2, reason: "local-mvp1-demo" }),
@@ -250,7 +235,7 @@ export function LiveCamera() {
           <div>
             <h1 className="text-lg font-semibold text-white">Live Camera MVP v1</h1>
             <p className="text-sm" style={{ color: "#777" }}>
-              Local laptop camera, LBPH recognition agent, central backend-service at {CENTRAL_API}
+              Local agent on laptop camera · backend-service through {CENTRAL_API}
             </p>
           </div>
           <button
@@ -267,16 +252,13 @@ export function LiveCamera() {
           </button>
         </div>
 
-        <div
-          className="relative overflow-hidden rounded-2xl"
-          style={{ ...cardStyle, aspectRatio: "16 / 9", minHeight: 320 }}
-        >
+        <div className="relative overflow-hidden rounded-2xl" style={{ ...cardStyle, aspectRatio: "16 / 9", minHeight: 320 }}>
           <img
             key={streamTick}
             src={streamUrl}
             alt="Live laptop camera stream"
             className="h-full w-full object-cover"
-            onError={() => toast.error("Camera stream is unavailable. Start backend agent on port 8081.")}
+            onError={() => toast.error("Camera stream is unavailable. Start local agent on port 8081.")}
           />
           <div className="absolute left-3 top-3 flex flex-wrap gap-2">
             <div className="inline-flex items-center gap-2 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs font-semibold text-white">
@@ -298,9 +280,9 @@ export function LiveCamera() {
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <UserPlus className="h-4 w-4" />
-                Add Person
+                Guided Registration
               </div>
-              {busy && <Loader2 className="h-4 w-4 animate-spin text-white" />}
+              {(busy || registrationActive) && <Loader2 className="h-4 w-4 animate-spin text-white" />}
             </div>
 
             <div className="space-y-3">
@@ -308,45 +290,59 @@ export function LiveCamera() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Person name"
-                className="w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none"
+                disabled={registrationActive}
+                className="w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none disabled:opacity-60"
                 style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)" }}
               />
-              <div className="grid grid-cols-2 gap-3">
-                <label className="space-y-1 text-xs" style={{ color: "#777" }}>
-                  Photos
-                  <input
-                    type="number"
-                    min={5}
-                    max={40}
-                    value={photoCount}
-                    onChange={(event) => setPhotoCount(Number(event.target.value))}
-                    className="w-full rounded-xl px-3 py-2 text-sm text-white outline-none"
-                    style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)" }}
-                  />
-                </label>
-                <label className="flex items-end gap-2 rounded-xl px-3 py-2 text-xs" style={{ background: "#1b1b1b" }}>
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <label className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs" style={{ background: "#1b1b1b" }}>
                   <input
                     type="checkbox"
                     checked={strictFaceDetection}
+                    disabled={registrationActive}
                     onChange={(event) => setStrictFaceDetection(event.target.checked)}
                   />
-                  Strict face detection
+                  Strict face and quality checks
                 </label>
+                <div className="rounded-xl px-3 py-2 text-xs" style={{ background: "#1b1b1b", color: "#777" }}>
+                  {GUIDED_STEPS.length} shots · 1s each
+                </div>
               </div>
               <button
                 type="button"
                 onClick={registerPerson}
-                disabled={busy}
+                disabled={busy || registrationActive}
                 className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
                 style={{ background: "#fff", color: "#080808" }}
               >
                 <Camera className="h-4 w-4" />
-                Capture and Train
+                Start Guided Capture
               </button>
-              <p className="text-xs leading-relaxed" style={{ color: "#777" }}>
-                Keep one clear face in frame during capture. The local agent stores face images and retrains the LBPH
-                recognizer after each registration.
-              </p>
+
+              {session && (
+                <div className="rounded-xl p-3" style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-white">{session.current_prompt}</div>
+                      <div className="mt-0.5 text-xs" style={{ color: "#777" }}>
+                        Step {Math.min(session.current_index, session.total_steps)} / {session.total_steps} · {session.status}
+                      </div>
+                    </div>
+                    <div className="text-right text-xs">
+                      <div style={{ color: "#10b981" }}>{session.captured_count} captured</div>
+                      <div style={{ color: "#f59e0b" }}>{session.skipped_count} skipped</div>
+                    </div>
+                  </div>
+                  <ProgressBar value={progress} />
+                  {session.error && <div className="mt-2 text-xs text-red-400">{session.error}</div>}
+                  {session.status === "training" && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-white">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Retraining local LBPH model
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -358,31 +354,24 @@ export function LiveCamera() {
             <div className="space-y-2">
               {events.length === 0 ? (
                 <div className="rounded-xl px-3 py-3 text-sm" style={{ background: "#1b1b1b", color: "#777" }}>
-                  No recognition events yet. Register a person, then stay in frame for a few seconds.
+                  No recognition events yet.
                 </div>
               ) : (
                 events.map((event) => {
+                  const quality = matchQuality(event.recognition_distance, telemetry?.recognition_ready ? 50 : 70);
                   const known = event.event_type === "recognized";
                   return (
-                    <div
-                      key={event.id}
-                      className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                      style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.05)" }}
-                    >
+                    <div key={event.id} className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div>
-                        <div className="text-sm font-medium text-white">
-                          {known ? event.person_name ?? event.person_id : "Unknown face"}
-                        </div>
+                        <div className="text-sm font-medium text-white">{eventName(event)}</div>
                         <div className="text-xs" style={{ color: "#777" }}>
-                          {new Date(event.created_at).toLocaleTimeString()}
+                          {formatTime(event.created_at)}
                         </div>
                       </div>
                       <div className="text-right text-xs" style={{ color: known ? "#10b981" : "#f59e0b" }}>
                         {event.event_type}
                         <br />
-                        {event.recognition_distance == null
-                          ? "no distance"
-                          : `distance ${event.recognition_distance.toFixed(1)}`}
+                        {event.recognition_distance == null ? "manual" : `${quality}% quality`}
                       </div>
                     </div>
                   );
@@ -401,18 +390,13 @@ export function LiveCamera() {
           </div>
           <div className="mb-3 flex flex-wrap gap-2">
             <StatusPill ok={Boolean(agentHealth)} label="Agent" />
-            <StatusPill ok={Boolean(centralHealth)} label="Backend-service" />
+            <StatusPill ok={centralReady} label="Backend-service" />
             <StatusPill ok={Boolean(agentHealth?.recognition_ready)} label="AI model" />
           </div>
           <Metric label="Agent status" value={agentHealth?.status ?? "offline"} color={statusColor(Boolean(agentHealth))} />
-          <Metric
-            label="Camera"
-            value={agentHealth?.camera_ready ? "ready" : "not ready"}
-            color={statusColor(Boolean(agentHealth?.camera_ready))}
-          />
-          <Metric label="Central backend" value={centralHealth?.status ?? "unavailable"} />
+          <Metric label="Camera" value={agentHealth?.camera_ready ? "ready" : "not ready"} color={statusColor(Boolean(agentHealth?.camera_ready))} />
+          <Metric label="Backend DB" value={centralReady ? "connected" : "unavailable"} />
           <Metric label="Model people" value={String(telemetry?.model_people_count ?? 0)} color="#3b82f6" />
-          <Metric label="Last training" value={lastTraining} />
           <Metric label="CPU" value={telemetry ? `${telemetry.cpu_percent.toFixed(0)}%` : "n/a"} />
           <Metric label="Memory" value={telemetry ? `${telemetry.memory_percent.toFixed(0)}%` : "n/a"} />
         </div>

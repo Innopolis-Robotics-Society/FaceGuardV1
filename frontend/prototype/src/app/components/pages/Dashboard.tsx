@@ -1,42 +1,26 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
+import { Activity, AlertTriangle, CheckCircle, ChevronRight, DoorOpen, Loader2, Server, Users } from "lucide-react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
-  Users, CheckCircle, AlertTriangle, Activity,
-  ChevronRight, Eye, MoreHorizontal, TrendingUp,
-} from "lucide-react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, AreaChart, Area,
-} from "recharts";
+  type AgentHealth,
+  type AgentStats,
+  type ApiPerson,
+  type RecognitionEvent,
+  type Telemetry,
+  agentJson,
+  backendJson,
+  colorFor,
+  eventName,
+  eventStatus,
+  formatTime,
+  groupEventsByDay,
+  groupEventsByHour,
+  initials,
+  matchQuality,
+} from "../../lib/faceguardApi";
 
-/* ── Data ─────────────────────────────────────────────────── */
-const activityData = [
-  { day: "Mon", granted: 12, denied: 2, unknown: 1 },
-  { day: "Tue", granted: 18, denied: 4, unknown: 3 },
-  { day: "Wed", granted: 9,  denied: 1, unknown: 0 },
-  { day: "Thu", granted: 22, denied: 5, unknown: 2 },
-  { day: "Fri", granted: 30, denied: 3, unknown: 4 },
-  { day: "Sat", granted: 14, denied: 1, unknown: 1 },
-  { day: "Sun", granted: 8,  denied: 0, unknown: 0 },
-];
-
-const hourlyData = [
-  { h: "00", v: 0 }, { h: "02", v: 1 }, { h: "04", v: 0 },
-  { h: "06", v: 3 }, { h: "08", v: 14 }, { h: "10", v: 22 },
-  { h: "12", v: 18 }, { h: "14", v: 30 }, { h: "16", v: 20 },
-  { h: "18", v: 25 }, { h: "20", v: 12 }, { h: "22", v: 4 },
-];
-
-const recentEvents = [
-  { id: 1, name: "John Doe",     initials: "JD", color: "#10b981", time: "14:32:01", date: "2026-06-11", confidence: 97.4, status: "granted" },
-  { id: 2, name: "Unknown",      initials: "?",  color: "#f59e0b", time: "14:18:45", date: "2026-06-11", confidence: 34.1, status: "denied"  },
-  { id: 3, name: "Mary Smith",   initials: "MS", color: "#3b82f6", time: "13:55:10", date: "2026-06-11", confidence: 91.2, status: "granted" },
-  { id: 4, name: "Bob Johnson",  initials: "BJ", color: "#8b5cf6", time: "13:40:22", date: "2026-06-11", confidence: 88.7, status: "granted" },
-  { id: 5, name: "Unknown",      initials: "?",  color: "#f59e0b", time: "12:11:05", date: "2026-06-11", confidence: 28.5, status: "denied"  },
-];
-
-/* ── Sub-components ───────────────────────────────────────── */
-const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
+const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 const TOOLTIP_STYLE = { background: "#161616", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", color: "#f0f0f0", fontSize: "12px" };
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -47,317 +31,213 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
   );
 }
 
-function StatCard({
-  icon: Icon, label, value, sub, accentColor, trend,
-}: {
-  icon: any; label: string; value: string | number; sub: string; accentColor: string; trend?: string;
-}) {
+function StatCard({ icon: Icon, label, value, sub, accentColor }: { icon: any; label: string; value: string | number; sub: string; accentColor: string }) {
   return (
     <Card className="p-5">
-      <div className="flex items-start justify-between mb-4">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: `${accentColor}12` }}
-        >
-          <Icon className="w-4 h-4" style={{ color: accentColor }} />
+      <div className="mb-4 flex items-start justify-between">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: `${accentColor}12` }}>
+          <Icon className="h-4 w-4" style={{ color: accentColor }} />
         </div>
-        {trend && (
-          <div className="flex items-center gap-1 text-xs" style={{ color: "#10b981" }}>
-            <TrendingUp className="w-3 h-3" />{trend}
-          </div>
-        )}
       </div>
-      <div className="text-2xl font-semibold text-white tracking-tight mb-1">{value}</div>
+      <div className="mb-1 text-2xl font-semibold tracking-tight text-white">{value}</div>
       <div className="text-xs font-medium" style={{ color: "#5a5a5a" }}>{label}</div>
-      <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{sub}</div>
+      <div className="mt-0.5 text-xs" style={{ color: "#3a3a3a" }}>{sub}</div>
     </Card>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const granted = status === "granted";
+function Avatar({ name }: { name: string }) {
+  const color = colorFor(name);
   return (
-    <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
-      style={
-        granted
-          ? { background: "rgba(16,185,129,0.1)",  color: "#10b981" }
-          : { background: "rgba(239,68,68,0.1)",   color: "#ef4444" }
-      }
-    >
-      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-      {granted ? "Granted" : "Denied"}
-    </span>
-  );
-}
-
-function Avatar({ initials, color, size = 8 }: { initials: string; color: string; size?: number }) {
-  return (
-    <div
-      className={`w-${size} h-${size} rounded-full flex items-center justify-center text-xs font-semibold shrink-0`}
-      style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}
-    >
-      {initials}
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold" style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}>
+      {initials(name)}
     </div>
   );
 }
 
-function ConfidenceBar({ value }: { value: number }) {
-  const color = value > 70 ? "#10b981" : value > 50 ? "#f59e0b" : "#ef4444";
+function EventRow({ event, threshold }: { event: RecognitionEvent; threshold: number }) {
+  const name = eventName(event);
+  const status = eventStatus(event);
+  const quality = matchQuality(event.recognition_distance, threshold);
+  const statusColor = status === "granted" ? "#10b981" : status === "manual" ? "#3b82f6" : "#f59e0b";
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div className="h-full rounded-full" style={{ width: `${value}%`, background: color }} />
+    <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+      <Avatar name={name} />
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium text-white">{name}</div>
+        <div className="text-xs" style={{ color: "#3a3a3a" }}>{formatTime(event.created_at)}</div>
       </div>
-      <span className="text-xs font-medium tabular-nums" style={{ color }}>{value}%</span>
+      <div className="hidden min-w-24 sm:block">
+        <div className="mb-1 flex justify-between text-xs" style={{ color: "#3a3a3a" }}>
+          <span>Quality</span>
+          <span style={{ color: statusColor }}>{event.recognition_distance == null ? "manual" : `${quality}%`}</span>
+        </div>
+        <div className="h-1 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <div className="h-full rounded-full" style={{ width: `${event.recognition_distance == null ? 100 : quality}%`, background: statusColor }} />
+        </div>
+      </div>
+      <span className="rounded-full px-2.5 py-1 text-xs font-medium capitalize" style={{ background: `${statusColor}18`, color: statusColor }}>
+        {status}
+      </span>
     </div>
   );
 }
 
-/* ── Mini Activity Widget ────────────────────────────────── */
-function MiniActivity() {
-  return (
-    <Card className="p-5 flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="text-sm font-semibold text-white">Today's Activity</div>
-          <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>Events by hour</div>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "#10b981" }}>
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#10b981", display: "inline-block" }} />
-          Live
-        </div>
-      </div>
-      <ResponsiveContainer width="100%" height={120}>
-        <AreaChart data={hourlyData} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
-          <defs>
-            <linearGradient id="areaGreen" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#10b981" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-          <XAxis dataKey="h" tick={{ fill: "#3a3a3a", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#3a3a3a", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "rgba(255,255,255,0.08)" }} />
-          <Area type="monotone" dataKey="v" stroke="#10b981" strokeWidth={1.5} fill="url(#areaGreen)" dot={false} />
-        </AreaChart>
-      </ResponsiveContainer>
-      {/* Quick stats row */}
-      <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        {[
-          { label: "Granted",  value: 113, color: "#10b981" },
-          { label: "Denied",   value: 16,  color: "#ef4444" },
-          { label: "Unknown",  value: 7,   color: "#f59e0b" },
-        ].map((s) => (
-          <div key={s.label} className="flex-1 text-center">
-            <div className="text-base font-semibold" style={{ color: s.color }}>{s.value}</div>
-            <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-/* ── Page ─────────────────────────────────────────────────── */
 export function Dashboard() {
-  const [activeRow, setActiveRow] = useState<number | null>(null);
+  const [people, setPeople] = useState<ApiPerson[]>([]);
+  const [events, setEvents] = useState<RecognitionEvent[]>([]);
+  const [stats, setStats] = useState<AgentStats | null>(null);
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+  const [health, setHealth] = useState<AgentHealth | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    const results = await Promise.allSettled([
+      backendJson<ApiPerson[]>("/api/v1/people/?skip=0&limit=1000"),
+      agentJson<RecognitionEvent[]>("/events?limit=200"),
+      agentJson<AgentStats>("/stats"),
+      agentJson<Telemetry>("/telemetry"),
+      agentJson<AgentHealth>("/health"),
+    ]);
+    if (results[0].status === "fulfilled") setPeople(results[0].value);
+    if (results[1].status === "fulfilled") setEvents(results[1].value);
+    if (results[2].status === "fulfilled") setStats(results[2].value);
+    if (results[3].status === "fulfilled") setTelemetry(results[3].value);
+    if (results[4].status === "fulfilled") setHealth(results[4].value);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const threshold = stats?.settings.recognition_threshold ?? 50;
+  const dayData = useMemo(() => groupEventsByDay(events), [events]);
+  const hourData = useMemo(() => groupEventsByHour(events), [events]);
+  const latest = events[0] ?? null;
+  const activePeople = people.filter((person) => person.access_enabled).length;
 
   return (
     <div className="space-y-5">
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Users}         label="Registered People" value={24}       sub="+2 this week"      accentColor="#10b981" trend="+8%" />
-        <StatCard icon={CheckCircle}   label="Access Today"      value={113}      sub="last 24 hours"     accentColor="#3b82f6" trend="+12%" />
-        <StatCard icon={AlertTriangle} label="Unknown Attempts"  value={7}        sub="today"             accentColor="#f59e0b" />
-        <StatCard icon={Activity}      label="System Status"     value="Online"   sub="All services up"   accentColor="#10b981" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={Users} label="Registered People" value={people.length} sub={`${activePeople} active in backend DB`} accentColor="#10b981" />
+        <StatCard icon={CheckCircle} label="Recognized Today" value={stats?.recognized_today ?? 0} sub={`${stats?.door_opened_today ?? 0} door openings`} accentColor="#3b82f6" />
+        <StatCard icon={AlertTriangle} label="Unknown Today" value={stats?.unknown_today ?? 0} sub={`${stats?.today_events ?? 0} total events`} accentColor="#f59e0b" />
+        <StatCard icon={Activity} label="System Status" value={health?.status ?? "offline"} sub={telemetry ? `${telemetry.cpu_percent.toFixed(0)}% CPU · ${telemetry.camera_fps.toFixed(1)} fps` : "agent unavailable"} accentColor={health ? "#10b981" : "#ef4444"} />
       </div>
 
-      {/* Last event + mini activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Last event */}
+      {loading && (
+        <Card className="flex items-center justify-center gap-2 p-5 text-sm text-white">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading live dashboard
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Card className="p-5">
-          <div className="flex items-center justify-between mb-5">
+          <div className="mb-5 flex items-center justify-between">
             <div className="text-sm font-semibold text-white">Last Event</div>
-            <Link
-              to="/logs"
-              className="flex items-center gap-1 text-xs transition-colors hover:text-white"
-              style={{ color: "#3a3a3a" }}
-            >
-              View all <ChevronRight className="w-3 h-3" />
+            <Link to="/logs" className="flex items-center gap-1 text-xs transition-colors hover:text-white" style={{ color: "#3a3a3a" }}>
+              View all <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Avatar initials="JD" color="#10b981" size={14} />
-              <div
-                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
-                style={{ background: "#10b981" }}
-              >
-                <CheckCircle className="w-2.5 h-2.5 text-white" />
-              </div>
-            </div>
-
-            <div className="flex-1">
-              <div className="text-base font-semibold text-white">John Doe</div>
-              <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>
-                2026-06-11 · 14:32:01
-              </div>
-              <div className="flex items-center gap-5 mt-3">
-                <div>
-                  <div className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Confidence</div>
-                  <div className="text-sm font-semibold" style={{ color: "#10b981" }}>97.4%</div>
-                </div>
-                <div>
-                  <div className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Action</div>
-                  <div className="text-sm font-medium text-white">Door opened</div>
+          {latest ? (
+            <div className="flex items-center gap-4">
+              <Avatar name={eventName(latest)} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-base font-semibold text-white">{eventName(latest)}</div>
+                <div className="mt-0.5 text-xs" style={{ color: "#3a3a3a" }}>{formatTime(latest.created_at)}</div>
+                <div className="mt-3 grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <div style={{ color: "#3a3a3a" }}>Distance</div>
+                    <div className="mt-1 font-semibold text-white">{latest.recognition_distance == null ? "manual" : latest.recognition_distance.toFixed(1)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#3a3a3a" }}>Action</div>
+                    <div className="mt-1 font-semibold text-white">{latest.door_opened ? "Door opened" : "Door closed"}</div>
+                  </div>
                 </div>
               </div>
+              <DoorOpen className="h-5 w-5" style={{ color: latest.door_opened ? "#10b981" : "#5a5a5a" }} />
             </div>
-
-            <StatusBadge status="granted" />
-          </div>
-
-          {/* Confidence bar */}
-          <div className="mt-5">
-            <div className="flex justify-between text-xs mb-1.5" style={{ color: "#3a3a3a" }}>
-              <span>Recognition confidence</span>
-              <span style={{ color: "#10b981" }}>97.4%</span>
+          ) : (
+            <div className="rounded-xl px-3 py-10 text-center text-sm" style={{ background: "#1b1b1b", color: "#777" }}>
+              No local recognition events yet
             </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-              <div
-                className="h-full rounded-full"
-                style={{ width: "97.4%", background: "#10b981" }}
-              />
-            </div>
-          </div>
+          )}
         </Card>
 
-        {/* Mini Activity */}
-        <MiniActivity />
+        <Card className="p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <div className="text-sm font-semibold text-white">Today's Activity</div>
+              <div className="mt-0.5 text-xs" style={{ color: "#3a3a3a" }}>Events by hour</div>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: health ? "#10b981" : "#ef4444" }}>
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: health ? "#10b981" : "#ef4444" }} />
+              Live
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={120}>
+            <AreaChart data={hourData} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
+              <defs>
+                <linearGradient id="areaGreenLive" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+              <XAxis dataKey="h" tick={{ fill: "#3a3a3a", fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#3a3a3a", fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "rgba(255,255,255,0.08)" }} />
+              <Area type="monotone" dataKey="v" stroke="#10b981" strokeWidth={1.5} fill="url(#areaGreenLive)" dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
 
-      {/* 7-day bar chart */}
       <Card className="p-5">
-        <div className="flex items-center justify-between mb-5">
+        <div className="mb-5 flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold text-white">Activity — Last 7 Days</div>
-            <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>Access events per day</div>
+            <div className="mt-0.5 text-xs" style={{ color: "#3a3a3a" }}>Local agent events</div>
           </div>
-          <div className="flex items-center gap-4 text-xs" style={{ color: "#3a3a3a" }}>
-            {[
-              { label: "Granted", color: "#10b981" },
-              { label: "Denied",  color: "#ef4444" },
-              { label: "Unknown", color: "#f59e0b" },
-            ].map(({ label, color }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ background: color }} />
-                {label}
-              </div>
-            ))}
+          <div className="hidden items-center gap-4 text-xs sm:flex" style={{ color: "#3a3a3a" }}>
+            <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#10b981]" />Granted</span>
+            <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#f59e0b]" />Unknown</span>
+            <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#3b82f6]" />Manual</span>
           </div>
         </div>
 
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={activityData} barSize={12} barGap={3} barCategoryGap="30%">
+          <BarChart data={dayData} barSize={12} barGap={3} barCategoryGap="30%">
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
             <XAxis dataKey="day" tick={{ fill: "#3a3a3a", fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: "#3a3a3a", fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
             <Bar dataKey="granted" fill="#10b981" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="denied"  fill="#ef4444" radius={[3, 3, 0, 0]} />
             <Bar dataKey="unknown" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="manual" fill="#3b82f6" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
-      {/* Recent events table */}
       <Card className="overflow-hidden">
-        <div
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-        >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="text-sm font-semibold text-white">Recent Access Events</div>
-          <Link
-            to="/logs"
-            className="flex items-center gap-1 text-xs transition-colors hover:text-white"
-            style={{ color: "#3a3a3a" }}
-          >
-            View all <ChevronRight className="w-3 h-3" />
+          <Link to="/logs" className="flex items-center gap-1 text-xs transition-colors hover:text-white" style={{ color: "#3a3a3a" }}>
+            View all <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
-
-        {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                {["Photo", "Person", "Date & Time", "Confidence", "Status", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "#3a3a3a" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recentEvents.map((ev) => (
-                <tr
-                  key={ev.id}
-                  className="transition-colors"
-                  style={{
-                    borderBottom: "1px solid rgba(255,255,255,0.03)",
-                    background: activeRow === ev.id ? "rgba(255,255,255,0.02)" : "transparent",
-                  }}
-                  onMouseEnter={() => setActiveRow(ev.id)}
-                  onMouseLeave={() => setActiveRow(null)}
-                >
-                  <td className="px-5 py-3.5">
-                    <Avatar initials={ev.initials} color={ev.color} />
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="text-sm font-medium text-white">{ev.name}</span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="text-xs" style={{ color: "#3a3a3a" }}>{ev.date} · {ev.time}</span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <ConfidenceBar value={ev.confidence} />
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <StatusBadge status={ev.status} />
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <button className="p-1.5 rounded-lg text-neutral-700 hover:text-white hover:bg-white/5 transition-colors">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="md:hidden">
-          {recentEvents.map((ev) => (
-            <div
-              key={ev.id}
-              className="flex items-center gap-3 px-4 py-3"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
-            >
-              <Avatar initials={ev.initials} color={ev.color} />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white">{ev.name}</div>
-                <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>
-                  {ev.time} · {ev.confidence}%
-                </div>
-              </div>
-              <StatusBadge status={ev.status} />
-            </div>
-          ))}
-        </div>
+        {events.slice(0, 8).length === 0 ? (
+          <div className="px-5 py-10 text-center text-sm" style={{ color: "#777" }}>No events yet</div>
+        ) : (
+          events.slice(0, 8).map((event) => <EventRow key={event.id} event={event} threshold={threshold} />)
+        )}
       </Card>
     </div>
   );

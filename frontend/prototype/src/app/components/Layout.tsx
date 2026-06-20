@@ -6,6 +6,7 @@ import {
   Clock, User,
 } from "lucide-react";
 import { toast } from "sonner";
+import { type AgentHealth, type RecognitionEvent, agentJson, eventName, eventStatus, formatTime } from "../lib/faceguardApi";
 
 const NAV_ITEMS = [
   { path: "/",        label: "Dashboard",   icon: LayoutDashboard, end: true },
@@ -34,16 +35,12 @@ function useCurrentTime() {
   return time;
 }
 
-const NOTIFICATIONS = [
-  { id: 1, text: "Unknown person detected at front door", time: "2 min ago", dot: "#f59e0b" },
-  { id: 2, text: "Access granted — John Doe",             time: "14 min ago", dot: "#10b981" },
-  { id: 3, text: "Camera reconnected successfully",        time: "1h ago",    dot: "#3b82f6" },
-];
-
 export function Layout() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [notifOpen,   setNotifOpen]     = useState(false);
   const [profileOpen, setProfileOpen]   = useState(false);
+  const [health, setHealth] = useState<AgentHealth | null>(null);
+  const [events, setEvents] = useState<RecognitionEvent[]>([]);
   const location = useLocation();
   const now = useCurrentTime();
 
@@ -56,6 +53,20 @@ export function Layout() {
     const close = () => { setNotifOpen(false); setProfileOpen(false); };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
+  }, []);
+
+  useEffect(() => {
+    async function loadTopbar() {
+      const [healthResult, eventsResult] = await Promise.allSettled([
+        agentJson<AgentHealth>("/health"),
+        agentJson<RecognitionEvent[]>("/events?limit=5"),
+      ]);
+      if (healthResult.status === "fulfilled") setHealth(healthResult.value);
+      if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
+    }
+    void loadTopbar();
+    const timer = window.setInterval(() => void loadTopbar(), 5000);
+    return () => window.clearInterval(timer);
   }, []);
 
   function stopProp(e: React.MouseEvent) { e.stopPropagation(); }
@@ -180,14 +191,14 @@ export function Layout() {
           <span className="text-sm font-semibold text-white">{pageTitle}</span>
 
           <div className="ml-auto flex items-center gap-1.5">
-            {/* Pi status */}
+            {/* Agent status */}
             <div
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
-              style={{ background: "rgba(16,185,129,0.08)", color: "#10b981" }}
+              style={health ? { background: "rgba(16,185,129,0.08)", color: "#10b981" } : { background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
             >
-              <Wifi className="w-3 h-3" />
-              <span className="hidden md:inline">Pi</span>
-              <span>Online</span>
+              {health ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              <span className="hidden md:inline">Agent</span>
+              <span>{health ? "Online" : "Offline"}</span>
             </div>
 
             {/* Time */}
@@ -206,10 +217,12 @@ export function Layout() {
                 onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
               >
                 <Bell className="w-4 h-4" />
-                <span
-                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-                  style={{ background: "#f59e0b" }}
-                />
+                {events.length > 0 && (
+                  <span
+                    className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+                    style={{ background: events.some((event) => eventStatus(event) === "unknown") ? "#f59e0b" : "#10b981" }}
+                  />
+                )}
               </button>
 
               {notifOpen && (
@@ -223,22 +236,31 @@ export function Layout() {
                   >
                     <span className="text-xs font-semibold text-white">Notifications</span>
                   </div>
-                  {NOTIFICATIONS.map((n) => (
+                  {events.length === 0 && (
+                    <div className="px-4 py-3 text-xs" style={{ color: "#3a3a3a" }}>
+                      No local events yet
+                    </div>
+                  )}
+                  {events.map((event) => {
+                    const status = eventStatus(event);
+                    const dot = status === "unknown" ? "#f59e0b" : status === "manual" ? "#3b82f6" : "#10b981";
+                    return (
                     <div
-                      key={n.id}
+                      key={event.id}
                       className="flex items-start gap-3 px-4 py-3 hover:bg-white/3 transition-colors"
                       style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
                     >
                       <div
                         className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ background: n.dot }}
+                        style={{ background: dot }}
                       />
                       <div>
-                        <p className="text-xs text-white leading-relaxed">{n.text}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{n.time}</p>
+                        <p className="text-xs text-white leading-relaxed">{eventName(event)}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{formatTime(event.created_at)}</p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

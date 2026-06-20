@@ -41,6 +41,11 @@ class RecognitionService:
         logger.info("Face detector loaded successfully")
         return detector
 
+    def preprocess_face(self, gray_face: np.ndarray) -> np.ndarray:
+        """Normalize a face crop before training or prediction."""
+        resized = cv2.resize(gray_face, (200, 200))
+        return cv2.equalizeHist(resized)
+
     def train_model(self) -> Dict[str, Any]:
         """
         Train LBPH model on all processed face images
@@ -91,9 +96,7 @@ class RecognitionService:
                         logger.warning(f"Failed to read image: {photo_path}")
                         continue
 
-                    # Ensure correct size (200x200)
-                    if face_img.shape != (200, 200):
-                        face_img = cv2.resize(face_img, (200, 200))
+                    face_img = self.preprocess_face(face_img)
 
                     faces.append(face_img)
                     labels.append(current_label)
@@ -198,10 +201,10 @@ class RecognitionService:
         if len(faces) == 0:
             return None
 
-        # Process first detected face
-        x, y, w, h = faces[0]
+        # Process the largest detected face. Haar can return smaller false positives first.
+        x, y, w, h = max(faces, key=lambda item: item[2] * item[3])
         face_roi = gray[y:y + h, x:x + w]
-        face_resized = cv2.resize(face_roi, (200, 200))
+        face_resized = self.preprocess_face(face_roi)
 
         # Predict
         label, confidence = self.recognizer.predict(face_resized)
