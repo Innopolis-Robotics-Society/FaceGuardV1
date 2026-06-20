@@ -24,7 +24,8 @@ if (-not (Test-Path $npmCli)) {
 }
 
 $env:Path = "$nodeDir;$env:Path"
-$env:VITE_FACEGUARD_API_URL = if ($env:VITE_FACEGUARD_API_URL) { $env:VITE_FACEGUARD_API_URL } else { "http://10.93.26.183:8000" }
+$env:VITE_FACEGUARD_API_URL = if ($env:VITE_FACEGUARD_API_URL) { $env:VITE_FACEGUARD_API_URL } else { "/backend" }
+$env:FACEGUARD_BACKEND_URL = if ($env:FACEGUARD_BACKEND_URL) { $env:FACEGUARD_BACKEND_URL } else { "http://10.93.26.183:8000" }
 $env:FACEGUARD_AGENT_URL = if ($env:FACEGUARD_AGENT_URL) { $env:FACEGUARD_AGENT_URL } else { "http://127.0.0.1:8081" }
 $env:FACEGUARD_AGENT_KEY = if ($env:FACEGUARD_AGENT_KEY) { $env:FACEGUARD_AGENT_KEY } else { "change-me-agent-key" }
 

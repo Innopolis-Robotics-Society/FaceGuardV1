@@ -1,119 +1,203 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router";
-import { ArrowLeft, Star, Trash2, Edit, Upload, X, Check, Camera, Plus, Eye } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import {
+  ArrowLeft,
+  Camera,
+  Check,
+  Edit,
+  Eye,
+  Loader2,
+  Plus,
+  RefreshCcw,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+  Upload,
+  User,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
+const API_URL = (import.meta.env.VITE_FACEGUARD_API_URL as string | undefined) ?? "/backend";
 const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
+const COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6", "#f97316"];
 
-const PEOPLE: Record<string, { name: string; initials: string; color: string; note: string; status: string; added: string }> = {
-  "1": { name: "John Doe",    initials: "JD", color: "#10b981", note: "Main resident",  status: "active", added: "2026-05-10" },
-  "2": { name: "Mary Smith",  initials: "MS", color: "#3b82f6", note: "Family member",  status: "active", added: "2026-05-18" },
-  "3": { name: "Bob Johnson", initials: "BJ", color: "#8b5cf6", note: "Colleague",      status: "active", added: "2026-05-22" },
+type ApiPerson = {
+  id: string;
+  name: string;
+  description: string | null;
+  access_enabled: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+  photo_count: number;
 };
 
-const MOCK_PHOTOS = [
-  { id: 1, name: "photo_001.jpg", isPrimary: true,  date: "2026-05-10" },
-  { id: 2, name: "photo_002.jpg", isPrimary: false, date: "2026-05-11" },
-  { id: 3, name: "photo_003.jpg", isPrimary: false, date: "2026-05-15" },
-  { id: 4, name: "photo_004.jpg", isPrimary: false, date: "2026-05-20" },
-  { id: 5, name: "photo_005.jpg", isPrimary: false, date: "2026-05-25" },
-];
+type ApiPhoto = {
+  id: string;
+  person_id: string;
+  original_path: string;
+  processed_path: string | null;
+  thumbnail_path: string | null;
+  quality_score: number | null;
+  face_detected: boolean;
+  width: number | null;
+  height: number | null;
+  blur_score: number | null;
+  brightness_score: number | null;
+  created_at: string;
+  deleted_at: string | null;
+  is_primary: boolean;
+};
+
+async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, init);
+  if (!response.ok) {
+    let message = `${response.status} ${response.statusText}`;
+    try {
+      const body = await response.json();
+      message = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
+    } catch {
+      // Keep the HTTP status message.
+    }
+    throw new Error(message);
+  }
+  if (response.status === 204) return undefined as T;
+  return response.json() as Promise<T>;
+}
+
+function initials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?"
+  );
+}
+
+function colorFor(id: string) {
+  let hash = 0;
+  for (const char of id) hash = (hash + char.charCodeAt(0)) % COLORS.length;
+  return COLORS[hash];
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "n/a";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function fileName(path: string) {
+  return path.split(/[\\/]/).pop() || "photo.jpg";
+}
+
+function photoContentUrl(personId: string, photoId: string, type: "thumbnail" | "original" = "thumbnail") {
+  return `${API_URL}/api/v1/people/${personId}/photos/${photoId}/content?type=${type}`;
+}
+
+function StatusBadge({ active }: { active: boolean }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+      style={
+        active
+          ? { background: "rgba(16,185,129,0.1)", color: "#10b981" }
+          : { background: "rgba(90,90,90,0.15)", color: "#5a5a5a" }
+      }
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {active ? "Active" : "Inactive"}
+    </span>
+  );
+}
 
 function PhotoCard({
-  photo, color, onSetPrimary, onRename, onDelete, onView,
+  personId,
+  photo,
+  color,
+  onDelete,
+  onView,
 }: {
-  photo: typeof MOCK_PHOTOS[0]; color: string;
-  onSetPrimary: (id: number) => void;
-  onRename:     (id: number) => void;
-  onDelete:     (id: number) => void;
-  onView:       (id: number) => void;
+  personId: string;
+  photo: ApiPhoto;
+  color: string;
+  onDelete: (photo: ApiPhoto) => void;
+  onView: (photo: ApiPhoto) => void;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
   return (
-    <div className="rounded-2xl overflow-hidden group relative"
-      style={{ background: "#161616", border: photo.isPrimary ? `1.5px solid ${color}` : "1px solid rgba(255,255,255,0.06)" }}>
-      {/* Thumb placeholder */}
-      <div className="aspect-square flex items-center justify-center relative"
-        style={{ background: `${color}08` }}>
-        <Camera className="w-7 h-7" style={{ color: `${color}30` }} />
-        {photo.isPrimary && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium"
-            style={{ background: color, color: "#fff" }}>
-            <Star className="w-2.5 h-2.5 fill-current" /> Primary
+    <div
+      className="group relative overflow-hidden rounded-2xl"
+      style={{ background: "#161616", border: photo.is_primary ? `1.5px solid ${color}` : "1px solid rgba(255,255,255,0.06)" }}
+    >
+      <div className="relative flex aspect-square items-center justify-center" style={{ background: `${color}08` }}>
+        {imageFailed ? (
+          <Camera className="h-7 w-7" style={{ color: `${color}30` }} />
+        ) : (
+          <img
+            src={photoContentUrl(personId, photo.id)}
+            alt=""
+            className="h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
+          />
+        )}
+        {photo.is_primary && (
+          <div
+            className="absolute left-2 top-2 rounded-lg px-2 py-0.5 text-xs font-medium"
+            style={{ background: color, color: "#fff" }}
+          >
+            Primary
           </div>
         )}
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-          {[
-            { icon: Eye,     title: "View",    action: onView,       textColor: "#ffffff" },
-            { icon: Star,    title: "Primary", action: onSetPrimary, textColor: "#f59e0b" },
-            { icon: Edit,    title: "Rename",  action: onRename,     textColor: "#3b82f6" },
-            { icon: Trash2,  title: "Delete",  action: onDelete,     textColor: "#ef4444" },
-          ].map(({ icon: Icon, title, action, textColor }) => (
-            <button key={title} onClick={() => action(photo.id)} title={title}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 transition-colors"
-              style={{ color: textColor }}>
-              <Icon className="w-3.5 h-3.5" />
-            </button>
-          ))}
+        <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/70 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={() => onView(photo)}
+            title="View"
+            className="rounded-lg bg-white/5 p-1.5 text-white transition-colors hover:bg-white/15"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => onDelete(photo)}
+            title="Delete"
+            className="rounded-lg bg-white/5 p-1.5 text-red-400 transition-colors hover:bg-white/15"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
       <div className="px-3 py-2.5">
-        <p className="text-xs font-medium text-white truncate">{photo.name}</p>
-        <p className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{photo.date}</p>
+        <p className="truncate text-xs font-medium text-white">{fileName(photo.original_path)}</p>
+        <p className="mt-0.5 text-xs" style={{ color: "#3a3a3a" }}>
+          {formatDate(photo.created_at)}
+        </p>
       </div>
     </div>
   );
 }
 
-function ViewModal({ photo, color, onClose }: { photo: typeof MOCK_PHOTOS[0]; color: string; onClose: () => void }) {
+function ViewModal({ personId, photo, onClose }: { personId: string; photo: ApiPhoto; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/90" onClick={onClose} />
-      <div className="relative rounded-2xl overflow-hidden w-full max-w-md"
-        style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <span className="text-xs font-semibold text-white">{photo.name}</span>
-          <button onClick={onClose} className="text-neutral-600 hover:text-white"><X className="w-4 h-4" /></button>
+      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl" style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <span className="truncate text-xs font-semibold text-white">{fileName(photo.original_path)}</span>
+          <button onClick={onClose} className="text-neutral-600 transition-colors hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        <div className="aspect-square flex items-center justify-center" style={{ background: `${color}08` }}>
-          <Camera className="w-20 h-20" style={{ color: `${color}20` }} />
+        <div className="flex max-h-[70vh] items-center justify-center bg-black">
+          <img src={photoContentUrl(personId, photo.id, "original")} alt="" className="max-h-[70vh] w-full object-contain" />
         </div>
-        <div className="px-5 py-4 flex items-center gap-3">
-          {photo.isPrimary && (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium"
-              style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b" }}>
-              <Star className="w-3 h-3 fill-current" /> Primary
-            </span>
-          )}
-          <span className="text-xs" style={{ color: "#3a3a3a" }}>Added {photo.date}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RenameModal({ photo, onConfirm, onCancel }: { photo: typeof MOCK_PHOTOS[0]; onConfirm: (n: string) => void; onCancel: () => void }) {
-  const ext  = photo.name.split(".").pop() ?? "jpg";
-  const base = photo.name.replace(/\.[^.]+$/, "");
-  const [name, setName] = useState(base);
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80" onClick={onCancel} />
-      <div className="relative rounded-2xl p-6 w-full max-w-sm shadow-2xl"
-        style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <h3 className="text-sm font-semibold text-white mb-4">Rename Photo</h3>
-        <div className="flex items-center gap-2 mb-5">
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus
-            className="flex-1 px-3 py-2.5 rounded-xl text-sm text-white outline-none"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
-          <span className="text-xs" style={{ color: "#3a3a3a" }}>.{ext}</span>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "#1a1a1a", color: "#a0a0a0" }}>Cancel</button>
-          <button onClick={() => onConfirm(`${name}.${ext}`)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-black"
-            style={{ background: "#ffffff" }}>Rename</button>
+        <div className="grid gap-2 px-5 py-4 text-xs sm:grid-cols-3" style={{ color: "#5a5a5a" }}>
+          <span>Face: {photo.face_detected ? "detected" : "not detected"}</span>
+          <span>Size: {photo.width && photo.height ? `${photo.width}x${photo.height}` : "n/a"}</span>
+          <span>Quality: {photo.quality_score == null ? "n/a" : photo.quality_score.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -122,131 +206,324 @@ function RenameModal({ photo, onConfirm, onCancel }: { photo: typeof MOCK_PHOTOS
 
 export function PersonProfile() {
   const { id } = useParams<{ id: string }>();
-  const person  = PEOPLE[id ?? ""] ?? { name: "Unknown", initials: "?", color: "#5a5a5a", note: "", status: "inactive", added: "—" };
+  const navigate = useNavigate();
+  const [person, setPerson] = useState<ApiPerson | null>(null);
+  const [photos, setPhotos] = useState<ApiPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [viewPhoto, setViewPhoto] = useState<ApiPhoto | null>(null);
 
-  const [photos,      setPhotos]      = useState(MOCK_PHOTOS);
-  const [viewPhoto,   setViewPhoto]   = useState<typeof MOCK_PHOTOS[0] | null>(null);
-  const [renamePhoto, setRenamePhoto] = useState<typeof MOCK_PHOTOS[0] | null>(null);
-  const [editing,     setEditing]     = useState(false);
-  const [name,        setName]        = useState(person.name);
+  const color = useMemo(() => colorFor(id ?? "unknown"), [id]);
 
-  const setP = (photoId: number) => { setPhotos((p) => p.map((x) => ({ ...x, isPrimary: x.id === photoId }))); toast.success("Primary photo updated"); };
-  const delP = (photoId: number) => { setPhotos((p) => p.filter((x) => x.id !== photoId)); toast.success("Photo deleted"); };
-  const renP = (photoId: number, newName: string) => { setPhotos((p) => p.map((x) => x.id === photoId ? { ...x, name: newName } : x)); toast.success("Photo renamed"); setRenamePhoto(null); };
+  async function loadProfile(showToast = false) {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const [nextPerson, nextPhotos] = await Promise.all([
+        apiJson<ApiPerson>(`/api/v1/people/${id}`),
+        apiJson<ApiPhoto[]>(`/api/v1/people/${id}/photos`),
+      ]);
+      setPerson(nextPerson);
+      setPhotos(nextPhotos);
+      setName(nextPerson.name);
+      setDescription(nextPerson.description ?? "");
+      if (showToast) toast.success("Profile loaded from backend database");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadProfile();
+  }, [id]);
+
+  async function saveProfile(nextAccess = person?.access_enabled) {
+    if (!id || !person) return;
+    const displayName = name.trim();
+    if (!displayName) {
+      toast.error("Name is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updated = await apiJson<ApiPerson>(`/api/v1/people/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: displayName,
+          description: description.trim() || null,
+          access_enabled: nextAccess,
+        }),
+      });
+      setPerson(updated);
+      setName(updated.name);
+      setDescription(updated.description ?? "");
+      setEditing(false);
+      toast.success("Profile saved");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function uploadPhotos(fileList: FileList | null) {
+    if (!id || !fileList?.length) return;
+    const form = new FormData();
+    Array.from(fileList).forEach((file) => form.append("files", file));
+    setSaving(true);
+    try {
+      await apiJson<ApiPhoto[]>(`/api/v1/people/${id}/photos`, { method: "POST", body: form });
+      toast.success("Photo uploaded to backend database");
+      await loadProfile();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deletePhoto(photo: ApiPhoto) {
+    if (!id) return;
+    const confirmed = window.confirm(`Delete ${fileName(photo.original_path)}?`);
+    if (!confirmed) return;
+    setSaving(true);
+    try {
+      await apiJson(`/api/v1/people/${id}/photos/${photo.id}`, { method: "DELETE" });
+      toast.success("Photo deleted");
+      await loadProfile();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deletePerson() {
+    if (!id || !person) return;
+    const confirmed = window.confirm(`Delete ${person.name}?`);
+    if (!confirmed) return;
+    setSaving(true);
+    try {
+      await apiJson(`/api/v1/people/${id}`, { method: "DELETE" });
+      toast.success(`${person.name} deleted`);
+      navigate("/people");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-2xl py-16 text-sm text-white" style={CARD}>
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading backend profile
+      </div>
+    );
+  }
+
+  if (!person) {
+    return (
+      <div className="space-y-4">
+        <Link to="/people" className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-white">
+          <ArrowLeft className="h-3 w-3" /> People
+        </Link>
+        <div className="flex flex-col items-center justify-center rounded-2xl py-16" style={CARD}>
+          <User className="mb-3 h-10 w-10" style={{ color: "#1a1a1a" }} />
+          <p className="text-sm font-medium text-white">Person not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs" style={{ color: "#3a3a3a" }}>
-        <Link to="/people" className="hover:text-white transition-colors flex items-center gap-1">
-          <ArrowLeft className="w-3 h-3" /> People
+        <Link to="/people" className="flex items-center gap-1 transition-colors hover:text-white">
+          <ArrowLeft className="h-3 w-3" /> People
         </Link>
         <span>/</span>
         <span className="text-white">{person.name}</span>
       </div>
 
-      {/* Profile header */}
       <div className="rounded-2xl p-6" style={CARD}>
         <div className="flex flex-wrap items-start gap-5">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-semibold"
-            style={{ background: `${person.color}15`, color: person.color, border: `1.5px solid ${person.color}25` }}>
-            {person.initials}
+          <div
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-xl font-semibold"
+            style={{ background: `${color}15`, color, border: `1.5px solid ${color}25` }}
+          >
+            {initials(person.name)}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {editing ? (
-              <div className="flex items-center gap-2 mb-2">
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus
-                  className="px-3 py-1.5 rounded-xl text-base font-semibold text-white outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-                <button onClick={() => { toast.success("Name saved"); setEditing(false); }}
-                  className="p-1.5 rounded-xl" style={{ background: "#ffffff", color: "#080808" }}>
-                  <Check className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={() => setEditing(false)} className="p-1.5 rounded-xl" style={{ background: "#1a1a1a", color: "#a0a0a0" }}>
-                  <X className="w-3.5 h-3.5" />
-                </button>
+              <div className="max-w-2xl space-y-3">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  autoFocus
+                  className="w-full rounded-xl px-3 py-2 text-base font-semibold text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                />
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  rows={2}
+                  placeholder="Optional note"
+                  className="w-full resize-none rounded-xl px-3 py-2 text-sm text-white outline-none placeholder-neutral-700"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => void saveProfile()}
+                    disabled={saving}
+                    className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-black disabled:opacity-50"
+                    style={{ background: "#ffffff" }}
+                  >
+                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setName(person.name);
+                      setDescription(person.description ?? "");
+                      setEditing(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium"
+                    style={{ background: "#1a1a1a", color: "#a0a0a0" }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Cancel
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-lg font-semibold text-white">{name}</h2>
-                <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg text-neutral-700 hover:text-white hover:bg-white/5 transition-colors">
-                  <Edit className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-semibold text-white">{person.name}</h2>
+                  <button onClick={() => setEditing(true)} className="rounded-lg p-1.5 text-neutral-700 transition-colors hover:bg-white/5 hover:text-white">
+                    <Edit className="h-3.5 w-3.5" />
+                  </button>
+                  <StatusBadge active={person.access_enabled} />
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs" style={{ color: "#3a3a3a" }}>
+                  <span>{photos.length} photos</span>
+                  <span>Added {formatDate(person.created_at)}</span>
+                  <span>Updated {formatDate(person.updated_at)}</span>
+                </div>
+                {person.description && (
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed" style={{ color: "#777" }}>
+                    {person.description}
+                  </p>
+                )}
+                <div className="mt-2 text-xs" style={{ color: "#3a3a3a" }}>
+                  Backend ID: <span style={{ color }}>{person.id}</span>
+                </div>
+              </>
             )}
-
-            <div className="flex flex-wrap gap-3 items-center text-xs" style={{ color: "#3a3a3a" }}>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium"
-                style={person.status === "active"
-                  ? { background: "rgba(16,185,129,0.1)", color: "#10b981" }
-                  : { background: "rgba(90,90,90,0.15)", color: "#5a5a5a" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                {person.status === "active" ? "Active" : "Inactive"}
-              </span>
-              <span>{photos.length} photos</span>
-              <span>Added {person.added}</span>
-              {person.note && <span>· {person.note}</span>}
-            </div>
-
-            <div className="mt-1.5 text-xs" style={{ color: "#3a3a3a" }}>
-              Folder: <span style={{ color: "#10b981" }}>faces/{person.name.replace(/\s+/g, "_")}/</span>
-            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer"
-              style={{ background: "#1a1a1a", color: "#a0a0a0", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <Upload className="w-3.5 h-3.5" /> Add Photo
-              <input type="file" accept="image/*" className="hidden" onChange={() => {
-                const np = { id: Date.now(), name: `photo_00${photos.length + 1}.jpg`, isPrimary: false, date: "2026-06-11" };
-                setPhotos((p) => [...p, np]); toast.success("Photo added");
-              }} />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void loadProfile(true)}
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium"
+              style={{ background: "#1a1a1a", color: "#a0a0a0", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <RefreshCcw className="h-3.5 w-3.5" />
+              Refresh
+            </button>
+            <button
+              onClick={() => void saveProfile(!person.access_enabled)}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium"
+              style={{ background: "#1a1a1a", color: person.access_enabled ? "#f59e0b" : "#10b981", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              {person.access_enabled ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+              {person.access_enabled ? "Disable" : "Enable"}
+            </button>
+            <label
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-black"
+              style={{ background: "#ffffff" }}
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Add Photo
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  const input = event.currentTarget;
+                  void uploadPhotos(input.files).finally(() => {
+                    input.value = "";
+                  });
+                }}
+              />
             </label>
-            <button onClick={() => toast.info("Opening camera…")}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-black"
-              style={{ background: "#ffffff" }}>
-              <Camera className="w-3.5 h-3.5" /> Capture
+            <button
+              onClick={() => void deletePerson()}
+              disabled={saving}
+              className="rounded-xl p-2 text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+              style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Gallery */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <div className="text-sm font-semibold text-white">Photos ({photos.length})</div>
-          <p className="text-xs" style={{ color: "#3a3a3a" }}>Hover for actions</p>
+          {saving && <Loader2 className="h-4 w-4 animate-spin text-white" />}
         </div>
 
         {photos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-2xl" style={CARD}>
-            <Camera className="w-10 h-10 mb-3" style={{ color: "#1a1a1a" }} />
-            <p className="text-sm font-medium text-white mb-1">No photos yet</p>
-            <p className="text-xs" style={{ color: "#3a3a3a" }}>Upload or capture photos</p>
-          </div>
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl py-16" style={CARD}>
+            <Plus className="mb-2 h-8 w-8" style={{ color: "#2a2a2a" }} />
+            <p className="text-sm font-medium text-white">Add training photos</p>
+            <p className="mt-1 text-xs" style={{ color: "#3a3a3a" }}>
+              Upload files to backend-service storage
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                const input = event.currentTarget;
+                void uploadPhotos(input.files).finally(() => {
+                  input.value = "";
+                });
+              }}
+            />
+          </label>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {photos.map((ph) => (
-              <PhotoCard key={ph.id} photo={ph} color={person.color}
-                onSetPrimary={setP} onRename={(id) => setRenamePhoto(photos.find((p) => p.id === id) ?? null)}
-                onDelete={delP} onView={(id) => setViewPhoto(photos.find((p) => p.id === id) ?? null)} />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {photos.map((photo) => (
+              <PhotoCard
+                key={photo.id}
+                personId={person.id}
+                photo={photo}
+                color={color}
+                onDelete={(item) => void deletePhoto(item)}
+                onView={setViewPhoto}
+              />
             ))}
-            <label className="rounded-2xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:bg-white/3 transition-colors"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1.5px dashed rgba(255,255,255,0.07)" }}>
-              <Plus className="w-6 h-6 mb-1" style={{ color: "#2a2a2a" }} />
-              <span className="text-xs" style={{ color: "#2a2a2a" }}>Add</span>
-              <input type="file" accept="image/*" className="hidden" onChange={() => {
-                const np = { id: Date.now(), name: `photo_00${photos.length + 1}.jpg`, isPrimary: false, date: "2026-06-11" };
-                setPhotos((p) => [...p, np]); toast.success("Photo added");
-              }} />
-            </label>
           </div>
         )}
       </div>
 
-      {viewPhoto   && <ViewModal   photo={viewPhoto}   color={person.color} onClose={() => setViewPhoto(null)} />}
-      {renamePhoto && <RenameModal photo={renamePhoto} onConfirm={(n) => renP(renamePhoto.id, n)} onCancel={() => setRenamePhoto(null)} />}
+      {viewPhoto && <ViewModal personId={person.id} photo={viewPhoto} onClose={() => setViewPhoto(null)} />}
     </div>
   );
 }

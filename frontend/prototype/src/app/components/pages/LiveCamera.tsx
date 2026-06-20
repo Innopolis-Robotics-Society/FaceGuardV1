@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 
 const CENTRAL_API =
-  (import.meta.env.VITE_FACEGUARD_API_URL as string | undefined) ?? "http://10.93.26.183:8000";
+  (import.meta.env.VITE_FACEGUARD_API_URL as string | undefined) ?? "/backend";
 const AGENT_API = "/agent/api/v1";
 
 type AgentHealth = {

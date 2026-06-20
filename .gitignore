@@ -4,5 +4,12 @@
 Thumbs.db
 node_modules/
 dist/
+$E[[]0m
 backend/$E[[]0m
 frontend/prototype/$E[[]0m
+data/
+agent/.env
+agent/.venv/
+agent/__pycache__/
+agent/**/__pycache__/
+agent/$E[[]0m

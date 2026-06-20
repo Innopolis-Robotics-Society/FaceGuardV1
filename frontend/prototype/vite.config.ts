@@ -48,6 +48,11 @@ export default defineConfig({
           })
         },
       },
+      '/backend': {
+        target: process.env.FACEGUARD_BACKEND_URL ?? 'http://10.93.26.183:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/backend/, ''),
+      },
     },
   },
 })
