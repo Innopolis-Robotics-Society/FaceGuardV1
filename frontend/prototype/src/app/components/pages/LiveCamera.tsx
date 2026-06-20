@@ -1,301 +1,456 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Camera, Zap, Monitor, RotateCcw, Square, DoorOpen,
-  AlertTriangle, CheckCircle, XCircle, Maximize2,
+  Activity,
+  Camera,
+  CheckCircle,
+  DoorOpen,
+  Loader2,
+  RefreshCcw,
+  Server,
+  UserPlus,
+  Video,
+  XCircle,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
-const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
+const CENTRAL_API =
+  (import.meta.env.VITE_FACEGUARD_API_URL as string | undefined) ?? "http://10.93.26.183:8000";
+const AGENT_API = "/agent/api/v1";
 
-/* ── Confirm Modal ───────────────────────────────────────── */
-function ConfirmModal({
-  title, message, onConfirm, onCancel, danger,
-}: {
-  title: string; message: string; onConfirm: () => void; onCancel: () => void; danger?: boolean;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80" onClick={onCancel} />
-      <div
-        className="relative rounded-2xl p-6 w-full max-w-sm shadow-2xl"
-        style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <div
-          className={`w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-4`}
-          style={{ background: danger ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.1)" }}
-        >
-          <AlertTriangle className="w-5 h-5" style={{ color: danger ? "#ef4444" : "#f59e0b" }} />
-        </div>
-        <h3 className="text-sm font-semibold text-white text-center mb-2">{title}</h3>
-        <p className="text-xs text-center mb-5 leading-relaxed" style={{ color: "#5a5a5a" }}>
-          {message}
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
-            style={{ background: "#1a1a1a", color: "#a0a0a0" }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
-            style={
-              danger
-                ? { background: "#ef4444", color: "#fff" }
-                : { background: "#ffffff", color: "#080808" }
-            }
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+type AgentHealth = {
+  status: "ok" | "degraded";
+  device_id: string;
+  version: string;
+  platform: string;
+  camera_ready: boolean;
+  camera_simulated: boolean;
+  recognition_ready: boolean;
+  hardware_mode: string;
+  timestamp: string;
+};
+
+type CentralHealth = {
+  status: string;
+  service: string;
+  version: string;
+  environment: string;
+  time: string;
+};
+
+type Telemetry = {
+  camera_fps: number;
+  camera_ready: boolean;
+  camera_simulated: boolean;
+  recognition_ready: boolean;
+  model_people_count: number;
+  cpu_percent: number;
+  memory_percent: number;
+};
+
+type LocalPerson = {
+  person_id: string;
+  name: string;
+  original_photos: number;
+  processed_photos: number;
+};
+
+type RecognitionEvent = {
+  id: string;
+  event_type: string;
+  person_id: string | null;
+  person_name: string | null;
+  recognition_distance: number | null;
+  created_at: string;
+};
+
+const cardStyle = {
+  background: "#111111",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  if (!response.ok) {
+    let message = `${response.status} ${response.statusText}`;
+    try {
+      const body = await response.json();
+      message = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
+    } catch {
+      // Keep the HTTP status message.
+    }
+    throw new Error(message);
+  }
+  return response.json() as Promise<T>;
 }
 
-function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {
+function makePersonId(name: string) {
+  const slug =
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "person";
+  return `${slug}-${Date.now()}`;
+}
+
+function statusColor(ok: boolean) {
+  return ok ? "#10b981" : "#ef4444";
+}
+
+function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div
-      className="flex items-center justify-between py-2.5"
-      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+      style={{ background: ok ? "rgba(16,185,129,0.14)" : "rgba(239,68,68,0.14)", color: statusColor(ok) }}
     >
-      <span className="text-xs" style={{ color: "#3a3a3a" }}>{label}</span>
-      <span className="text-xs font-medium" style={{ color: color ?? "#f0f0f0" }}>{value}</span>
+      {ok ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+      {label}
     </div>
   );
 }
 
-/* ── Primary button ─────────────────────────────────────── */
-function PrimaryBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) {
+function Metric({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
-      style={{ background: "#ffffff", color: "#080808" }}
-    >
-      {children}
-    </button>
+    <div className="flex items-center justify-between border-b border-white/[0.04] py-2.5">
+      <span className="text-xs" style={{ color: "#686868" }}>
+        {label}
+      </span>
+      <span className="text-xs font-medium" style={{ color: color ?? "#f5f5f5" }}>
+        {value}
+      </span>
+    </div>
   );
 }
 
-/* ── Ghost / secondary button ───────────────────────────── */
-function GhostBtn({
-  children, onClick, color,
-}: { children: React.ReactNode; onClick?: () => void; color?: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
-      style={{ background: "#1a1a1a", color: color ?? "#a0a0a0", border: "1px solid rgba(255,255,255,0.06)" }}
-    >
-      {children}
-    </button>
-  );
-}
-
-/* ── Page ───────────────────────────────────────────────── */
 export function LiveCamera() {
-  const [doorConfirm,    setDoorConfirm]    = useState(false);
-  const [restartConfirm, setRestartConfirm] = useState(false);
-  const [stopConfirm,    setStopConfirm]    = useState(false);
-  const [recognitionOn,  setRecognitionOn]  = useState(true);
-  const [fps, setFps] = useState(24);
-  const [doorOpen, setDoorOpen] = useState(false);
+  const [agentHealth, setAgentHealth] = useState<AgentHealth | null>(null);
+  const [centralHealth, setCentralHealth] = useState<CentralHealth | null>(null);
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+  const [people, setPeople] = useState<LocalPerson[]>([]);
+  const [events, setEvents] = useState<RecognitionEvent[]>([]);
+  const [name, setName] = useState("");
+  const [photoCount, setPhotoCount] = useState(12);
+  const [strictFaceDetection, setStrictFaceDetection] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [streamTick, setStreamTick] = useState(0);
+  const [lastTraining, setLastTraining] = useState<string>("not trained in this session");
+
+  const streamUrl = useMemo(() => `${AGENT_API}/camera/stream?refresh=${streamTick}`, [streamTick]);
+
+  async function refreshStatus(showToast = false) {
+    const results = await Promise.allSettled([
+      fetchJson<AgentHealth>(`${AGENT_API}/health`),
+      fetchJson<Telemetry>(`${AGENT_API}/telemetry`),
+      fetchJson<LocalPerson[]>(`${AGENT_API}/people`),
+      fetchJson<RecognitionEvent[]>(`${AGENT_API}/events?limit=8`),
+      fetchJson<CentralHealth>(`${CENTRAL_API}/api/v1/system/health`),
+    ]);
+
+    if (results[0].status === "fulfilled") setAgentHealth(results[0].value);
+    if (results[1].status === "fulfilled") setTelemetry(results[1].value);
+    if (results[2].status === "fulfilled") setPeople(results[2].value);
+    if (results[3].status === "fulfilled") setEvents(results[3].value);
+    if (results[4].status === "fulfilled") setCentralHealth(results[4].value);
+
+    if (showToast) {
+      const failed = results.filter((result) => result.status === "rejected").length;
+      if (failed === 0) toast.success("Status refreshed");
+      else toast.warning(`Status refreshed with ${failed} unavailable check(s)`);
+    }
+  }
 
   useEffect(() => {
-    const t = setInterval(() => setFps(22 + Math.floor(Math.random() * 6)), 2000);
-    return () => clearInterval(t);
+    void refreshStatus();
+    const timer = window.setInterval(() => {
+      void refreshStatus();
+    }, 4000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  function openDoor() {
-    setDoorOpen(true);
-    toast.success("Door opened — closing in 5 s");
-    setTimeout(() => setDoorOpen(false), 5000);
-    setDoorConfirm(false);
+  async function registerPerson() {
+    const displayName = name.trim();
+    if (!displayName) {
+      toast.error("Enter a person name first");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      let personId = makePersonId(displayName);
+
+      try {
+        const centralPerson = await fetchJson<{ id: string }>(`${CENTRAL_API}/api/v1/people/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: displayName,
+            description: "Created from local MVP v1 camera demo",
+            access_enabled: true,
+          }),
+        });
+        personId = centralPerson.id;
+      } catch (error) {
+        console.warn("Central backend person creation failed; continuing with local agent only", error);
+        toast.warning("Central backend unavailable; saving person in local camera agent");
+      }
+
+      toast.info("Look at the camera while photos are captured");
+      await fetchJson(`${AGENT_API}/people/${encodeURIComponent(personId)}/capture`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: displayName,
+          count: photoCount,
+          interval_seconds: 0.28,
+          strict_face_detection: strictFaceDetection,
+        }),
+      });
+
+      const training = await fetchJson<{ people_count: number; image_count: number; skipped_count: number }>(
+        `${AGENT_API}/recognition/train`,
+        { method: "POST" },
+      );
+      setLastTraining(
+        `${training.people_count} people, ${training.image_count} images, ${training.skipped_count} skipped`,
+      );
+      setName("");
+      toast.success(`${displayName} registered and recognition model retrained`);
+      await refreshStatus();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error(message);
+    } finally {
+      setBusy(false);
+    }
   }
-  function restartCamera() { toast.info("Camera restarting…"); setRestartConfirm(false); }
-  function stopRecognition() { setRecognitionOn(false); toast.warning("Recognition stopped"); setStopConfirm(false); }
+
+  async function openDoor() {
+    setBusy(true);
+    try {
+      await fetchJson(`${AGENT_API}/door/open`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ duration_seconds: 2, reason: "local-mvp1-demo" }),
+      });
+      toast.success("Door command sent to local agent");
+      await refreshStatus();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
-    <div className="flex flex-col xl:flex-row gap-4">
-      {/* Camera feed */}
-      <div className="flex-1 min-w-0 space-y-3">
-        {/* Main feed */}
+    <div className="flex flex-col gap-4 xl:flex-row">
+      <div className="min-w-0 flex-1 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold text-white">Live Camera MVP v1</h1>
+            <p className="text-sm" style={{ color: "#777" }}>
+              Local laptop camera, LBPH recognition agent, central backend-service at {CENTRAL_API}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setStreamTick((value) => value + 1);
+              void refreshStatus(true);
+            }}
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-white"
+            style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <RefreshCcw className="h-4 w-4" />
+            Refresh
+          </button>
+        </div>
+
         <div
-          className="relative rounded-2xl overflow-hidden"
-          style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)", aspectRatio: "16/9", minHeight: "300px" }}
+          className="relative overflow-hidden rounded-2xl"
+          style={{ ...cardStyle, aspectRatio: "16 / 9", minHeight: 320 }}
         >
-          {/* Subtle grid */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }} />
-
-          {recognitionOn && (
-            <>
-              {/* Primary face box */}
-              <div
-                className="absolute"
-                style={{ top: "20%", left: "30%", width: "26%", height: "46%", border: "1.5px solid #10b981", borderRadius: "4px", boxShadow: "0 0 24px rgba(16,185,129,0.15)" }}
-              >
-                {["tl","tr","bl","br"].map((c) => (
-                  <div key={c} className="absolute w-3 h-3" style={{
-                    top:    c.includes("t") ? -1 : "auto", bottom: c.includes("b") ? -1 : "auto",
-                    left:   c.includes("l") ? -1 : "auto", right:  c.includes("r") ? -1 : "auto",
-                    borderTop:    c.includes("t") ? "2px solid #10b981" : "none",
-                    borderBottom: c.includes("b") ? "2px solid #10b981" : "none",
-                    borderLeft:   c.includes("l") ? "2px solid #10b981" : "none",
-                    borderRight:  c.includes("r") ? "2px solid #10b981" : "none",
-                  }} />
-                ))}
-                <div
-                  className="absolute -top-7 left-0 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                  style={{ background: "rgba(16,185,129,0.9)", whiteSpace: "nowrap" }}
-                >
-                  <CheckCircle className="w-3 h-3" /> John Doe 97.4%
-                </div>
-              </div>
-
-              {/* Secondary — unknown */}
-              <div
-                className="absolute"
-                style={{ top: "28%", right: "16%", width: "18%", height: "32%", border: "1.5px solid #f59e0b", borderRadius: "4px", boxShadow: "0 0 16px rgba(245,158,11,0.1)" }}
-              >
-                <div
-                  className="absolute -top-7 left-0 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                  style={{ background: "rgba(245,158,11,0.9)", whiteSpace: "nowrap" }}
-                >
-                  <AlertTriangle className="w-3 h-3" /> Unknown 34%
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Overlays */}
-          <div className="absolute top-3 left-3 flex items-center gap-2">
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white" style={{ background: "rgba(0,0,0,0.7)" }}>
-              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#ef4444" }} />
+          <img
+            key={streamTick}
+            src={streamUrl}
+            alt="Live laptop camera stream"
+            className="h-full w-full object-cover"
+            onError={() => toast.error("Camera stream is unavailable. Start backend agent on port 8081.")}
+          />
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+            <div className="inline-flex items-center gap-2 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs font-semibold text-white">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
               LIVE
             </div>
-            {recognitionOn
-              ? <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}><Zap className="w-3 h-3" /> AI Active</div>
-              : <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}><XCircle className="w-3 h-3" /> AI Off</div>
-            }
-          </div>
-
-          <div className="absolute bottom-3 left-3 text-xs px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
-            <Monitor className="w-3 h-3 inline mr-1" />1280×720 · {fps} fps
-          </div>
-
-          <button className="absolute bottom-3 right-3 p-2 rounded-lg transition-colors" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
-            <Maximize2 className="w-4 h-4" />
-          </button>
-
-          {doorOpen && (
-            <div className="absolute inset-x-0 top-0 py-2.5 text-center text-xs font-semibold text-white" style={{ background: "rgba(16,185,129,0.9)" }}>
-              Door Open — closing in 5 seconds
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs font-medium text-white">
+              <Video className="h-3 w-3" />
+              {agentHealth?.camera_simulated ? "Simulated camera" : "Laptop camera"}
             </div>
-          )}
+          </div>
+          <div className="absolute bottom-3 left-3 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs text-white">
+            {telemetry ? `${telemetry.camera_fps.toFixed(1)} fps` : "waiting for telemetry"}
+          </div>
         </div>
 
-        {/* Event strip */}
-        <div className="rounded-2xl p-4" style={CARD}>
-          <div className="text-xs font-semibold text-white mb-3">Recognition Events</div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {[
-              { name: "John Doe",  conf: 97.4, color: "#10b981", time: "14:32" },
-              { name: "Unknown",   conf: 34.1, color: "#f59e0b", time: "14:18" },
-              { name: "Mary Smith",conf: 91.2, color: "#3b82f6", time: "13:55" },
-              { name: "Bob J.",    conf: 88.7, color: "#8b5cf6", time: "13:40" },
-            ].map((ev, i) => (
-              <div
-                key={i}
-                className="shrink-0 flex items-center gap-2.5 px-3 py-2.5 rounded-xl min-w-[160px]"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-              >
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                  style={{ background: `${ev.color}15`, color: ev.color }}>
-                  {ev.name === "Unknown" ? "?" : ev.name.split(" ").map((n) => n[0]).join("").slice(0,2)}
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-white">{ev.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: ev.color }}>{ev.conf}% · {ev.time}</div>
-                </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl p-4" style={cardStyle}>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <UserPlus className="h-4 w-4" />
+                Add Person
               </div>
-            ))}
+              {busy && <Loader2 className="h-4 w-4 animate-spin text-white" />}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Person name"
+                className="w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none"
+                style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)" }}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <label className="space-y-1 text-xs" style={{ color: "#777" }}>
+                  Photos
+                  <input
+                    type="number"
+                    min={5}
+                    max={40}
+                    value={photoCount}
+                    onChange={(event) => setPhotoCount(Number(event.target.value))}
+                    className="w-full rounded-xl px-3 py-2 text-sm text-white outline-none"
+                    style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)" }}
+                  />
+                </label>
+                <label className="flex items-end gap-2 rounded-xl px-3 py-2 text-xs" style={{ background: "#1b1b1b" }}>
+                  <input
+                    type="checkbox"
+                    checked={strictFaceDetection}
+                    onChange={(event) => setStrictFaceDetection(event.target.checked)}
+                  />
+                  Strict face detection
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={registerPerson}
+                disabled={busy}
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
+                style={{ background: "#fff", color: "#080808" }}
+              >
+                <Camera className="h-4 w-4" />
+                Capture and Train
+              </button>
+              <p className="text-xs leading-relaxed" style={{ color: "#777" }}>
+                Keep one clear face in frame during capture. The local agent stores face images and retrains the LBPH
+                recognizer after each registration.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-4" style={cardStyle}>
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+              <Activity className="h-4 w-4" />
+              Recognition Events
+            </div>
+            <div className="space-y-2">
+              {events.length === 0 ? (
+                <div className="rounded-xl px-3 py-3 text-sm" style={{ background: "#1b1b1b", color: "#777" }}>
+                  No recognition events yet. Register a person, then stay in frame for a few seconds.
+                </div>
+              ) : (
+                events.map((event) => {
+                  const known = event.event_type === "recognized";
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex items-center justify-between rounded-xl px-3 py-2.5"
+                      style={{ background: "#1b1b1b", border: "1px solid rgba(255,255,255,0.05)" }}
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-white">
+                          {known ? event.person_name ?? event.person_id : "Unknown face"}
+                        </div>
+                        <div className="text-xs" style={{ color: "#777" }}>
+                          {new Date(event.created_at).toLocaleTimeString()}
+                        </div>
+                      </div>
+                      <div className="text-right text-xs" style={{ color: known ? "#10b981" : "#f59e0b" }}>
+                        {event.event_type}
+                        <br />
+                        {event.recognition_distance == null
+                          ? "no distance"
+                          : `distance ${event.recognition_distance.toFixed(1)}`}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Control panel */}
-      <div className="xl:w-68 shrink-0 space-y-3" style={{ width: "268px" }}>
-        {/* Status */}
-        <div className="rounded-2xl p-4" style={CARD}>
-          <div className="text-xs font-semibold text-white mb-3">Status</div>
-          <StatRow label="Camera"      value="Online"                             color="#10b981" />
-          <StatRow label="Recognition" value={recognitionOn ? "Running" : "Off"} color={recognitionOn ? "#10b981" : "#ef4444"} />
-          <StatRow label="FPS"         value={`${fps} fps`}                       color="#3b82f6" />
-          <StatRow label="Resolution"  value="1280×720" />
-          <StatRow label="Faces"       value="2 detected"                         color="#f59e0b" />
-          <div className="flex items-center justify-between pt-2.5">
-            <span className="text-xs" style={{ color: "#3a3a3a" }}>Uptime</span>
-            <span className="text-xs font-medium text-white">4h 32m</span>
+      <aside className="space-y-4 xl:w-[300px] xl:shrink-0">
+        <div className="rounded-2xl p-4" style={cardStyle}>
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <Server className="h-4 w-4" />
+            Services
+          </div>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <StatusPill ok={Boolean(agentHealth)} label="Agent" />
+            <StatusPill ok={Boolean(centralHealth)} label="Backend-service" />
+            <StatusPill ok={Boolean(agentHealth?.recognition_ready)} label="AI model" />
+          </div>
+          <Metric label="Agent status" value={agentHealth?.status ?? "offline"} color={statusColor(Boolean(agentHealth))} />
+          <Metric
+            label="Camera"
+            value={agentHealth?.camera_ready ? "ready" : "not ready"}
+            color={statusColor(Boolean(agentHealth?.camera_ready))}
+          />
+          <Metric label="Central backend" value={centralHealth?.status ?? "unavailable"} />
+          <Metric label="Model people" value={String(telemetry?.model_people_count ?? 0)} color="#3b82f6" />
+          <Metric label="Last training" value={lastTraining} />
+          <Metric label="CPU" value={telemetry ? `${telemetry.cpu_percent.toFixed(0)}%` : "n/a"} />
+          <Metric label="Memory" value={telemetry ? `${telemetry.memory_percent.toFixed(0)}%` : "n/a"} />
+        </div>
+
+        <div className="rounded-2xl p-4" style={cardStyle}>
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <Zap className="h-4 w-4" />
+            Local People
+          </div>
+          <div className="space-y-2">
+            {people.length === 0 ? (
+              <div className="rounded-xl px-3 py-3 text-sm" style={{ background: "#1b1b1b", color: "#777" }}>
+                No local people registered.
+              </div>
+            ) : (
+              people.map((person) => (
+                <div key={person.person_id} className="rounded-xl px-3 py-2.5" style={{ background: "#1b1b1b" }}>
+                  <div className="text-sm font-medium text-white">{person.name}</div>
+                  <div className="mt-1 text-xs" style={{ color: "#777" }}>
+                    {person.processed_photos} trained photos
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="rounded-2xl p-4 space-y-2" style={CARD}>
-          <div className="text-xs font-semibold text-white mb-1">Controls</div>
-
-          <PrimaryBtn onClick={() => toast.info("Photo captured")}>
-            <Camera className="w-4 h-4" /> Capture Photo
-          </PrimaryBtn>
-
-          <PrimaryBtn onClick={() => setDoorConfirm(true)} disabled={doorOpen}>
-            <DoorOpen className="w-4 h-4" /> {doorOpen ? "Door is Open" : "Open Door"}
-          </PrimaryBtn>
-
-          <GhostBtn onClick={() => setRestartConfirm(true)}>
-            <RotateCcw className="w-4 h-4" /> Restart Camera
-          </GhostBtn>
-
-          {recognitionOn ? (
-            <GhostBtn onClick={() => setStopConfirm(true)} color="#ef4444">
-              <Square className="w-4 h-4" /> Stop Recognition
-            </GhostBtn>
-          ) : (
-            <GhostBtn onClick={() => { setRecognitionOn(true); toast.success("Recognition started"); }} color="#10b981">
-              <Zap className="w-4 h-4" /> Start Recognition
-            </GhostBtn>
-          )}
-        </div>
-
-        {/* Quick settings */}
-        <div className="rounded-2xl p-4 space-y-4" style={CARD}>
-          <div className="text-xs font-semibold text-white">Quick Settings</div>
-          <div>
-            <div className="flex justify-between text-xs mb-2" style={{ color: "#3a3a3a" }}>
-              <span>Confidence threshold</span>
-              <span style={{ color: "#10b981" }}>75%</span>
-            </div>
-            <input type="range" min={50} max={99} defaultValue={75} className="w-full h-1 accent-green-500" />
-          </div>
-          <div>
-            <div className="flex justify-between text-xs mb-2" style={{ color: "#3a3a3a" }}>
-              <span>Max FPS</span>
-              <span style={{ color: "#3b82f6" }}>30</span>
-            </div>
-            <input type="range" min={5} max={60} defaultValue={30} className="w-full h-1 accent-blue-500" />
-          </div>
-        </div>
-      </div>
-
-      {doorConfirm    && <ConfirmModal title="Open Door?"           message="This will physically unlock the front door." onConfirm={openDoor}          onCancel={() => setDoorConfirm(false)} />}
-      {restartConfirm && <ConfirmModal title="Restart Camera?"      message="The camera feed will interrupt briefly."     onConfirm={restartCamera}      onCancel={() => setRestartConfirm(false)} />}
-      {stopConfirm    && <ConfirmModal title="Stop Recognition?"    message="Unknown visitors won't be detected."         onConfirm={stopRecognition}    onCancel={() => setStopConfirm(false)}    danger />}
+        <button
+          type="button"
+          onClick={openDoor}
+          disabled={busy}
+          className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          style={{ background: "#166534" }}
+        >
+          <DoorOpen className="h-4 w-4" />
+          Test Door Command
+        </button>
+      </aside>
     </div>
   );
 }

@@ -35,4 +35,19 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  server: {
+    proxy: {
+      '/agent': {
+        target: process.env.FACEGUARD_AGENT_URL ?? 'http://127.0.0.1:8081',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/agent/, ''),
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('X-Agent-Key', process.env.FACEGUARD_AGENT_KEY ?? 'change-me-agent-key')
+          })
+        },
+      },
+    },
+  },
 })
