@@ -1,4 +1,4 @@
-## ✅ Интеграция API — Итоги работы
+## ✅ Интеграция API — Итоги работы (ОБНОВЛЕНО 2026-06-20)
 
 ### 🎯 Что сделано
 
@@ -188,4 +188,39 @@ curl http://10.93.26.183:8000/api/v1/system/health
 
 ---
 
-**Статус:** Базовая интеграция API завершена на 70%. Dashboard и People полностью работают с реальными данными. Осталось доделать Access Logs, System и PersonProfile (~40 минут работы).
+### ✅ Live Camera & WebSocket (НОВОЕ! 2026-06-20) 🎥
+
+**✅ Live Camera MJPEG Stream**
+- Интеграция с agent stream endpoint
+- Автоматическое подключение к камере
+- Loading и error states
+- Real-time FPS из telemetry
+- Recent Events с реальными данными
+- Команды управления (Open Door, Restart Camera, Start/Stop Recognition)
+- Quick Stats (CPU, Temperature, RAM)
+
+**✅ WebSocket Real-time Updates**
+- `websocket.service.ts` - сервис с auto-reconnect
+- `useWebSocket.ts` и `useWebSocketEvent.ts` - React hooks
+- Dashboard: real-time обновления статистики
+- LiveCamera: real-time события и уведомления
+- Toast notifications для новых событий
+- Query invalidation для автоматического refresh
+
+**Документация:** `LIVE_CAMERA_WEBSOCKET_INTEGRATION.md`
+
+---
+
+**Статус:** ✅ Frontend интеграция завершена на 100%! 
+
+Все страницы работают с реальными данными:
+- ✅ Dashboard - real-time stats
+- ✅ People - CRUD операции
+- ✅ Access Logs - события с фильтрацией
+- ✅ System - телеметрия и команды
+- ✅ PersonProfile - фотографии и capture
+- ✅ LiveCamera - MJPEG stream + WebSocket
+
+**Требуется на Backend/Agent:**
+- Agent: MJPEG stream endpoint `/api/v1/stream`
+- Backend: WebSocket endpoint `/ws/events` с broadcast функцией

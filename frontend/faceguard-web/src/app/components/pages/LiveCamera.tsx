@@ -1,9 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Camera, Zap, Monitor, RotateCcw, Square, DoorOpen,
-  AlertTriangle, CheckCircle, XCircle, Maximize2,
+  AlertTriangle, CheckCircle, XCircle, Maximize2, Wifi,
 } from "lucide-react";
 import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
+import { useGetDevices } from "../../../hooks/api/useDevices";
+import { useGetLatestTelemetry } from "../../../hooks/api/useTelemetry";
+import { useGetEvents } from "../../../hooks/api/useEvents";
+import { useGetPeople } from "../../../hooks/api/usePeople";
+import {
+  useOpenDoor,
+  useRestartCamera,
+  useRestartRecognition,
+  useSendCommand,
+} from "../../../hooks/api/useCommands";
+import { apiService } from "../../../services/api.service";
+import { AccessEvent } from "../../../types/api.types";
+import { useWebSocket, useWebSocketEvent } from "../../../hooks/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 
@@ -98,26 +113,172 @@ function GhostBtn({
 
 /* ── Page ───────────────────────────────────────────────── */
 export function LiveCamera() {
-  const [doorConfirm,    setDoorConfirm]    = useState(false);
+  const [doorConfirm, setDoorConfirm] = useState(false);
   const [restartConfirm, setRestartConfirm] = useState(false);
-  const [stopConfirm,    setStopConfirm]    = useState(false);
-  const [recognitionOn,  setRecognitionOn]  = useState(true);
-  const [fps, setFps] = useState(24);
-  const [doorOpen, setDoorOpen] = useState(false);
+  const [stopConfirm, setStopConfirm] = useState(false);
+  const [streamConnected, setStreamConnected] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const queryClient = useQueryClient();
 
+  // API hooks
+  const { data: devices = [] } = useGetDevices();
+  const { data: people = [] } = useGetPeople();
+  const activeDevice = useMemo(
+    () => devices.find((d) => d.status === "online") ?? devices[0],
+    [devices]
+  );
+  const deviceId = activeDevice?.id ?? "";
+
+  const { data: telemetry } = useGetLatestTelemetry(deviceId);
+  const { data: recentEvents = [] } = useGetEvents({ device_id: deviceId, limit: 10 });
+
+  const openDoorMutation = useOpenDoor();
+  const restartCameraMutation = useRestartCamera();
+  const restartRecognitionMutation = useRestartRecognition();
+  const sendCommandMutation = useSendCommand();
+
+  // WebSocket connection
+  const { isConnected: wsConnected } = useWebSocket({
+    autoConnect: true,
+    onConnected: () => {
+      console.log("[LiveCamera] WebSocket connected");
+    },
+    onDisconnected: () => {
+      console.log("[LiveCamera] WebSocket disconnected");
+    },
+    onError: (error) => {
+      console.error("[LiveCamera] WebSocket error:", error);
+    },
+  });
+
+  // Listen for recognition events
+  useWebSocketEvent("recognition_event", (data: any) => {
+    console.log("[LiveCamera] Recognition event:", data);
+
+    // Show toast notification
+    if (data.event_type === "recognized" && data.person_name) {
+      toast.success(`${data.person_name} recognized`, {
+        description: `Confidence: ${data.confidence?.toFixed(1)}%`,
+      });
+    } else if (data.event_type === "unknown") {
+      toast.warning("Unknown person detected", {
+        description: `Confidence: ${data.confidence?.toFixed(1)}%`,
+      });
+    }
+
+    // Invalidate events query to refresh the list
+    queryClient.invalidateQueries({ queryKey: ["events"] });
+  });
+
+  // Listen for door events
+  useWebSocketEvent("door_event", (data: any) => {
+    console.log("[LiveCamera] Door event:", data);
+    if (data.door_opened) {
+      toast.info("Door opened");
+    }
+  });
+
+  // Listen for command status updates
+  useWebSocketEvent("command_status", (data: any) => {
+    console.log("[LiveCamera] Command status:", data);
+    if (data.status === "completed") {
+      toast.success(`Command completed: ${data.command_type}`);
+    } else if (data.status === "failed") {
+      toast.error(`Command failed: ${data.command_type}`);
+    }
+    queryClient.invalidateQueries({ queryKey: ["commands"] });
+  });
+
+  const recognitionOn = activeDevice?.recognition_status === "running";
+  const fps = telemetry?.camera_fps ?? 0;
+  const uptime = telemetry?.uptime ?? 0;
+
+  // Stream URL
+  const streamUrl = deviceId ? apiService.getCameraStreamUrl(deviceId) : "";
+
+  // Setup stream connection
   useEffect(() => {
-    const t = setInterval(() => setFps(22 + Math.floor(Math.random() * 6)), 2000);
-    return () => clearInterval(t);
-  }, []);
+    if (!streamUrl || !imgRef.current) return;
+
+    const img = imgRef.current;
+    img.onload = () => setStreamConnected(true);
+    img.onerror = () => {
+      setStreamConnected(false);
+      toast.error("Camera stream unavailable");
+    };
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [streamUrl]);
+
+  // People map for name lookup
+  const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
+
+  function getEventName(event: AccessEvent) {
+    return event.person_id && peopleById.has(event.person_id)
+      ? peopleById.get(event.person_id)!.name
+      : "Unknown";
+  }
+
+  function getEventInitials(name: string) {
+    if (name === "Unknown") return "?";
+    return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  }
+
+  function getEventColor(event: AccessEvent) {
+    if (event.event_type === "unknown") return "#f59e0b";
+    if (event.event_type === "access_denied") return "#ef4444";
+    return "#10b981";
+  }
 
   function openDoor() {
-    setDoorOpen(true);
-    toast.success("Door opened — closing in 5 s");
-    setTimeout(() => setDoorOpen(false), 5000);
-    setDoorConfirm(false);
+    if (!deviceId) return;
+    openDoorMutation.mutate({ deviceId, duration: 5 }, {
+      onSuccess: () => {
+        setDoorConfirm(false);
+        toast.success("Door opened — closing in 5s");
+      },
+    });
   }
-  function restartCamera() { toast.info("Camera restarting…"); setRestartConfirm(false); }
-  function stopRecognition() { setRecognitionOn(false); toast.warning("Recognition stopped"); setStopConfirm(false); }
+
+  function restartCamera() {
+    if (!deviceId) return;
+    restartCameraMutation.mutate(deviceId, {
+      onSuccess: () => {
+        setRestartConfirm(false);
+        toast.info("Camera restarting…");
+      },
+    });
+  }
+
+  function stopRecognition() {
+    if (!deviceId) return;
+    sendCommandMutation.mutate({
+      device_id: deviceId,
+      command_type: "stop_recognition",
+      parameters: null,
+    }, {
+      onSuccess: () => {
+        setStopConfirm(false);
+        toast.warning("Recognition stopped");
+      },
+    });
+  }
+
+  function startRecognition() {
+    if (!deviceId) return;
+    restartRecognitionMutation.mutate(deviceId, {
+      onSuccess: () => toast.success("Recognition started"),
+    });
+  }
+
+  function formatUptime(seconds: number) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  }
 
   return (
     <div className="flex flex-col xl:flex-row gap-4">
@@ -128,57 +289,48 @@ export function LiveCamera() {
           className="relative rounded-2xl overflow-hidden"
           style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)", aspectRatio: "16/9", minHeight: "300px" }}
         >
-          {/* Subtle grid */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }} />
-
-          {recognitionOn && (
-            <>
-              {/* Primary face box */}
-              <div
-                className="absolute"
-                style={{ top: "20%", left: "30%", width: "26%", height: "46%", border: "1.5px solid #10b981", borderRadius: "4px", boxShadow: "0 0 24px rgba(16,185,129,0.15)" }}
-              >
-                {["tl","tr","bl","br"].map((c) => (
-                  <div key={c} className="absolute w-3 h-3" style={{
-                    top:    c.includes("t") ? -1 : "auto", bottom: c.includes("b") ? -1 : "auto",
-                    left:   c.includes("l") ? -1 : "auto", right:  c.includes("r") ? -1 : "auto",
-                    borderTop:    c.includes("t") ? "2px solid #10b981" : "none",
-                    borderBottom: c.includes("b") ? "2px solid #10b981" : "none",
-                    borderLeft:   c.includes("l") ? "2px solid #10b981" : "none",
-                    borderRight:  c.includes("r") ? "2px solid #10b981" : "none",
-                  }} />
-                ))}
-                <div
-                  className="absolute -top-7 left-0 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                  style={{ background: "rgba(16,185,129,0.9)", whiteSpace: "nowrap" }}
-                >
-                  <CheckCircle className="w-3 h-3" /> John Doe 97.4%
-                </div>
+          {/* Video stream */}
+          {streamUrl ? (
+            <img
+              ref={imgRef}
+              src={streamUrl}
+              alt="Live camera feed"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ display: streamConnected ? "block" : "none" }}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <Camera className="w-12 h-12 mb-3 mx-auto" style={{ color: "#1a1a1a" }} />
+                <p className="text-sm font-medium text-white mb-1">No device available</p>
+                <p className="text-xs" style={{ color: "#3a3a3a" }}>Connect a device to view stream</p>
               </div>
+            </div>
+          )}
 
-              {/* Secondary — unknown */}
-              <div
-                className="absolute"
-                style={{ top: "28%", right: "16%", width: "18%", height: "32%", border: "1.5px solid #f59e0b", borderRadius: "4px", boxShadow: "0 0 16px rgba(245,158,11,0.1)" }}
-              >
-                <div
-                  className="absolute -top-7 left-0 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                  style={{ background: "rgba(245,158,11,0.9)", whiteSpace: "nowrap" }}
-                >
-                  <AlertTriangle className="w-3 h-3" /> Unknown 34%
-                </div>
+          {/* Loading state */}
+          {streamUrl && !streamConnected && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-white/10 border-t-white rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-white">Connecting to camera...</p>
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Subtle grid overlay */}
+          {streamConnected && (
+            <div className="absolute inset-0 pointer-events-none" style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+            }} />
           )}
 
           {/* Overlays */}
           <div className="absolute top-3 left-3 flex items-center gap-2">
             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white" style={{ background: "rgba(0,0,0,0.7)" }}>
-              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#ef4444" }} />
-              LIVE
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: streamConnected ? "#ef4444" : "#5a5a5a" }} />
+              {streamConnected ? "LIVE" : "OFFLINE"}
             </div>
             {recognitionOn
               ? <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}><Zap className="w-3 h-3" /> AI Active</div>
@@ -186,47 +338,56 @@ export function LiveCamera() {
             }
           </div>
 
+          <div className="absolute top-3 right-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(0,0,0,0.7)", color: wsConnected ? "#10b981" : "#5a5a5a" }}>
+              <Wifi className="w-3 h-3" />
+              {wsConnected ? "Connected" : "Disconnected"}
+            </div>
+          </div>
+
           <div className="absolute bottom-3 left-3 text-xs px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
-            <Monitor className="w-3 h-3 inline mr-1" />1280×720 · {fps} fps
+            <Monitor className="w-3 h-3 inline mr-1" />
+            {telemetry?.camera_fps ? `${Math.round(telemetry.camera_fps)} fps` : "-- fps"}
           </div>
 
           <button className="absolute bottom-3 right-3 p-2 rounded-lg transition-colors" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
             <Maximize2 className="w-4 h-4" />
           </button>
-
-          {doorOpen && (
-            <div className="absolute inset-x-0 top-0 py-2.5 text-center text-xs font-semibold text-white" style={{ background: "rgba(16,185,129,0.9)" }}>
-              Door Open — closing in 5 seconds
-            </div>
-          )}
         </div>
 
         {/* Event strip */}
         <div className="rounded-2xl p-4" style={CARD}>
-          <div className="text-xs font-semibold text-white mb-3">Recognition Events</div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {[
-              { name: "John Doe",  conf: 97.4, color: "#10b981", time: "14:32" },
-              { name: "Unknown",   conf: 34.1, color: "#f59e0b", time: "14:18" },
-              { name: "Mary Smith",conf: 91.2, color: "#3b82f6", time: "13:55" },
-              { name: "Bob J.",    conf: 88.7, color: "#8b5cf6", time: "13:40" },
-            ].map((ev, i) => (
-              <div
-                key={i}
-                className="shrink-0 flex items-center gap-2.5 px-3 py-2.5 rounded-xl min-w-[160px]"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-              >
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                  style={{ background: `${ev.color}15`, color: ev.color }}>
-                  {ev.name === "Unknown" ? "?" : ev.name.split(" ").map((n) => n[0]).join("").slice(0,2)}
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-white">{ev.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: ev.color }}>{ev.conf}% · {ev.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <div className="text-xs font-semibold text-white mb-3">Recent Events ({recentEvents.length})</div>
+          {recentEvents.length === 0 ? (
+            <p className="text-xs py-4 text-center" style={{ color: "#3a3a3a" }}>No recent events</p>
+          ) : (
+            <div className="flex gap-2.5 overflow-x-auto pb-1">
+              {recentEvents.map((event) => {
+                const name = getEventName(event);
+                const color = getEventColor(event);
+                const initials = getEventInitials(name);
+                const time = format(parseISO(event.created_at), "HH:mm");
+                return (
+                  <div
+                    key={event.id}
+                    className="shrink-0 flex items-center gap-2.5 px-3 py-2.5 rounded-xl min-w-[160px]"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+                  >
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                      style={{ background: `${color}15`, color }}>
+                      {initials}
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium text-white">{name}</div>
+                      <div className="text-xs mt-0.5" style={{ color }}>
+                        {event.confidence ? `${event.confidence.toFixed(1)}%` : "--"} · {time}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -235,14 +396,14 @@ export function LiveCamera() {
         {/* Status */}
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="text-xs font-semibold text-white mb-3">Status</div>
-          <StatRow label="Camera"      value="Online"                             color="#10b981" />
+          <StatRow label="Camera" value={streamConnected ? "Online" : "Offline"} color={streamConnected ? "#10b981" : "#ef4444"} />
           <StatRow label="Recognition" value={recognitionOn ? "Running" : "Off"} color={recognitionOn ? "#10b981" : "#ef4444"} />
-          <StatRow label="FPS"         value={`${fps} fps`}                       color="#3b82f6" />
-          <StatRow label="Resolution"  value="1280×720" />
-          <StatRow label="Faces"       value="2 detected"                         color="#f59e0b" />
+          <StatRow label="FPS" value={fps > 0 ? `${Math.round(fps)} fps` : "-- fps"} color="#3b82f6" />
+          <StatRow label="Resolution" value="1280×720" />
+          <StatRow label="Device" value={activeDevice?.name ?? "No device"} />
           <div className="flex items-center justify-between pt-2.5">
             <span className="text-xs" style={{ color: "#3a3a3a" }}>Uptime</span>
-            <span className="text-xs font-medium text-white">4h 32m</span>
+            <span className="text-xs font-medium text-white">{uptime > 0 ? formatUptime(uptime) : "--"}</span>
           </div>
         </div>
 
@@ -250,45 +411,45 @@ export function LiveCamera() {
         <div className="rounded-2xl p-4 space-y-2" style={CARD}>
           <div className="text-xs font-semibold text-white mb-1">Controls</div>
 
-          <PrimaryBtn onClick={() => toast.info("Photo captured")}>
+          <PrimaryBtn onClick={() => toast.info("Capture functionality available through PersonProfile")} disabled={!deviceId}>
             <Camera className="w-4 h-4" /> Capture Photo
           </PrimaryBtn>
 
-          <PrimaryBtn onClick={() => setDoorConfirm(true)} disabled={doorOpen}>
-            <DoorOpen className="w-4 h-4" /> {doorOpen ? "Door is Open" : "Open Door"}
+          <PrimaryBtn onClick={() => setDoorConfirm(true)} disabled={!deviceId || openDoorMutation.isPending}>
+            <DoorOpen className="w-4 h-4" /> {openDoorMutation.isPending ? "Opening..." : "Open Door"}
           </PrimaryBtn>
 
-          <GhostBtn onClick={() => setRestartConfirm(true)}>
-            <RotateCcw className="w-4 h-4" /> Restart Camera
+          <GhostBtn onClick={() => setRestartConfirm(true)} disabled={!deviceId || restartCameraMutation.isPending}>
+            <RotateCcw className="w-4 h-4" /> {restartCameraMutation.isPending ? "Restarting..." : "Restart Camera"}
           </GhostBtn>
 
           {recognitionOn ? (
-            <GhostBtn onClick={() => setStopConfirm(true)} color="#ef4444">
+            <GhostBtn onClick={() => setStopConfirm(true)} color="#ef4444" disabled={!deviceId}>
               <Square className="w-4 h-4" /> Stop Recognition
             </GhostBtn>
           ) : (
-            <GhostBtn onClick={() => { setRecognitionOn(true); toast.success("Recognition started"); }} color="#10b981">
-              <Zap className="w-4 h-4" /> Start Recognition
+            <GhostBtn onClick={startRecognition} color="#10b981" disabled={!deviceId || restartRecognitionMutation.isPending}>
+              <Zap className="w-4 h-4" /> {restartRecognitionMutation.isPending ? "Starting..." : "Start Recognition"}
             </GhostBtn>
           )}
         </div>
 
-        {/* Quick settings */}
-        <div className="rounded-2xl p-4 space-y-4" style={CARD}>
-          <div className="text-xs font-semibold text-white">Quick Settings</div>
-          <div>
-            <div className="flex justify-between text-xs mb-2" style={{ color: "#3a3a3a" }}>
-              <span>Confidence threshold</span>
-              <span style={{ color: "#10b981" }}>75%</span>
+        {/* Quick stats */}
+        <div className="rounded-2xl p-4 space-y-3" style={CARD}>
+          <div className="text-xs font-semibold text-white">Quick Stats</div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>CPU Usage</span>
+              <span className="font-medium text-white">{telemetry?.cpu_usage ? `${telemetry.cpu_usage.toFixed(1)}%` : "--"}</span>
             </div>
-            <input type="range" min={50} max={99} defaultValue={75} className="w-full h-1 accent-green-500" />
-          </div>
-          <div>
-            <div className="flex justify-between text-xs mb-2" style={{ color: "#3a3a3a" }}>
-              <span>Max FPS</span>
-              <span style={{ color: "#3b82f6" }}>30</span>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Temperature</span>
+              <span className="font-medium text-white">{telemetry?.cpu_temperature ? `${telemetry.cpu_temperature.toFixed(1)}°C` : "--"}</span>
             </div>
-            <input type="range" min={5} max={60} defaultValue={30} className="w-full h-1 accent-blue-500" />
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>RAM Usage</span>
+              <span className="font-medium text-white">{telemetry?.ram_usage ? `${telemetry.ram_usage.toFixed(1)}%` : "--"}</span>
+            </div>
           </div>
         </div>
       </div>

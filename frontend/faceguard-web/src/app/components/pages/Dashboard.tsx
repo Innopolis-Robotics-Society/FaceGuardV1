@@ -12,6 +12,9 @@ import { useGetPeople } from "../../../hooks/api/usePeople";
 import { useGetEvents, useGetEventStats } from "../../../hooks/api/useEvents";
 import { useGetSystemHealth } from "../../../hooks/api/useSystem";
 import { format, startOfDay, subDays, parseISO } from "date-fns";
+import { useWebSocketEvent } from "../../../hooks/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 /* ── Sub-components ───────────────────────────────────────── */
 const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
@@ -174,12 +177,33 @@ function MiniActivity({ events, stats }: { events: any[]; stats: any }) {
 /* ── Page ─────────────────────────────────────────────────── */
 export function Dashboard() {
   const [activeRow, setActiveRow] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: people = [], isLoading: loadingPeople } = useGetPeople();
   const { data: todayEvents = [], isLoading: loadingEvents } = useGetEvents({ days: 1, limit: 100 });
   const { data: recentEvents = [] } = useGetEvents({ limit: 5 });
   const { data: stats } = useGetEventStats(7);
   const { data: systemHealth } = useGetSystemHealth();
+
+  // WebSocket real-time updates
+  useWebSocketEvent("recognition_event", (data: any) => {
+    console.log("[Dashboard] Recognition event received:", data);
+
+    // Invalidate events to refresh stats
+    queryClient.invalidateQueries({ queryKey: ["events"] });
+    queryClient.invalidateQueries({ queryKey: ["eventStats"] });
+
+    // Show subtle notification
+    if (data.event_type === "recognized" && data.person_name) {
+      toast.success(`${data.person_name} recognized`, {
+        duration: 3000,
+      });
+    } else if (data.event_type === "unknown") {
+      toast.warning("Unknown person detected", {
+        duration: 3000,
+      });
+    }
+  });
 
   const activePeople = people.filter(p => p.access_enabled && !p.deleted_at).length;
   const todayTotal = todayEvents.length;

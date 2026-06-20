@@ -444,6 +444,23 @@ class ApiService {
     const { data } = await this.client.get<SystemReadiness>("/system/readiness");
     return data;
   }
+
+  // ============================================
+  // Camera Stream API
+  // ============================================
+
+  getCameraStreamUrl(deviceId: string): string {
+    const token = tokenUtils.getToken();
+    // Agent runs on a different port (e.g., 8001)
+    // This assumes agent exposes /api/v1/stream endpoint
+    return `http://10.93.26.183:8001/api/v1/stream?device_id=${deviceId}&token=${token}`;
+  }
+
+  getWebSocketUrl(): string {
+    // WebSocket endpoint for real-time events
+    const token = tokenUtils.getToken();
+    return `ws://10.93.26.183:8000/ws/events?token=${token}`;
+  }
 }
 
 export const apiService = new ApiService();
