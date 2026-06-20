@@ -28,8 +28,8 @@ The browser does not receive the local agent API key. Vite proxies `/agent/*` to
 Open PowerShell:
 
 ```powershell
-cd C:\Users\hitoe\PycharmProjects\FaceGuardV1-mvp1-camera\backend
-PowerShell -ExecutionPolicy Bypass -File .\scripts\run_windows.ps1
+cd C:\Users\hitoe\PycharmProjects\FaceGuardV1-mvp1-camera
+PowerShell -ExecutionPolicy Bypass -File .\start-mvp1-agent.ps1
 ```
 
 Check:
@@ -46,9 +46,8 @@ If the real camera is not available, the agent may fall back to the simulated ca
 Open a second PowerShell:
 
 ```powershell
-cd C:\Users\hitoe\PycharmProjects\FaceGuardV1-mvp1-camera\frontend\prototype
-npm ci
-npm run dev
+cd C:\Users\hitoe\PycharmProjects\FaceGuardV1-mvp1-camera
+PowerShell -ExecutionPolicy Bypass -File .\start-mvp1-site.ps1
 ```
 
 Open:
