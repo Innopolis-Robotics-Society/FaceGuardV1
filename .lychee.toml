@@ -1,0 +1,23 @@
+verbose = "info"
+no_progress = true
+cache = true
+max_cache_age = "1d"
+max_redirects = 10
+max_retries = 2
+max_concurrency = 8
+timeout = 30
+retry_wait_time = 2
+accept = ["200..=299", "429"]
+include_fragments = true
+exclude_all_private = true
+exclude = [
+  '^https://www\.figma\.com/',
+  '^https://disk\.yandex\.ru/',
+  '^https://unsplash\.com/',
+  '^https://innopolis-robotics-society\.github\.io/FaceGuardV1/'
+]
+exclude_path = [
+  "frontend/prototype/package-lock.json",
+  "frontend/faceguard-web/package-lock.json",
+  "frontend/faceguard-web/index.html"
+]

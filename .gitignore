@@ -1,8 +1,14 @@
 data/
-backend-sevice/data/
+backend-service/data/
 .idea/
 *.iml
 .DS_Store
 Thumbs.db
 node_modules/
 dist/
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
+
