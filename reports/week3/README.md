@@ -31,13 +31,13 @@ Current user-story index: [docs/user-stories.md](../../docs/user-stories.md)
 
 [Product Backlog view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/1)
 
-The Product Backlog view should show all qualifying PBIs, including user stories and supporting PBIs. Course Tasks, removed PBIs, and `Won't Have` items do not count toward the required 15 qualifying PBIs.
+The Product Backlog view is used as the inspectable issue-based Product Backlog. It includes qualifying user-story PBIs and supporting PBIs. Course Tasks, removed PBIs, and `Won't Have` items are not counted toward the required 15 qualifying PBIs.
 
 ## 7. Sprint Backlog View
 
 [Sprint Backlog view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/2)
 
-The Sprint Backlog view should be filtered to Sprint 1 / MVP v1 scope and should contain US-01, US-02, US-03, US-11, and PBI-01 through PBI-10.
+The Sprint Backlog view is filtered to Sprint 1 / MVP v1 scope and contains US-01, US-02, US-03, US-11, and PBI-01 through PBI-10.
 
 ## 8. Sprint Milestone, Dates and Sprint Goal
 
@@ -66,7 +66,7 @@ Selected Sprint 1 scope totals 58 SP:
 
 [MVP v1 scope view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/3)
 
-The MVP v1 grouped or filtered view should show the selected MVP v1 PBIs: US-01, US-02, US-03, US-11, and PBI-01 through PBI-10.
+The MVP v1 grouped or filtered view shows the selected MVP v1 PBIs: US-01, US-02, US-03, US-11, and PBI-01 through PBI-10.
 
 ## 12. Selected MVP v1 Scope
 
@@ -89,7 +89,7 @@ The MVP v1 grouped or filtered view should show the selected MVP v1 PBIs: US-01,
 
 The Product Backlog uses issue-based PBIs. User-story PBIs preserve stable IDs such as `US-01`; supporting PBIs are smaller backend, frontend, device-integration, testing, documentation, and release items linked to the selected user stories.
 
-Each qualifying PBI should expose Type, Work Status, MoSCoW priority, Story Points, MVP version, milestone, assignee, and reviewer. Current Sprint items require acceptance criteria before they can be treated as Ready. MVP v1 items require at least three acceptance criteria, issue-linked PR evidence, verification evidence, and Done status.
+Each qualifying PBI exposes Type, Work Status, MoSCoW priority, Story Points, MVP version, milestone, assignee, and reviewer in the issue body, Project fields, or both. Current Sprint items include acceptance criteria before they are treated as Ready. MVP v1 items include at least three acceptance criteria, issue-linked PR evidence, verification evidence, and Done status.
 
 ## 14. Roadmap Summary
 
@@ -126,7 +126,7 @@ MVP v1 implementation was merged through PR #37. The customer accepted the demon
 
 ## 19. SemVer Release
 
-Release notes for `v1.0.0` are prepared in [release-notes-v1.0.0.md](./release-notes-v1.0.0.md). The GitHub Release should be published as tag `v1.0.0` from the final Assignment 3 commit before Moodle submission.
+Release notes for `v1.0.0` are prepared in [release-notes-v1.0.0.md](./release-notes-v1.0.0.md). The GitHub Release still needs to be published as tag `v1.0.0` from the final Assignment 3 commit before Moodle submission.
 
 ## 20. Changelog
 
@@ -134,7 +134,7 @@ Release notes for `v1.0.0` are prepared in [release-notes-v1.0.0.md](./release-n
 
 ## 21. Process Requirements
 
-The shared course Process Requirements are external course materials and should be linked or attached in the Moodle submission if they are not committed to the repository.
+The shared course Process Requirements are external course materials. They must be linked or attached in the Moodle submission if they are not committed to the repository.
 
 ## 22. Definition of Done and Roadmap
 

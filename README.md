@@ -43,7 +43,7 @@ FaceGuard MVP v1 is not deployed as a permanent public camera stream because the
 The reproducible MVP v1 access point is:
 
 - the source code in this repository;
-- the planned `v1.0.0` GitHub Release and generated source archive;
+- the `v1.0.0` GitHub Release and generated source archive after publication;
 - the local run instructions in this README;
 - the public sanitized [MVP v1 demo video](https://drive.google.com/file/d/1ROzA_gZtCb6iZ-BpT2tHCJFFDoohaqqQ/view?usp=sharing);
 - the reviewed MVP v1 integration PR: [PR #37](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/37).
