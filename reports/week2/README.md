@@ -51,7 +51,7 @@ The primary external interface is a graphical administrator web application.
 - University VM deployment: <http://10.90.138.70:3000>
 - Public GitHub Pages deployment: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
 - Public video demonstration: <https://disk.yandex.ru/i/cgaJVBhka7gISw>
-- Local setup instructions: [root README](../../README.md)
+- Local setup instructions: [frontend prototype README](../../frontend/prototype/README.md)
 - Detailed report and repeatable smoke check: [mvp-v0-report.md](./mvp-v0-report.md)
 
 

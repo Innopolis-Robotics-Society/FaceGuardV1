@@ -36,14 +36,14 @@ Open <http://localhost:3000>.
 
 - University VM: <http://10.90.138.70:3000> (university network or VPN)
 - Public frontend demonstration: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
-- [MVP v0 report and smoke check](reports/week2/mvp-v0-report.md)
+- [MVP v0 report and smoke check](../reports/week2/mvp-v0-report.md)
 
 The public GitHub Pages site contains the static frontend demonstration. Real recognition, production authentication, camera input, and persistent backend integration remain outside MVP v0.
 
 ## Week 2 report
 
-[Assignment 2 / Week 2 report](reports/week2/README.md)
+[Assignment 2 / Week 2 report](../reports/week2/README.md)
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](../LICENSE).

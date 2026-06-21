@@ -7,26 +7,36 @@ This roadmap summarizes product direction. The detailed Product Backlog lives in
 - [US-01: View all people with access](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/13)
 - [US-02: Add a person to the access list](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/14)
 - [US-03: View system dashboard](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/15)
-- US-11: View connected entrance camera - [TODO: issue link]
-- Persistent central backend and PostgreSQL integration - [TODO: supporting PBI link]
-- Real camera snapshot/status integration through the device agent - [TODO: supporting PBI link]
-- Deployment, smoke test, and SemVer release - [TODO: supporting PBI link]
+- [US-11: View connected entrance camera](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/24)
+- [PBI-01: Persist authorized people in the central backend](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/25)
+- [PBI-02: Connect the People page to the backend API](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/26)
+- [PBI-03: Implement the add-person flow with reference photographs](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/27)
+- [PBI-04: Implement authorized-person removal](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/28)
+- [PBI-05: Integrate the real camera and face-recognition agent](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/29)
+- [PBI-06: Expose camera image and status to the web application](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/30)
+- [PBI-07: Store recognition and access events](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/31)
+- [PBI-08: Display recent recognition events on the dashboard](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/32)
+- [PBI-09: Connect dashboard metrics and charts to real data](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/33)
+- [PBI-10: Integrate and verify the MVP v1 end-to-end workflow](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/34)
 
 ## Next Sprint / MVP v2
 
 - [US-04: Operate in low-light conditions](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/16)
 - [US-05: Monitor service status](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/17)
 - [US-06: Receive a scanner decision signal](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/18)
+- [US-07: Use a clear admin web interface](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/19)
 - [US-08: Manage access remotely](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/20)
 - [US-09: Review access-attempt events](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/21)
 - [US-10: Edit or remove authorized people](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22)
-- Recognition calibration and anti-spoofing research - [TODO: PBI link]
-- Hardened remote access, authentication, and operational monitoring - [TODO: PBI link]
+- [BUG-01: Recognition agent requires restart after authorized-person changes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35)
+- Recognition calibration and anti-spoofing research
+- Hardened remote access, authentication, and operational monitoring
 
 ## Risks and Decision Gates
 
-- Customer confirmation of US-11 is required before treating the expanded MVP v1 scope as approved.
+- Customer review accepted the MVP v1 direction and requested Ubuntu stabilization before Raspberry Pi deployment.
 - Camera and hardware access must be available for real-device verification.
 - The network path from the central backend to the device agent must be confirmed.
-- The recognition threshold is not yet approved and must be calibrated with representative images.
+- The recognition threshold must be calibrated with representative images before later production-like use.
+- Recognition data currently requires an agent restart after authorized-person changes; this is tracked in [BUG-01](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).
 - Assignment 3 requires at least 15 qualifying PBIs; Course Tasks and removed items do not count.

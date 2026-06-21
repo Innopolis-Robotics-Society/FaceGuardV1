@@ -6,10 +6,10 @@ US-11 was added during Assignment 3 backlog refinement because a connected entra
 
 | ID | Short title | MoSCoW priority | Issue | Requirement status | Work Status | Sprint |
 |---|---|---|---|---|---|---|
-| US-01 | View all people with access | Must Have | [#13](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/13) | Active | To Do | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
-| US-02 | Add a person to the access list | Must Have | [#14](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/14) | Active | To Do | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
-| US-03 | View system dashboard | Must Have | [#15](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/15) | Active | To Do | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
-| US-11 | View connected entrance camera | Must Have | [TODO: issue link] | Active | To Do | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
+| US-01 | View all people with access | Must Have | [#13](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/13) | Active | Done | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
+| US-02 | Add a person to the access list | Must Have | [#14](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/14) | Active | Done | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
+| US-03 | View system dashboard | Must Have | [#15](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/15) | Active | Done | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
+| US-11 | View connected entrance camera | Must Have | [#24](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/24) | Active | Done | [Sprint 1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/1) |
 | US-04 | Operate in low-light conditions | Must Have | [#16](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/16) | Active | To Do | - |
 | US-06 | Receive a scanner decision signal | Must Have | [#18](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/18) | Active | To Do | - |
 | US-07 | Use a clear admin web interface | Must Have | [#19](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/19) | Active | To Do | - |
