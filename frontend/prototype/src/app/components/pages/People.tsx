@@ -65,7 +65,6 @@ function AddPersonModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {/* Photo preview */}
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center overflow-hidden"
               style={{ background: preview ? "transparent" : "rgba(255,255,255,0.03)", border: "1.5px dashed rgba(255,255,255,0.08)" }}>
@@ -154,6 +153,7 @@ export function People() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
   const [people,       setPeople]       = useState(SAMPLE_PEOPLE);
   const [page,         setPage]         = useState(1);
+  const [hoveredRow,   setHoveredRow]   = useState<number | null>(null);
   const PER_PAGE = 6;
 
   const filtered = people.filter((p) => {
@@ -184,7 +184,6 @@ export function People() {
             style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }} />
         </div>
 
-        {/* Filter pills */}
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
           {(["all", "active", "inactive"] as const).map((f) => (
             <button key={f} onClick={() => { setFilter(f); setPage(1); }}
@@ -195,7 +194,6 @@ export function People() {
           ))}
         </div>
 
-        {/* View toggle */}
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
           {([["grid", Grid], ["list", List]] as const).map(([v, Icon]) => (
             <button key={v} onClick={() => setView(v)}
@@ -230,7 +228,19 @@ export function People() {
       {view === "grid" && paginated.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {paginated.map((p) => (
-            <div key={p.id} className="rounded-2xl p-5" style={CARD}>
+            <div 
+              key={p.id} 
+              className="rounded-2xl p-5 transition-all duration-200"
+              style={{
+                ...CARD,
+                background: hoveredRow === p.id ? "#1a1a1a" : "#111111",
+                border: hoveredRow === p.id ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.06)",
+                transform: hoveredRow === p.id ? "translateY(-2px)" : "none",
+                boxShadow: hoveredRow === p.id ? "0 8px 24px rgba(0,0,0,0.4)" : "none",
+              }}
+              onMouseEnter={() => setHoveredRow(p.id)}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
               <div className="flex items-start gap-3 mb-4">
                 <Avatar initials={p.initials} color={p.color} />
                 <div className="flex-1 min-w-0">
@@ -247,7 +257,7 @@ export function People() {
               </div>
               <div className="flex items-center gap-2">
                 <Link to={`/people/${p.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-black"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-black transition-opacity"
                   style={{ background: "#ffffff" }}>
                   <Edit className="w-3.5 h-3.5" /> Edit
                 </Link>
@@ -262,22 +272,41 @@ export function People() {
         </div>
       )}
 
-      {/* List view */}
+      {/* List view - УЛУЧШЕННАЯ ВЕРСИЯ */}
       {view === "list" && paginated.length > 0 && (
         <div className="rounded-2xl overflow-hidden" style={CARD}>
-          {paginated.map((p) => (
-            <div key={p.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/3 transition-colors"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+          {paginated.map((p, index) => (
+            <div 
+              key={p.id} 
+              className="flex items-center gap-4 px-5 py-4 transition-all duration-200"
+              style={{
+                borderBottom: index < paginated.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                background: hoveredRow === p.id ? "rgba(255,255,255,0.04)" : "transparent",
+                cursor: "default",
+              }}
+              onMouseEnter={() => setHoveredRow(p.id)}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
               <Avatar initials={p.initials} color={p.color} size="sm" />
               <div className="flex-1 min-w-0">
-                <Link to={`/people/${p.id}`} className="text-sm font-medium text-white hover:underline">{p.name}</Link>
-                {p.note && <p className="text-xs truncate" style={{ color: "#3a3a3a" }}>{p.note}</p>}
+                <Link to={`/people/${p.id}`} 
+                  className="text-sm font-medium text-white hover:underline transition-colors">
+                  {p.name}
+                </Link>
+                {p.note && <p className="text-xs truncate mt-0.5" style={{ color: "#3a3a3a" }}>{p.note}</p>}
               </div>
               <span className="text-xs" style={{ color: "#3a3a3a" }}>{p.photos} photos</span>
               <StatusBadge status={p.status} />
               <div className="flex items-center gap-1">
-                <Link to={`/people/${p.id}`} className="p-1.5 rounded-lg text-neutral-600 hover:text-white hover:bg-white/5 transition-colors"><Edit className="w-4 h-4" /></Link>
-                <button onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="p-1.5 rounded-lg text-neutral-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                <Link to={`/people/${p.id}`} 
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-white hover:bg-white/10 transition-all duration-200">
+                  <Edit className="w-4 h-4" />
+                </Link>
+                <button 
+                  onClick={() => setDeleteTarget({ id: p.id, name: p.name })} 
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200">
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
