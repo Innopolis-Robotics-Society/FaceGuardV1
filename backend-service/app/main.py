@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import audit, auth, commands, devices, events, people, photos, sync, system, telemetry
+from app.api import audit, auth, commands, devices, events, people, photos, sync, system, telemetry, websocket
 from app.core.config import settings
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app.include_router(events.router, prefix="/api/v1")
 app.include_router(commands.router, prefix="/api/v1")
 app.include_router(sync.router, prefix="/api/v1")
 app.include_router(audit.router, prefix="/api/v1")
+app.include_router(websocket.router)  # WebSocket без prefix
 
 
 @app.get("/")
