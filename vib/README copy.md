@@ -75,7 +75,7 @@ docker-compose ps
 # - Swagger: http://YOUR_SERVER_IP:8000/docs
 ```
 
-**Документация backend:** [backend-service/README.md](backend-service/README.md)
+**Документация backend:** [backend-service/README.md](../backend-service/README.md)
 
 ### 2. Создать администратора
 
@@ -135,7 +135,7 @@ docker-compose up -d --build
 docker-compose logs -f agent
 ```
 
-**Документация agent:** [agent/README.md](agent/README.md)
+**Документация agent:** [agent/README.md](../agent/README.md)
 
 ### 5. Проверить подключение
 
@@ -313,14 +313,14 @@ Agent полностью автономен:
 ## 📚 Документация
 
 ### Backend
-- [Backend README](backend-service/README.md) - Общая информация
-- [Backend SETUP](backend-service/SETUP.md) - Установка и запуск
-- [API Documentation](backend-service/API_DOCUMENTATION.md) - Все 58 endpoints
+- [Backend README](../backend-service/README.md) - Общая информация
+- [Backend SETUP](../backend-service/SETUP.md) - Установка и запуск
+- [API Documentation](../backend-service/API_DOCUMENTATION.md) - Все 58 endpoints
 
 ### Agent
-- [Agent README](agent/README.md) - Полное руководство
-- [Agent ARCHITECTURE](agent/ARCHITECTURE.md) - Внутреннее устройство
-- [Agent EXAMPLES](agent/EXAMPLES.md) - Практические примеры
+- [Agent README](../agent/README.md) - Полное руководство
+- [Agent ARCHITECTURE](../agent/ARCHITECTURE.md) - Внутреннее устройство
+- [Agent EXAMPLES](../agent/EXAMPLES.md) - Практические примеры
 
 ### Общие гайды
 - [FaceGuard Guide](FaceGuard_Guide.md) - Полный гайд по системе
@@ -401,7 +401,7 @@ docker-compose up -d --build
 | `/api/v1/audit` | 5 | Audit logs |
 | **Всего** | **58** | |
 
-Полная документация: [API_DOCUMENTATION.md](backend-service/API_DOCUMENTATION.md)
+Полная документация: [API_DOCUMENTATION.md](../backend-service/API_DOCUMENTATION.md)
 
 ---
 
@@ -493,7 +493,7 @@ RECOGNITION_THRESHOLD=80
 - Event handler
 - Docker ready
 
-### 🚧 TODO (опционально)
+### 🚧 Optional future work
 - [ ] React Admin Panel (frontend)
 - [ ] WebSocket real-time события
 - [ ] Video streaming (MJPEG/WebRTC)
@@ -544,10 +544,10 @@ Agent: BACKEND_URL=http://100.x.x.1:8000
 
 ## 📞 Поддержка
 
-- Backend документация: [backend-service/README.md](backend-service/README.md)
-- Agent документация: [agent/README.md](agent/README.md)
-- API Reference: [backend-service/API_DOCUMENTATION.md](backend-service/API_DOCUMENTATION.md)
-- Примеры: [agent/EXAMPLES.md](agent/EXAMPLES.md)
+- Backend документация: [backend-service/README.md](../backend-service/README.md)
+- Agent документация: [agent/README.md](../agent/README.md)
+- API Reference: [backend-service/API_DOCUMENTATION.md](../backend-service/API_DOCUMENTATION.md)
+- Примеры: [agent/EXAMPLES.md](../agent/EXAMPLES.md)
 
 ---
 

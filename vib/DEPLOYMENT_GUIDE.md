@@ -890,11 +890,11 @@ docker-compose restart agent
 
 ## 📚 Дополнительные ресурсы
 
-- [Agent README](agent/README.md) - Полная документация agent
-- [Agent ARCHITECTURE](agent/ARCHITECTURE.md) - Внутреннее устройство
-- [Agent EXAMPLES](agent/EXAMPLES.md) - Примеры использования
-- [Backend API Documentation](backend-service/API_DOCUMENTATION.md) - Все API endpoints
-- [Quick Start Guide](QUICKSTART.md) - Быстрый старт
+- [Agent README](../agent/README.md) - Полная документация agent
+- [Agent ARCHITECTURE](../agent/ARCHITECTURE.md) - Внутреннее устройство
+- [Agent EXAMPLES](../agent/EXAMPLES.md) - Примеры использования
+- [Backend API Documentation](../backend-service/API_DOCUMENTATION.md) - Все API endpoints
+- [Quick Start Guide](../agent/QUICKSTART.md) - Быстрый старт
 
 ---
 
