@@ -13,20 +13,21 @@ from typing import Optional
 # Add agent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from agent.core.config import Config
-from agent.core.logging import get_logger
-from agent.core.database import Database
-from agent.camera.camera_service import CameraService
-from agent.camera.capture_service import CaptureService
-from agent.recognition.recognizer import RecognitionService
-from agent.recognition.recognition_loop import RecognitionLoop
-from agent.door.door_controller import DoorController
-from agent.telemetry.telemetry_service import TelemetryService
-from agent.sync.backend_client import BackendClient
-from agent.sync.sync_manager import SyncManager
-from agent.commands.command_executor import CommandExecutor
-from agent.commands.command_poller import CommandPoller
-from agent.events.event_handler import EventHandler
+from core.config import Config
+from core.logging import get_logger
+from core.database import Database
+from camera.camera_service import CameraService
+from camera.capture_service import CaptureService
+from recognition.recognizer import RecognitionService
+from recognition.recognition_loop import RecognitionLoop
+from door.door_controller import DoorController
+from telemetry.telemetry_service import TelemetryService
+from sync.backend_client import BackendClient
+from sync.sync_manager import SyncManager
+from commands.command_executor import CommandExecutor
+from commands.command_poller import CommandPoller
+from events.event_handler import EventHandler
+from api.stream_server import StreamServer
 
 
 logger = get_logger(__name__)
@@ -81,6 +82,10 @@ class FaceGuardAgent:
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.heartbeat_task = None
         self.telemetry_task = None
+        self.stream_server_task = None
+
+        # Stream server
+        self.stream_server = StreamServer(self.camera)
 
         logger.info("Agent initialized successfully")
 
@@ -152,6 +157,7 @@ class FaceGuardAgent:
         # Start background tasks
         self.heartbeat_task = asyncio.create_task(self._heartbeat_loop())
         self.telemetry_task = asyncio.create_task(self._telemetry_loop())
+        self.stream_server_task = asyncio.create_task(self._run_stream_server())
 
         logger.info("=" * 60)
         logger.info("FaceGuard Agent is running")
@@ -181,6 +187,8 @@ class FaceGuardAgent:
             self.heartbeat_task.cancel()
         if self.telemetry_task:
             self.telemetry_task.cancel()
+        if self.stream_server_task:
+            self.stream_server_task.cancel()
 
         # Stop camera
         self.camera.stop()
@@ -231,6 +239,32 @@ class FaceGuardAgent:
             except Exception as e:
                 logger.error(f"Error in telemetry loop: {e}")
                 await asyncio.sleep(Config.TELEMETRY_INTERVAL)
+
+    async def _run_stream_server(self):
+        """Run HTTP stream server"""
+        try:
+            import uvicorn
+            app = self.stream_server.create_app()
+
+            stream_port = getattr(Config, 'STREAM_PORT', 8001)
+
+            config = uvicorn.Config(
+                app,
+                host="0.0.0.0",
+                port=stream_port,
+                log_level="info"
+            )
+            server = uvicorn.Server(config)
+
+            logger.info(f"Stream server starting on port {stream_port}")
+            await server.serve()
+
+        except ImportError:
+            logger.error("uvicorn not installed - stream server disabled")
+        except asyncio.CancelledError:
+            logger.info("Stream server stopped")
+        except Exception as e:
+            logger.error(f"Error in stream server: {e}")
 
     def _print_status(self):
         """Print agent status"""

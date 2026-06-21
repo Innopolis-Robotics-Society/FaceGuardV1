@@ -59,6 +59,9 @@ class Config:
     SYNC_INTERVAL: int = int(os.getenv("SYNC_INTERVAL", "60"))
     COMMAND_POLL_INTERVAL: int = int(os.getenv("COMMAND_POLL_INTERVAL", "5"))
 
+    # Stream server
+    STREAM_PORT: int = int(os.getenv("STREAM_PORT", "8001"))
+
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 

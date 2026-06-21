@@ -10,7 +10,12 @@ import {
   SystemHealth, SystemReadiness, SyncStatus, BulkSyncResponse, AuditLog, AuditQueryParams, AuditStats,
 } from "../types/api.types";
 
-const API_BASE_URL = "http://10.93.26.183:8000/api/v1";
+
+
+ // const API_BASE_URL = "http://10.93.26.183:8000/api/v1";
+// Provide a minimal declaration for `process.env` for frontend TypeScript builds
+declare const process: { env: { API_URL?: string } };
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 class ApiService {
   private client: AxiosInstance;
@@ -450,16 +455,25 @@ class ApiService {
   // ============================================
 
   getCameraStreamUrl(deviceId: string): string {
+    if (!deviceId) return "";
     const token = tokenUtils.getToken();
-    // Agent runs on a different port (e.g., 8001)
-    // This assumes agent exposes /api/v1/stream endpoint
-    return `http://10.93.26.183:8001/api/v1/stream?device_id=${deviceId}&token=${token}`;
+    return `http://localhost:8001/stream?device_id=${deviceId}&token=${token}`;
+  }
+
+  async getStreamSettings(): Promise<{ fps: number; quality: number; camera_fps: number; resolution: string; available_resolutions: string[] }> {
+    const { data } = await axios.get("http://localhost:8001/settings");
+    return data;
+  }
+
+  async updateStreamSettings(settings: { fps?: number; quality?: number; resolution?: string }): Promise<{ fps: number; quality: number; resolution: string }> {
+    const { data } = await axios.post("http://localhost:8001/settings", settings);
+    return data;
   }
 
   getWebSocketUrl(): string {
     // WebSocket endpoint for real-time events
     const token = tokenUtils.getToken();
-    return `ws://10.93.26.183:8000/ws/events?token=${token}`;
+    return `ws://localhost:8000/ws/events?token=${token}`;
   }
 }
 

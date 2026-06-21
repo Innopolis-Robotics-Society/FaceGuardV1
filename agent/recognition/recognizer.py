@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Tuple, List
 import os
 
-from agent.core.config import Config
-from agent.core.logging import get_logger
+from core.config import Config
+from core.logging import get_logger
 
 
 logger = get_logger(__name__)

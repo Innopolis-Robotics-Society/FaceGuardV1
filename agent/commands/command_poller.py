@@ -3,10 +3,10 @@
 import asyncio
 from typing import Optional
 
-from agent.core.config import Config
-from agent.core.logging import get_logger
-from agent.sync.backend_client import BackendClient
-from agent.commands.command_executor import CommandExecutor
+from core.config import Config
+from core.logging import get_logger
+from sync.backend_client import BackendClient
+from commands.command_executor import CommandExecutor
 
 
 logger = get_logger(__name__)

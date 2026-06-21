@@ -3,11 +3,12 @@ import { apiService } from "../../services/api.service";
 import { EventsQueryParams } from "../../types/api.types";
 import { toast } from "sonner";
 
-export function useGetEvents(params?: EventsQueryParams) {
+export function useGetEvents(params?: EventsQueryParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["events", params],
     queryFn: () => apiService.getEvents(params),
     refetchInterval: 10000, // Auto-refresh every 10 seconds
+    enabled: options?.enabled ?? true,
   });
 }
 

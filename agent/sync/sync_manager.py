@@ -4,10 +4,10 @@ import asyncio
 from typing import Optional
 from datetime import datetime
 
-from agent.core.config import Config
-from agent.core.database import Database
-from agent.core.logging import get_logger
-from agent.sync.backend_client import BackendClient
+from core.config import Config
+from core.database import Database
+from core.logging import get_logger
+from sync.backend_client import BackendClient
 
 
 logger = get_logger(__name__)

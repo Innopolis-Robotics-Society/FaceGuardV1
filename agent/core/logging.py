@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from agent.core.config import Config
+from core.config import Config
 
 
 class Logger:

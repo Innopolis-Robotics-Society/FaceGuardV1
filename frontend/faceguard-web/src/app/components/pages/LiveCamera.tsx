@@ -117,6 +117,10 @@ export function LiveCamera() {
   const [restartConfirm, setRestartConfirm] = useState(false);
   const [stopConfirm, setStopConfirm] = useState(false);
   const [streamConnected, setStreamConnected] = useState(false);
+  const [streamSettings, setStreamSettings] = useState<any>({ fps: 30, quality: 85, resolution: "720p", available_resolutions: ["720p", "480p", "360p"] });
+  const [tempFps, setTempFps] = useState(30);
+  const [lastFrame, setLastFrame] = useState<string>("");
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const queryClient = useQueryClient();
 
@@ -130,7 +134,10 @@ export function LiveCamera() {
   const deviceId = activeDevice?.id ?? "";
 
   const { data: telemetry } = useGetLatestTelemetry(deviceId);
-  const { data: recentEvents = [] } = useGetEvents({ device_id: deviceId, limit: 10 });
+  const { data: recentEvents = [] } = useGetEvents(
+    deviceId ? { device_id: deviceId, limit: 10 } : undefined,
+    { enabled: !!deviceId }
+  );
 
   const openDoorMutation = useOpenDoor();
   const restartCameraMutation = useRestartCamera();
@@ -158,11 +165,11 @@ export function LiveCamera() {
     // Show toast notification
     if (data.event_type === "recognized" && data.person_name) {
       toast.success(`${data.person_name} recognized`, {
-        description: `Confidence: ${data.confidence?.toFixed(1)}%`,
+        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
       });
     } else if (data.event_type === "unknown") {
       toast.warning("Unknown person detected", {
-        description: `Confidence: ${data.confidence?.toFixed(1)}%`,
+        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
       });
     }
 
@@ -201,17 +208,47 @@ export function LiveCamera() {
     if (!streamUrl || !imgRef.current) return;
 
     const img = imgRef.current;
-    img.onload = () => setStreamConnected(true);
+
+    const captureFrame = () => {
+      if (img.complete && img.naturalHeight !== 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          setLastFrame(canvas.toDataURL('image/jpeg', 0.8));
+        }
+      }
+    };
+
+    img.onload = () => {
+      setStreamConnected(true);
+      captureFrame();
+    };
+
     img.onerror = () => {
       setStreamConnected(false);
       toast.error("Camera stream unavailable");
     };
 
+    const interval = setInterval(captureFrame, 1000);
+
     return () => {
       img.onload = null;
       img.onerror = null;
+      clearInterval(interval);
     };
   }, [streamUrl]);
+
+  // Load stream settings
+  useEffect(() => {
+    if (!deviceId) return;
+    apiService.getStreamSettings().then((settings) => {
+      setStreamSettings(settings);
+      setTempFps(settings.fps);
+    }).catch(console.error);
+  }, [deviceId]);
 
   // People map for name lookup
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
@@ -280,6 +317,44 @@ export function LiveCamera() {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   }
 
+  async function updateStreamSettings(fps?: number, resolution?: string) {
+    if (isUpdatingSettings) return;
+
+    setIsUpdatingSettings(true);
+    try {
+      const updated = await apiService.updateStreamSettings({ fps, resolution });
+      setStreamSettings(updated);
+      setTempFps(updated.fps);
+      toast.success("Stream settings updated");
+
+      if (imgRef.current && lastFrame) {
+        const currentSrc = imgRef.current.src;
+        imgRef.current.src = lastFrame;
+        setTimeout(() => {
+          if (imgRef.current) imgRef.current.src = currentSrc;
+        }, 100);
+      }
+    } catch (error) {
+      toast.error("Failed to update settings");
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  }
+
+  function handleFpsChange(value: number) {
+    setTempFps(value);
+  }
+
+  function handleFpsCommit() {
+    if (tempFps !== streamSettings.fps) {
+      updateStreamSettings(tempFps, undefined);
+    }
+  }
+
+  async function handleResolutionChange(resolution: string) {
+    updateStreamSettings(undefined, resolution);
+  }
+
   return (
     <div className="flex flex-col xl:flex-row gap-4">
       {/* Camera feed */}
@@ -308,9 +383,18 @@ export function LiveCamera() {
             </div>
           )}
 
+          {/* Loading state with frozen frame */}
+          {streamUrl && !streamConnected && lastFrame && (
+            <img
+              src={lastFrame}
+              alt="Last frame"
+              className="absolute inset-0 w-full h-full object-cover opacity-50"
+            />
+          )}
+
           {/* Loading state */}
           {streamUrl && !streamConnected && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: lastFrame ? "rgba(0,0,0,0.5)" : "transparent" }}>
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-white/10 border-t-white rounded-full animate-spin mx-auto mb-3" />
                 <p className="text-sm text-white">Connecting to camera...</p>
@@ -380,7 +464,7 @@ export function LiveCamera() {
                     <div>
                       <div className="text-xs font-medium text-white">{name}</div>
                       <div className="text-xs mt-0.5" style={{ color }}>
-                        {event.confidence ? `${event.confidence.toFixed(1)}%` : "--"} · {time}
+                        {event.confidence ? `${(100 - event.confidence).toFixed(2)}%` : "--"} · {time}
                       </div>
                     </div>
                   </div>
@@ -393,17 +477,47 @@ export function LiveCamera() {
 
       {/* Control panel */}
       <div className="xl:w-68 shrink-0 space-y-3" style={{ width: "268px" }}>
-        {/* Status */}
+        {/* Stream Settings */}
         <div className="rounded-2xl p-4" style={CARD}>
-          <div className="text-xs font-semibold text-white mb-3">Status</div>
-          <StatRow label="Camera" value={streamConnected ? "Online" : "Offline"} color={streamConnected ? "#10b981" : "#ef4444"} />
-          <StatRow label="Recognition" value={recognitionOn ? "Running" : "Off"} color={recognitionOn ? "#10b981" : "#ef4444"} />
-          <StatRow label="FPS" value={fps > 0 ? `${Math.round(fps)} fps` : "-- fps"} color="#3b82f6" />
-          <StatRow label="Resolution" value="1280×720" />
-          <StatRow label="Device" value={activeDevice?.name ?? "No device"} />
-          <div className="flex items-center justify-between pt-2.5">
-            <span className="text-xs" style={{ color: "#3a3a3a" }}>Uptime</span>
-            <span className="text-xs font-medium text-white">{uptime > 0 ? formatUptime(uptime) : "--"}</span>
+          <div className="text-xs font-semibold text-white mb-3">Stream Settings</div>
+
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs" style={{ color: "#3a3a3a" }}>FPS</span>
+                <span className="text-xs font-medium text-white">{tempFps}</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="60"
+                step="5"
+                value={tempFps}
+                onChange={(e) => handleFpsChange(parseInt(e.target.value))}
+                onMouseUp={handleFpsCommit}
+                onTouchEnd={handleFpsCommit}
+                className="w-full h-1 rounded-lg appearance-none cursor-pointer"
+                style={{ background: "rgba(255,255,255,0.1)" }}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs block mb-2" style={{ color: "#3a3a3a" }}>Resolution</label>
+              <select
+                value={streamSettings.resolution || "720p"}
+                onChange={(e) => handleResolutionChange(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-xs font-medium text-white bg-[#1a1a1a] border border-white/10 focus:outline-none focus:border-white/20"
+              >
+                <option value="1080p" disabled={!streamSettings.available_resolutions?.includes("1080p")}>
+                  1080p FHD {!streamSettings.available_resolutions?.includes("1080p") ? "(Unavailable)" : ""}
+                </option>
+                <option value="720p" disabled={!streamSettings.available_resolutions?.includes("720p")}>
+                  720p HD
+                </option>
+                <option value="480p">480p</option>
+                <option value="360p">360p</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -436,19 +550,39 @@ export function LiveCamera() {
 
         {/* Quick stats */}
         <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-          <div className="text-xs font-semibold text-white">Quick Stats</div>
+          <div className="text-xs font-semibold text-white">Status</div>
           <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Camera</span>
+              <span className="font-medium" style={{ color: streamConnected ? "#10b981" : "#ef4444" }}>
+                {streamConnected ? "Online" : "Offline"}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Recognition</span>
+              <span className="font-medium" style={{ color: recognitionOn ? "#10b981" : "#ef4444" }}>
+                {recognitionOn ? "Running" : "Off"}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Camera FPS</span>
+              <span className="font-medium text-white">{fps > 0 ? `${Math.round(fps)} fps` : "-- fps"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Device</span>
+              <span className="font-medium text-white">{activeDevice?.name ?? "No device"}</span>
+            </div>
             <div className="flex justify-between text-xs">
               <span style={{ color: "#3a3a3a" }}>CPU Usage</span>
               <span className="font-medium text-white">{telemetry?.cpu_usage ? `${telemetry.cpu_usage.toFixed(1)}%` : "--"}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span style={{ color: "#3a3a3a" }}>Temperature</span>
-              <span className="font-medium text-white">{telemetry?.cpu_temperature ? `${telemetry.cpu_temperature.toFixed(1)}°C` : "--"}</span>
-            </div>
-            <div className="flex justify-between text-xs">
               <span style={{ color: "#3a3a3a" }}>RAM Usage</span>
               <span className="font-medium text-white">{telemetry?.ram_usage ? `${telemetry.ram_usage.toFixed(1)}%` : "--"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#3a3a3a" }}>Uptime</span>
+              <span className="font-medium text-white">{uptime > 0 ? formatUptime(uptime) : "--"}</span>
             </div>
           </div>
         </div>

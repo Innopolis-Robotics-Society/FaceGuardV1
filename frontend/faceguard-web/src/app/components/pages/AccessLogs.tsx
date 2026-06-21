@@ -122,12 +122,12 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${Math.min(100, log.confidence)}%`,
-                      background: log.confidence > 70 ? "#10b981" : log.confidence > 50 ? "#f59e0b" : "#ef4444",
+                      width: `${100 - log.confidence}%`,
+                      background: (100 - log.confidence) > 70 ? "#10b981" : (100 - log.confidence) > 50 ? "#f59e0b" : "#ef4444",
                     }} />
                   </div>
-                  <span className="text-sm font-bold" style={{ color: log.confidence > 70 ? "#10b981" : log.confidence > 50 ? "#f59e0b" : "#ef4444" }}>
-                    {log.confidence.toFixed(1)}%
+                  <span className="text-sm font-bold" style={{ color: (100 - log.confidence) > 70 ? "#10b981" : (100 - log.confidence) > 50 ? "#f59e0b" : "#ef4444" }}>
+                    {(100 - log.confidence).toFixed(2)}%
                   </span>
                 </div>
               )}
@@ -243,7 +243,7 @@ export function AccessLogs() {
       l.name,
       l.date,
       l.time,
-      l.confidence === null ? "" : `${l.confidence.toFixed(1)}%`,
+      l.confidence === null ? "" : `${(100 - l.confidence).toFixed(2)}%`,
       l.status,
       l.eventType,
       l.action,
@@ -354,12 +354,12 @@ export function AccessLogs() {
                 <div className="flex items-center gap-2 min-w-[90px]">
                   <div className="w-10 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${Math.min(100, log.confidence ?? 0)}%`,
-                      background: (log.confidence ?? 0) > 70 ? "#10b981" : (log.confidence ?? 0) > 50 ? "#f59e0b" : "#ef4444",
+                      width: `${100 - (log.confidence ?? 0)}%`,
+                      background: (100 - (log.confidence ?? 0)) > 70 ? "#10b981" : (100 - (log.confidence ?? 0)) > 50 ? "#f59e0b" : "#ef4444",
                     }} />
                   </div>
-                  <span className="text-xs font-medium" style={{ color: (log.confidence ?? 0) > 70 ? "#10b981" : (log.confidence ?? 0) > 50 ? "#f59e0b" : "#ef4444" }}>
-                    {log.confidence === null ? "--" : `${log.confidence.toFixed(1)}%`}
+                  <span className="text-xs font-medium" style={{ color: (100 - (log.confidence ?? 0)) > 70 ? "#10b981" : (100 - (log.confidence ?? 0)) > 50 ? "#f59e0b" : "#ef4444" }}>
+                    {log.confidence === null ? "--" : `${(100 - log.confidence).toFixed(2)}%`}
                   </span>
                 </div>
                 <StatusBadge status={log.status} />
@@ -380,7 +380,7 @@ export function AccessLogs() {
                   style={{ background: `${log.color}15`, color: log.color }}>{log.initials}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">{log.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : `${log.confidence.toFixed(1)}%`}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : `${(100 - log.confidence).toFixed(2)}%`}</div>
                 </div>
                 <StatusBadge status={log.status} />
                 <button onClick={() => setDetailLog(log)} className="p-1.5 text-neutral-700 hover:text-white">

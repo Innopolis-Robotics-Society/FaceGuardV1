@@ -4,8 +4,8 @@ import asyncio
 from typing import Dict, Any, Optional, Callable
 from datetime import datetime
 
-from agent.core.config import Config
-from agent.core.logging import get_logger
+from core.config import Config
+from core.logging import get_logger
 
 
 logger = get_logger(__name__)
@@ -260,7 +260,7 @@ class CommandExecutor:
         uploaded_count = 0
 
         # Get backend client
-        from agent.sync.backend_client import BackendClient
+        from sync.backend_client import BackendClient
         backend = BackendClient()
 
         try:

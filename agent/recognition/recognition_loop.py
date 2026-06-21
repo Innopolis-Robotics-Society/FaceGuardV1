@@ -7,10 +7,10 @@ from datetime import datetime
 from typing import Optional, Callable
 from pathlib import Path
 
-from agent.core.config import Config
-from agent.core.logging import get_logger
-from agent.camera.camera_service import CameraService
-from agent.recognition.recognizer import RecognitionService
+from core.config import Config
+from core.logging import get_logger
+from camera.camera_service import CameraService
+from recognition.recognizer import RecognitionService
 
 
 logger = get_logger(__name__)
