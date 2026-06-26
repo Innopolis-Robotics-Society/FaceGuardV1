@@ -7,6 +7,7 @@ All notable user-visible changes to this project are documented in this file.
 ### Added
 
 - Added Assignment 3 reporting cleanup and final submission evidence links.
+- Added Assignment 4 public report and maintained quality-documentation structure.
 
 ## [v1.0.0] - 2026-06-21
 
