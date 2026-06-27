@@ -1,0 +1,135 @@
+name: Quality gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-build:
+    name: Frontend production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/faceguard-web
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/faceguard-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+  backend-ruff:
+    name: Backend Ruff lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-service
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend-service/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run Ruff
+        run: ruff check app/api/system.py app/core/security.py app/schemas/schemas.py tests scripts
+
+  backend-tests:
+    name: Backend tests and critical coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-service
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend-service/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests -v \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-report=json:coverage.json
+
+      - name: Check critical module coverage
+        run: python scripts/check_critical_coverage.py coverage.json
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: |
+            backend-service/coverage.xml
+            backend-service/coverage.json
+
+  quality-requirement-tests:
+    name: Quality requirement tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-service
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend-service/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run QRTs
+        run: pytest tests/qrt -m qrt -v
+
+  compose-validation:
+    name: Deployment configuration validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Validate Docker Compose configuration
+        run: docker compose -f backend-service/docker-compose.yml config --quiet
