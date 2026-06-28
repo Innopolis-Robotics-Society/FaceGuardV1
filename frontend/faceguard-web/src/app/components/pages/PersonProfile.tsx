@@ -169,6 +169,7 @@ export function PersonProfile() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [showCaptureOptions, setShowCaptureOptions] = useState(false);
 
   useEffect(() => {
     if (person) {
@@ -176,6 +177,19 @@ export function PersonProfile() {
       setDescription(person.description ?? "");
     }
   }, [person]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.capture-dropdown')) {
+        setShowCaptureOptions(false);
+      }
+    }
+    if (showCaptureOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showCaptureOptions]);
 
   function savePerson() {
     if (!person || !name.trim()) return;
@@ -201,13 +215,14 @@ export function PersonProfile() {
     });
   }
 
-  function captureMorePhotos() {
+  function captureMorePhotos(count: number) {
     if (!personId) return;
     if (!activeDevice) {
       toast.error("No device available for capture");
       return;
     }
-    capturePhotos.mutate({ deviceId: activeDevice.id, personId, count: 15 });
+    capturePhotos.mutate({ deviceId: activeDevice.id, personId, count });
+    setShowCaptureOptions(false);
   }
 
   function setPrimary() {
@@ -317,12 +332,27 @@ export function PersonProfile() {
               <Upload className="w-3.5 h-3.5" /> {uploadPhotos.isPending ? "Uploading..." : "Add Photo"}
               <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
             </label>
-            <button onClick={captureMorePhotos}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-black"
-              style={{ background: "#ffffff" }}
-              disabled={capturePhotos.isPending}>
-              <Camera className="w-3.5 h-3.5" /> {capturePhotos.isPending ? "Capturing..." : "Capture"}
-            </button>
+            <div className="relative capture-dropdown">
+              <button onClick={() => setShowCaptureOptions(!showCaptureOptions)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-black"
+                style={{ background: "#ffffff" }}
+                disabled={capturePhotos.isPending}>
+                <Camera className="w-3.5 h-3.5" /> {capturePhotos.isPending ? "Capturing..." : "Capture"}
+              </button>
+              {showCaptureOptions && !capturePhotos.isPending && (
+                <div className="absolute right-0 top-full mt-2 rounded-xl py-1 shadow-2xl z-10 min-w-[140px]"
+                  style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  {[5, 10, 15].map((count) => (
+                    <button key={count}
+                      onClick={() => captureMorePhotos(count)}
+                      className="w-full px-4 py-2 text-xs font-medium text-left hover:bg-white/5 transition-colors"
+                      style={{ color: "#a0a0a0" }}>
+                      Capture {count} photos
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
