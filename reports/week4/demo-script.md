@@ -1,10 +1,10 @@
-# Public Demo Script - Week 4
+# Project Presentation Script - Week 4
 
-Maximum duration: 2 minutes.
+Target duration: 5 minutes.
 
-Status: Public demo video added.
+Status: Project presentation video added.
 
-Video: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing)
+Video: [Five-minute project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing)
 
 ## Privacy and Sanitization Rules
 
@@ -24,14 +24,14 @@ Video: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqw
 | 0:35-0:55 | Access Logs | Access Logs page with timestamp, result, person/Unknown, device/location, filters, and pagination. | Use the merged PR #50 flow. |
 | 0:55-1:15 | Edit person | Open a test person and update safe test fields. | Use the merged PR #51 flow with sanitized data. |
 | 1:15-1:30 | Safe removal | Show typed `DELETE` confirmation disabled/enabled behavior if merged. | Use disposable test data only. |
-| 1:30-1:45 | Automated quality gates | Show PR or Actions page with quality workflow, QRTs, coverage, and Compose validation. | Do not claim protected-main CI until it exists. |
-| 1:45-2:00 | Closing result | Summarize delivered work and pending customer/UAT evidence. | Keep pending items honest. |
+| 1:30-1:45 | Automated quality gates | Show PR and protected-main Actions pages with quality workflow, QRTs, coverage, and Compose validation. | Use PR run 28290665283 and protected-main run 28328689056. |
+| 1:45-2:00 | Closing result | Summarize delivered work, published v1.1.0 release, private-network deployment, and customer approval. | Keep evidence concise. |
 
 ## Recording Checklist
 
-- [ ] Final increment is merged or pending items are clearly labeled.
-- [ ] Demo environment uses test data only.
-- [ ] No credentials or private network details are visible.
-- [ ] No biometric images are visible without permission.
-- [ ] Browser zoom is readable.
-- [x] Public video link is added to the Week 4 report after upload.
+- [x] Final increment is merged and released as `v1.1.0`.
+- [x] Demo environment uses test data only.
+- [x] No credentials or private network details are visible.
+- [x] No biometric images are visible without permission.
+- [x] Browser zoom is readable.
+- [x] Project presentation video link is added to the Week 4 report after upload.

@@ -40,8 +40,8 @@ pytest tests/qrt -m qrt -v
 - Pass condition: all 20 responses satisfy the contract and p95 is below
   1000 ms.
 - Produced evidence: pytest terminal output and GitHub Actions job log.
-- Known limitations: this is an in-process CI measurement, not a production
-  network benchmark.
+- Scope: this is an in-process CI measurement, not a production network
+  benchmark.
 
 ## QRT-SEC-001
 
@@ -63,8 +63,8 @@ pytest tests/qrt -m qrt -v
 - Pass condition: every invalid identity request is rejected without exposing
   identity fields.
 - Produced evidence: pytest terminal output and GitHub Actions job log.
-- Known limitations: this does not replace penetration testing or complete
-  role-authorisation testing.
+- Scope: this complements, but does not replace, penetration testing or
+  complete role-authorisation testing.
 
 ## QRT-USE-001
 
@@ -88,5 +88,5 @@ pytest tests/qrt -m qrt -v
 - Pass condition: invalid boundaries fail validation and valid boundaries pass
   validation.
 - Produced evidence: pytest terminal output and GitHub Actions job log.
-- Known limitations: this checks backend validation only and does not verify
-  frontend form behaviour.
+- Scope: this checks backend validation only and does not verify frontend form
+  behaviour.

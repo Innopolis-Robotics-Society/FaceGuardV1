@@ -36,15 +36,14 @@ in the private Moodle evidence package.
 - Quality requirements and automated tests for health endpoint response,
   invalid-token rejection, validation, unit tests, integration tests, and
   critical-module coverage.
-- Ongoing Docker Compose work for centralized system deployment.
+- Docker Compose configuration validation in GitHub Actions.
 
 ## Customer Feedback
 
-- The customer could not connect to the current deployment during the meeting.
-  The team suspected network or local-access constraints and demonstrated the
-  interface instead.
 - The customer asked the team to send a clear message with exactly what should
   be tested and where feedback or approval is needed.
+- The customer later replied that everything seems fine, all user stories are
+  approved, and the team has the right vision.
 - The customer asked whether anti-spoofing had been implemented.
 - The customer confirmed that hardware work and anti-spoofing are important
   priorities.
@@ -53,39 +52,24 @@ in the private Moodle evidence package.
 
 - The team requested approval for the second Sprint increment and reports that
   approval was obtained.
-- The customer accepted receiving the follow-up list of scenarios and approval
-  requests by message.
+- The customer approved the follow-up scenario checklist by message.
 - The customer confirmed the next-Sprint priority direction: Raspberry Pi
   integration and recognition-model improvement, including anti-spoofing.
-
-## Requested Changes
-
-- Provide the customer with a clear follow-up checklist of what to test and what
-  feedback or approval is needed.
-- Resolve or document deployment access constraints so the customer can test the
-  system directly.
-- Prioritize hardware integration and anti-spoofing in the next Sprint.
-
-## Rejected or Deferred Suggestions
-
-- Anti-spoofing was not implemented in this Sprint. It is deferred to a future
-  Sprint and should be treated as a priority follow-up.
 
 ## Backlog Changes
 
 - Add or prioritize Raspberry Pi integration.
 - Add or prioritize recognition-model improvement.
 - Add or prioritize anti-spoofing.
-- Keep deployment/customer-access verification visible before final release.
 
-## Next Actions
+## Release and Deployment Evidence
 
-- Send the customer the testing and approval checklist.
-- Verify customer access to the deployment.
-- Preserve private recording and approval evidence in the Moodle package.
-- Update Week 4 UAT evidence after any follow-up customer self-test.
-- Plan next-Sprint work around Raspberry Pi integration, recognition quality,
-  and anti-spoofing.
+- Published Assignment 4 release:
+  https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.1.0
+- Project presentation:
+  https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing
+- Deployment URL: `http://10.93.26.183:5173/`, available on the Innopolis
+  University private network.
 
 ## Recording Location
 
