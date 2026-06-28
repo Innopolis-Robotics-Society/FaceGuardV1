@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import {
   Users, CheckCircle, AlertTriangle, Activity,
-  ChevronRight, TrendingUp, BarChart3, LineChart,
+  ChevronRight, TrendingUp, BarChart3, LineChart, RefreshCw,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -11,7 +11,7 @@ import {
 import { useGetPeople } from "../../../hooks/api/usePeople";
 import { useGetEvents, useGetEventStats } from "../../../hooks/api/useEvents";
 import { useGetSystemHealth } from "../../../hooks/api/useSystem";
-import { format, startOfDay, subDays, parseISO, subHours } from "date-fns";
+import { format, startOfDay, subDays, parseISO, subHours, formatDistanceToNow } from "date-fns";
 import { useWebSocketEvent } from "../../../hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -304,6 +304,8 @@ function UnifiedActivityWidget({ allEvents }: { allEvents: any[] }) {
 /* ── Page ─────────────────────────────────────────────────── */
 export function Dashboard() {
   const queryClient = useQueryClient();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: people = [], isLoading: loadingPeople } = useGetPeople();
   const { data: todayEvents = [], isLoading: loadingEvents } = useGetEvents({ days: 1, limit: 100 });
@@ -312,6 +314,30 @@ export function Dashboard() {
   const { data: systemHealth } = useGetSystemHealth();
 
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["people"] }),
+        queryClient.invalidateQueries({ queryKey: ["events"] }),
+        queryClient.invalidateQueries({ queryKey: ["eventStats"] }),
+        queryClient.invalidateQueries({ queryKey: ["system"] }),
+      ]);
+      setLastUpdated(new Date());
+      toast.success("Dashboard refreshed");
+    } catch (error) {
+      toast.error("Failed to refresh dashboard");
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  }, [queryClient]);
+
+  useEffect(() => {
+    if (!loadingPeople && !loadingEvents) {
+      setLastUpdated(new Date());
+    }
+  }, [people, todayEvents, recentEvents, allEvents, loadingPeople, loadingEvents]);
 
   const getPersonName = (event: any) => {
     if (!event.person_id) return "Unknown";
@@ -344,6 +370,30 @@ export function Dashboard() {
 
   return (
     <div className="space-y-5 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs" style={{ color: "#5a5a5a" }}>
+              Last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+          style={{
+            background: "rgba(16,185,129,0.1)",
+            color: "#10b981",
+            border: "1px solid rgba(16,185,129,0.2)",
+          }}
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           icon={Users}
