@@ -14,7 +14,8 @@ Leave unchecked any item without evidence.
 - [ ] Deployment or runnable artifact is verified.
 - [ ] Week 4 report is updated with final links.
 - [ ] Evidence images are committed under `reports/week4/images/`.
-- [ ] Public demo is available and sanitized.
+- [x] Public demo is available.
+- [ ] Final public demo sanitization is checked by the team before submission.
 - [ ] No credentials, `.env` files, biometric images, customer data, or private
   evidence are committed.
 

@@ -10,8 +10,9 @@
   gates, Sprint evidence, and remaining submission work without exposing private
   customer or credential material.
 - Assignment 4 increment: Sprint 2 - Increment.
-- Report status: In Progress; customer review completed, follow-up customer
-  self-test and final release evidence pending.
+- Report status: In Progress; customer review and public demo evidence are
+  added, while follow-up customer self-test and final release evidence remain
+  pending.
 - Latest evidence date: June 28, 2026.
 
 ## 2. Team
@@ -216,7 +217,7 @@ drafting, traceability extraction, consistency review, and limitations.
 
 - Public demo script: [demo-script.md](demo-script.md)
 - Presentation outline: [presentation-outline.md](presentation-outline.md)
-- Public demo video: Pending recording after the final increment is deployed.
+- Public demo video: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing)
 - Rehearsal video: Private Moodle evidence - pending.
 
 ## 19. Evidence Index
@@ -273,6 +274,6 @@ Private material must not be committed to the public repository.
   real session.
 - [ ] Verify deployment or runnable release artifact.
 - [ ] Publish Assignment 4 release.
-- [ ] Record sanitized public demo.
+- [x] Add Week 4 public demo video link.
 - [ ] Prepare private Moodle PDF with recording, timecodes, credentials/access
   details if required, and instructor-only evidence.

@@ -43,8 +43,8 @@ Only merged work is listed here.
 These items are not released until completed.
 
 - This Week 4 documentation PR.
-- Customer Review and UAT evidence.
-- Deployment verification and public demo evidence.
+- Follow-up customer self-test confirmation if the team requires it.
+- Deployment verification evidence.
 
 ## Quality Verification
 
@@ -54,6 +54,7 @@ These items are not released until completed.
   documentation PR.
 - UAT: Demonstrated during customer review; direct customer self-test was
   blocked by deployment access and may require follow-up.
+- Public demo: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing).
 
 ## Known Limitations
 
@@ -79,7 +80,9 @@ verified the final merged increment.
 - [ ] Verify latest `main` quality workflow.
 - [ ] Verify latest `main` link check.
 - [ ] Run or verify deployment/runnable artifact.
-- [ ] Complete customer review and UAT.
+- [x] Complete customer review evidence.
+- [x] Add public demo evidence.
+- [ ] Complete follow-up direct customer self-test if required.
 - [ ] Update Week 4 report with final evidence.
 - [ ] Publish GitHub Release `v0.2.0`.
 - [ ] Move relevant changelog items from `Unreleased` into a dated `v0.2.0`

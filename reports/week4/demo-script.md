@@ -2,7 +2,9 @@
 
 Maximum duration: 2 minutes.
 
-Status: Pending recording after the final increment is deployed.
+Status: Public demo video added.
+
+Video: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing)
 
 ## Privacy and Sanitization Rules
 
@@ -32,4 +34,4 @@ Status: Pending recording after the final increment is deployed.
 - [ ] No credentials or private network details are visible.
 - [ ] No biometric images are visible without permission.
 - [ ] Browser zoom is readable.
-- [ ] Public video link is added to the Week 4 report after upload.
+- [x] Public video link is added to the Week 4 report after upload.
