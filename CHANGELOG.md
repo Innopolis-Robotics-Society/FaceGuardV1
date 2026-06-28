@@ -7,6 +7,16 @@ All notable user-visible changes to this project are documented in this file.
 ### Added
 
 - Added Assignment 3 reporting cleanup and final submission evidence links.
+- Added measurable Assignment 4 quality requirements for health endpoint
+  performance, administrator identity rejection, and person-name validation.
+- Added automated Quality Requirement Tests linked to the documented quality
+  requirements.
+- Added backend unit and integration testing baseline for critical security,
+  system API, and validation behaviour.
+- Added per-critical-module coverage enforcement for the documented 30% line
+  coverage threshold.
+- Added GitHub Actions quality gates for frontend build, backend Ruff lint,
+  tests with coverage, QRTs, and Docker Compose validation.
 
 ## [v1.0.0] - 2026-06-21
 

@@ -8,6 +8,11 @@ node_modules/
 dist/
 __pycache__/
 *.pyc
+.coverage
+coverage.xml
+coverage.json
+htmlcov/
+.pytest_cache/
 .env
 .venv
 venv/

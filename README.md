@@ -58,6 +58,9 @@ The GitHub Pages site is only a static frontend preview. It does not run the Pyt
 - [User-story index](docs/user-stories.md)
 - [Roadmap](docs/roadmap.md)
 - [Definition of Done](docs/definition-of-done.md)
+- [Quality requirements](docs/quality-requirements.md)
+- [Quality requirement tests](docs/quality-requirement-tests.md)
+- [Testing guide](docs/testing.md)
 - [Changelog](CHANGELOG.md)
 - [MVP v1 release notes](reports/week3/release-notes-v1.0.0.md)
 - [Customer review summary](reports/week3/customer-review-summary.md)
@@ -189,6 +192,7 @@ Manually check that:
 - [docs](docs/user-stories.md) - current user stories, roadmap, and Definition of Done
 - [reports/week2](reports/week2/README.md) - Assignment 2 / MVP v0 report
 - [reports/week3](reports/week3/README.md) - Assignment 3 / MVP v1 report
+- [reports/week4](reports/week4/README.md) - Assignment 4 quality-gate report index
 
 ## License
 
