@@ -4,17 +4,20 @@ This document records customer-facing User Acceptance Test scenarios for the
 Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
 2026 customer session.
 
-- Execution status: Customer Review Completed; customer follow-up confirmation
-  received.
+- Execution status: Customer Review Completed; customer-executed UAT recording
+  is provided in the private Moodle evidence package, and customer follow-up
+  confirmation was received.
 - Customer feedback: Received during Week 4 customer session.
 - Recording consent: Team reports consent/approval was obtained.
 - UAT evidence location: [Week 4 report](../reports/week4/README.md#13-uat)
 - Screenshot evidence location:
   [Week 4 report evidence](../reports/week4/README.md#13-uat)
 
-The scenarios below were demonstrated during the customer session and then sent
-to the customer for written confirmation. The customer replied that everything
-seems fine and all user stories are approved.
+The scenarios below were covered by customer-executed UAT evidence submitted
+privately through Moodle and then sent to the customer for written confirmation.
+The customer replied that everything seems fine and all user stories are
+approved. The private UAT recording link is intentionally not committed to the
+public repository.
 
 ## UAT-001 - Review and filter access events
 
@@ -63,7 +66,7 @@ results.
 
 | Field | Value |
 | --- | --- |
-| Actual result | Access Logs were demonstrated by the team and included in the follow-up scenario checklist. |
+| Actual result | Access Logs were covered by the private customer-executed UAT evidence and included in the follow-up scenario checklist. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:03:13-00:05:28 |
 | Customer comments | "Everything seems fine. All USs are approved. Continue, you have the right vision." |
@@ -113,7 +116,7 @@ reflects the change immediately.
 
 | Field | Value |
 | --- | --- |
-| Actual result | User-management improvements were demonstrated, including photo-count choices during creation. |
+| Actual result | User-management improvements were covered by the private customer-executed UAT evidence, including photo-count choices during creation. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:00:02-00:00:56; 00:05:28-00:05:40 |
 | Customer comments | Customer asked for a follow-up message with what exactly should be tested or approved. |
@@ -161,7 +164,7 @@ removal, the UI shows success feedback and the list updates immediately.
 
 | Field | Value |
 | --- | --- |
-| Actual result | Delete confirmation for people and logs was demonstrated as a data-loss risk reduction. |
+| Actual result | Delete confirmation for people and logs was covered by the private customer-executed UAT evidence as a data-loss risk reduction. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:05:28-00:07:34 |
 | Customer comments | Customer asked to be reminded what was done; team summarized deletion confirmation and Dashboard refresh. |
@@ -204,7 +207,7 @@ feedback without a full page reload.
 
 | Field | Value |
 | --- | --- |
-| Actual result | Dashboard refresh button was presented as a completed Sprint improvement. |
+| Actual result | Dashboard refresh was covered by the private customer-executed UAT evidence as a completed Sprint improvement. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:00:02-00:00:56; 00:07:04-00:07:34 |
 | Customer comments | Customer accepted the summary and moved to next-Sprint priorities. |
