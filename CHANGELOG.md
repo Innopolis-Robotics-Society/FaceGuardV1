@@ -33,6 +33,7 @@ All notable user-visible changes to this project are documented in this file.
   deployment, and direct customer self-test work.
 - Updated project documentation links to include Week 4 report and UAT
   documentation.
+- Removed a generated frontend archive from the repository tree.
 
 ## [v1.0.0] - 2026-06-21
 

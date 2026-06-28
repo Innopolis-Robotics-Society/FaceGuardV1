@@ -28,4 +28,4 @@ access, or instructor-only notes.
 | Rehearsal video | Not public | Private Moodle evidence | Not Yet Available | Record and attach privately. |
 | LLM report | [llm-report.md](llm-report.md) | Team confirmation if needed | Delivered | Team must add any earlier LLM use not documented here. |
 | Moodle permalink | Not public | Private Moodle PDF | Not Yet Available | Add in Moodle submission only. |
-| Repository-tree permalink | Final GitHub commit/tree permalink | Not required | Pending Merge | Add after this documentation PR and cleanup PRs are merged. |
+| Repository-tree permalink | Final GitHub commit/tree permalink | Not required | Pending Merge | Add after this documentation PR is merged. |

@@ -43,8 +43,6 @@ Only merged work is listed here.
 These items are not released until completed.
 
 - This Week 4 documentation PR.
-- Cleanup PR for `frontend/faceguard-web.zip`, unless the team documents a
-  reason to keep the archive.
 - Customer Review and UAT evidence.
 - Deployment verification and public demo evidence.
 
@@ -53,7 +51,7 @@ These items are not released until completed.
 - PR #49 quality workflow: successful before this documentation commit.
 - Final `main` quality workflow: Pending Deployment Verification.
 - Latest `main` CI/link-check evidence must be rechecked after this
-  documentation PR and cleanup PRs.
+  documentation PR.
 - UAT: Demonstrated during customer review; direct customer self-test was
   blocked by deployment access and may require follow-up.
 
@@ -62,8 +60,6 @@ These items are not released until completed.
 - Recognition agent still requires restart or model rebuild after
   authorized-person changes. Tracked in
   [#35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).
-- `frontend/faceguard-web.zip` is present in `main` after PR #51 and should be
-  removed or justified before release.
 - Deployment verification for the final Assignment 4 increment is Pending
   Deployment Verification.
 
@@ -80,7 +76,6 @@ verified the final merged increment.
 - [x] Merge PR #50.
 - [x] Merge PR #51.
 - [ ] Merge this documentation PR.
-- [ ] Remove or justify `frontend/faceguard-web.zip`.
 - [ ] Verify latest `main` quality workflow.
 - [ ] Verify latest `main` link check.
 - [ ] Run or verify deployment/runnable artifact.

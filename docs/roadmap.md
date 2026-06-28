@@ -70,11 +70,7 @@ paths.
 
 ## Risks and Decision Gates
 
-- PR #51 merged with `frontend/faceguard-web.zip` in the repository tree. This
-  generated/binary archive should be removed in a cleanup PR unless there is a
-  documented reason to keep it.
-- Protected-main evidence must be rechecked after the final documentation PR
-  and any cleanup PRs.
+- Protected-main evidence must be rechecked after the final documentation PR.
 - Branch protection details beyond the public ruleset require repository-owner
   evidence because the branch protection API returned `Requires authentication`.
 - Customer Review was completed on June 28, 2026, but direct customer self-test

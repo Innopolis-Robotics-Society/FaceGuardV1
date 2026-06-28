@@ -74,9 +74,8 @@ PR #49 was merged before the expanded Week 4 report commit reached `main`.
 ### Pending Implementation
 
 No selected Sprint 2 issue is without an implementation PR. The remaining work
-is final documentation PR review/merge, cleanup of the generated ZIP archive
-that reached `main`, protected-main evidence refresh, deployment verification,
-UAT, customer review, and release.
+is final documentation PR review/merge, protected-main evidence refresh,
+deployment verification, follow-up customer self-test if needed, and release.
 
 ## 6. Customer and Stakeholder Feedback Response
 
@@ -148,7 +147,7 @@ Lychee is link checking and is not counted as the additional QA check.
 | Evidence type | Status | Evidence |
 | --- | --- | --- |
 | Successful PR CI | Delivered for PR #49 before this documentation commit | [Quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28290665283) and [link-check run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28290665286). |
-| Successful protected-main CI | Not Yet Available | Must be rechecked after this documentation PR and any cleanup PRs. |
+| Successful protected-main CI | Not Yet Available | Must be rechecked after this documentation PR. |
 | Protected-main quality workflow | Pending Deployment Verification | `quality.yml` is now on `main`, but final evidence must be linked after this documentation PR. |
 | Local Compose validation | Not Yet Available | Docker CLI was not available on the local machine; GitHub Actions must provide the Compose validation evidence. |
 
@@ -196,8 +195,7 @@ Retrospective: [retrospective.md](retrospective.md)
 
 The current retrospective focuses on evidence from GitHub: small Sprint PBIs,
 parallel implementation, issue-linked PRs, automated quality gates, late report
-preparation, merge timing, generated artifact cleanup, and CI evidence gaps near
-submission.
+preparation, merge timing, and CI evidence gaps near submission.
 
 ## 16. Reflection
 
@@ -262,11 +260,8 @@ Private material must not be committed to the public repository.
 - [x] Merge PR #49.
 - [x] Merge PR #50.
 - [x] Merge PR #51.
-- [ ] Remove `frontend/faceguard-web.zip` from `main` in a cleanup PR unless
-  explicitly justified.
 - [ ] Merge this documentation PR after checks remain green.
-- [ ] Verify latest `main` CI after this documentation PR and cleanup PRs are
-  merged.
+- [ ] Verify latest `main` CI after this documentation PR is merged.
 - [ ] Add coverage artifact evidence after final CI run.
 - [ ] Add QRT evidence after final CI run.
 - [ ] Add branch protection/rules evidence from an account with sufficient
