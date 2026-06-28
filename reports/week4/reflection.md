@@ -32,9 +32,9 @@ link checks or carry generated files even when the QA PR is healthy. The team
 should merge quality gates early enough that later PRs are checked consistently.
 
 Documentation and evidence preparation still happened late. The Week 4 report
-structure, evidence index, UAT scenarios, and customer review templates should
-exist before the customer session, not after it. Preparing them earlier makes it
-clear what evidence must be captured live.
+structure, UAT scenarios, and customer review summary/transcript should exist
+before the customer session, not after it. Preparing them earlier makes it clear
+what evidence must be captured live.
 
 The customer review and UAT evidence are now complete for the Assignment 4
 scope. The follow-up customer message confirms that everything seems fine and

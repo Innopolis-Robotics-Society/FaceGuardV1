@@ -97,8 +97,6 @@ stories are approved, and the team has the right vision.*
 
 ## 6. Customer and Stakeholder Feedback Response
 
-Detailed response table: [customer-feedback-response.md](customer-feedback-response.md)
-
 | Feedback source | Feedback | Response | PBI/Issue | Status | Rationale |
 | --- | --- | --- | --- | --- | --- |
 | Customer Review | Hardware work and anti-spoofing are important next priorities. | Prioritize Raspberry Pi integration, recognition-model improvement, and anti-spoofing in the next Sprint. | Future Sprint scope | Planned | Confirmed in Week 4 customer review transcript. |
@@ -134,8 +132,7 @@ Testing guide: [docs/testing.md](../../docs/testing.md)
 
 The following values are from the protected-main
 [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205)
-and the
-[backend coverage artifact](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/artifacts/7936486952).
+and the embedded coverage screenshot below.
 
 ![Critical-module coverage values passing the 30 percent threshold](images/05_critical_coverage.png)
 
@@ -189,7 +186,7 @@ documentation merge; all five quality jobs passed.*
 | Successful protected-main CI | Delivered | [Quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056) triggered by a push to `main` after the Week 4 documentation merge; all five quality jobs passed. |
 | Protected-main quality workflow | Delivered | `quality.yml` is active on `main` and passed after the documentation merge. |
 | Quality requirement tests | Delivered | [Quality requirement tests job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234). |
-| Backend tests and critical coverage | Delivered | [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205) and [backend coverage artifact](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/artifacts/7936486952). |
+| Backend tests and critical coverage | Delivered | [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205) and embedded coverage screenshot evidence. |
 | Additional QA / Compose validation | Delivered | The [Docker Compose validation job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995206) ran `docker compose -f backend-service/docker-compose.yml config --quiet` successfully. |
 
 ## 11. Branch Protection and Definition of Done
@@ -248,7 +245,6 @@ UAT scenarios: [docs/user-acceptance-tests.md](../../docs/user-acceptance-tests.
   received after the review.
 - UAT results: The customer confirmed that the checked user stories are
   approved.
-- UAT timecodes: Recorded in [customer-review-notes.md](customer-review-notes.md).
 
 Access Logs evidence:
 
@@ -294,7 +290,6 @@ confirmation.*
 
 - Status: Customer Review Completed.
 - Summary template: [customer-review-summary.md](customer-review-summary.md)
-- Notes: [customer-review-notes.md](customer-review-notes.md)
 - Sanitized transcript: [customer-review-transcript.md](customer-review-transcript.md)
 
 The customer session took place on June 28, 2026. The team reports that Sprint
@@ -325,20 +320,34 @@ drafting, traceability extraction, and consistency review.
 
 ## 18. Public Demo and Presentation
 
-- Public demo script: [demo-script.md](demo-script.md)
-- Presentation outline: [presentation-outline.md](presentation-outline.md)
 - Project presentation video: [Five-minute project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing)
 
-## 19. Evidence Index
+## 19. Screenshot Evidence
 
-Evidence index: [evidence-index.md](evidence-index.md)
-
-The evidence index includes the supplied screenshots and customer confirmation
-evidence.
+The report embeds all public Week 4 screenshot evidence from
+`reports/week4/images/`, including Sprint planning, backlog, reviewed PRs, CI,
+coverage, branch rules, release, deployment, delivered product screens, and
+customer confirmation.
 
 ## 20. Contribution Traceability
 
-Contribution traceability: [contribution-traceability.md](contribution-traceability.md)
+Evidence source: GitHub Issues, PRs, commits, files, and review records checked
+on June 28, 2026. Requested reviews are not counted as completed reviews. Open
+PRs are not counted as merged contributions.
+
+| Team member | Issue/PBI | Commits | PR | Reviews | Documentation | Current status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Danila Naboishchikov / [Sparta2016840](https://github.com/Sparta2016840) | [#48 - PBI-A4-QA](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/48) | `501d5f6` `feat(qa): add Assignment 4 quality gates and tests`; Week 4 documentation commits | [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49); Week 4 documentation PR | Approved [PR #52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) on June 28, 2026 | Quality requirements, QRT traceability, testing guide, Week 4 report structure, release evidence | PR #49 merged; documentation evidence added |
+| Emil Vagizov / [etherealboop](https://github.com/etherealboop) | [#21 - US-09](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/21) | `72c03af` and `66aa79f` `US-09 criteria completion` | [PR #50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) | Reviewed by [rmxqwo](https://github.com/rmxqwo) | Access Logs evidence in Week 4 report | Merged; delivered |
+| Eldar Bayazitov / [rmxqwo](https://github.com/rmxqwo) | [#22 - US-10](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22) | PR #51 changed the People page flow and related frontend assets. | [PR #51](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/51) | Approved [PR #50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) on June 28, 2026; [etherealboop](https://github.com/etherealboop) approved PR #51 on June 28, 2026 | People workflow evidence in Week 4 report | Merged; delivered |
+| Oleg Korchagin / [privel](https://github.com/privel) | [#47 - PBI-A4-16](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/47) | `c3bb6fb` `Add refresh button`; merge/fix commits in PR #52 | [PR #52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) | Approved [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) on June 28, 2026 | Dashboard evidence in Week 4 report | Merged; delivered |
+
+| PR | Author | Review evidence | Merge status | Notes |
+| --- | --- | --- | --- | --- |
+| [#49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) | [Sparta2016840](https://github.com/Sparta2016840) | [privel](https://github.com/privel) approved on June 28, 2026 | Merged | QA gates, tests, and coverage. |
+| [#50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) | [etherealboop](https://github.com/etherealboop) | [rmxqwo](https://github.com/rmxqwo) approved on June 28, 2026 | Merged | Access Logs implementation. |
+| [#51](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/51) | [rmxqwo](https://github.com/rmxqwo) | [etherealboop](https://github.com/etherealboop) approved on June 28, 2026 | Merged | US-10 authorized-person edit and removal. |
+| [#52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) | [privel](https://github.com/privel) | [Sparta2016840](https://github.com/Sparta2016840) approved on June 28, 2026 | Merged | Closed #47. |
 
 ## 21. Public and Private Evidence Separation
 
@@ -368,7 +377,7 @@ Private material must not be committed to the public repository.
 
 - [x] Prepare public Week 4 report structure.
 - [x] Prepare UAT scenarios.
-- [x] Prepare customer review templates.
+- [x] Prepare customer review summary and sanitized transcript.
 - [x] Prepare release notes.
 - [x] Merge PR #49.
 - [x] Merge PR #50.

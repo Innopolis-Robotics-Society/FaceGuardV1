@@ -52,16 +52,14 @@ Status: Published GitHub Release.
   https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234
 - Verified protected-main backend tests and critical coverage job:
   https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205
-- Backend coverage artifact:
-  https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/artifacts/7936486952
 - Verified Docker Compose validation job:
   https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995206
 
 ## Documentation and Evidence
 
-- Added Assignment 4 report, evidence index, UAT documentation,
-  customer-review summary, sanitized transcript, demo script, presentation
-  outline, Moodle submission template, and release documentation.
+- Added Assignment 4 report, embedded screenshot evidence, UAT documentation,
+  customer-review summary, sanitized transcript, reflection, retrospective,
+  LLM usage report, and release documentation.
 - Project presentation video:
   https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing
 - Deployment: http://10.93.26.183:5173/

@@ -48,10 +48,9 @@ quality gates.
 - Protected-main evidence includes the
   [Quality requirement tests job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234),
   [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205),
-  [backend coverage artifact](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/artifacts/7936486952),
   and [Docker Compose validation job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995206).
 - Customer confirmation:
-  [Week 4 evidence index](../reports/week4/evidence-index.md) records the
+  [Week 4 report evidence](../reports/week4/README.md#13-uat) records the
   customer message approving all user stories.
 
 Successful PR CI is tracked separately from protected-main CI evidence. The

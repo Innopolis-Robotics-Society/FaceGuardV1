@@ -8,9 +8,9 @@ Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
   received.
 - Customer feedback: Received during Week 4 customer session.
 - Recording consent: Team reports consent/approval was obtained.
-- UAT evidence location: [Week 4 customer review notes](../reports/week4/customer-review-notes.md)
+- UAT evidence location: [Week 4 report](../reports/week4/README.md#13-uat)
 - Screenshot evidence location:
-  [Week 4 evidence index](../reports/week4/evidence-index.md)
+  [Week 4 report evidence](../reports/week4/README.md#13-uat)
 
 The scenarios below were demonstrated during the customer session and then sent
 to the customer for written confirmation. The customer replied that everything

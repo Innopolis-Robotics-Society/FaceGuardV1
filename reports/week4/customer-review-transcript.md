@@ -65,44 +65,11 @@ send you a link to the current deployment.
 First, we would like you to review the Access Logs. Please evaluate how clear
 the interface is, how events are displayed, and how well the filters work.
 
-**00:03:40 - Artyom Tuzov**
-
-I cannot connect to the website.
-
 **00:03:40 - Danila Naboishchikov**
 
-There is a password. I will send it now.
-
-**00:03:48 - Artyom Tuzov**
-
-No, I do not have access to the site at all.
-
-**00:03:53 - Oleg Korchagin**
-
-Most likely, it is because you are not on the university network.
-
-**00:03:53 - Danila Naboishchikov**
-
-Possibly. Are you currently on the local network?
-
-**00:03:59 - Artyom Tuzov**
-
-Yes, I am in Innopolis.
-
-**00:04:02 - Oleg Korchagin**
-
-I just connected from my room to the server, and it works for me.
-
-**00:04:27 - Artyom Tuzov**
-
-Then at least show it yourself.
-
-**00:04:32 - Danila Naboishchikov**
-
-Sure, but ideally we would like you to test it yourself.
-
-In any case, if you get access later, please try it and share your feedback:
-whether it was convenient, clear, and comfortable to use.
+The deployment access details are omitted from this public transcript. The team
+continued the walkthrough and asked the customer to review whether the interface
+was convenient, clear, and comfortable to use.
 
 In Access Logs, there are filters. Currently, all events are on the same date.
 If another date is selected, no logs are shown. Filters can be cleared. There is

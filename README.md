@@ -22,7 +22,7 @@ FaceGuard v1.1.0 was published as the Assignment 4 Sprint increment:
 - Week 4 report: [Assignment 4 / Week 4 report](reports/week4/README.md)
 - Project presentation: [Five-minute project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing)
 - Private-network deployment: http://10.93.26.183:5173/
-- Customer confirmation: [Week 4 evidence index](reports/week4/evidence-index.md)
+- Customer confirmation: [Week 4 report evidence](reports/week4/README.md#13-uat)
 
 The deployment is customer-accessible on the Innopolis University private
 network.
@@ -207,7 +207,7 @@ Manually check that:
 - [docs](docs/user-stories.md) - current user stories, roadmap, and Definition of Done
 - [reports/week2](reports/week2/README.md) - Assignment 2 / MVP v0 report
 - [reports/week3](reports/week3/README.md) - Assignment 3 / MVP v1 report
-- [reports/week4](reports/week4/README.md) - Assignment 4 / Week 4 report, quality gates, evidence index, UAT templates, and submission structure
+- [reports/week4](reports/week4/README.md) - Assignment 4 / Week 4 report, quality gates, embedded evidence, UAT, and release documentation
 
 ## License
 

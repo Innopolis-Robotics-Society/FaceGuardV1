@@ -28,9 +28,9 @@ All notable user-visible changes to this project are documented in this file.
   coverage threshold.
 - Added GitHub Actions quality gates for frontend build, backend Ruff lint,
   tests with coverage, QRTs, and Docker Compose validation.
-- Added Assignment 4 / Week 4 public report structure, evidence index,
-  customer-review templates, UAT scenarios, release notes, demo script,
-  presentation outline, and Moodle submission template.
+- Added Assignment 4 / Week 4 public report structure, embedded screenshot
+  evidence, customer-review summary and transcript, UAT scenarios, release
+  notes, reflection, retrospective, and LLM usage report.
 - Added sanitized Week 4 customer review transcript, review notes, review
   summary, UAT evidence updates, and customer feedback response entries based
   on the June 28, 2026 customer session.
