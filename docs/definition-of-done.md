@@ -14,6 +14,11 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Documentation and exact run/access instructions are updated.
 - Meaningful changes are added to `CHANGELOG.md`.
 - Week 4 evidence is preserved when the PBI belongs to the Assignment 4 increment.
+- UAT scenarios and customer-review evidence are updated when the PBI is part
+  of a customer-facing Sprint Review scope.
+- Public/private evidence separation is respected: customer recordings,
+  recording consent, private deployment access, credentials, and
+  instructor-only notes are not committed to the public repository.
 - No credentials, biometric data, customer data, private evidence, PII, or unsafe credentials are committed.
 - Deployment/runtime smoke check is completed when applicable.
 - GitHub Project Work Status is `Done`.
@@ -29,3 +34,6 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Browser-facing code must call the central backend and must not expose the device-agent API key.
 - MVP v1 completion requires a release link, deployment/access point, smoke-check evidence, and customer review outcome.
 - Assignment 4 quality-gate work must update the quality requirements, QRT traceability, testing guide, coverage evidence, and Week 4 report links.
+- Assignment 4 report work must keep pending customer review, UAT, deployment,
+  release, and protected-main evidence explicitly marked until real evidence is
+  available.

@@ -17,6 +17,18 @@ All notable user-visible changes to this project are documented in this file.
   coverage threshold.
 - Added GitHub Actions quality gates for frontend build, backend Ruff lint,
   tests with coverage, QRTs, and Docker Compose validation.
+- Added Assignment 4 / Week 4 public report structure, evidence index,
+  customer-review templates, UAT scenarios, release draft, demo script,
+  presentation outline, and Moodle submission template.
+- Added Dashboard manual refresh and last-updated feedback through the merged
+  Assignment 4 Dashboard refresh PR.
+
+### Changed
+
+- Updated the roadmap to show the current Assignment 4 Sprint, selected PBIs,
+  real issue/PR states, and pending release/customer-session work.
+- Updated project documentation links to include Week 4 report and UAT
+  documentation.
 
 ## [v1.0.0] - 2026-06-21
 
