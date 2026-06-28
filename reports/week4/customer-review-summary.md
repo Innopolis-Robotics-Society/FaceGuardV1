@@ -42,6 +42,8 @@ in the private Moodle evidence package.
 
 - The customer asked the team to send a clear message with exactly what should
   be tested and where feedback or approval is needed.
+- Customer-executed UAT evidence was recorded and is provided in the private
+  Moodle evidence package.
 - The customer later replied that everything seems fine, all user stories are
   approved, and the team has the right vision.
 - The customer asked whether anti-spoofing had been implemented.
@@ -80,4 +82,5 @@ session evidence to this repository.
 
 Public GitHub evidence includes this sanitized summary and the sanitized
 transcript. Private Moodle evidence may include the original recording,
-recording consent, deployment access details, and instructor-only notes.
+customer-executed UAT recording, recording consent, deployment access details,
+and instructor-only notes.

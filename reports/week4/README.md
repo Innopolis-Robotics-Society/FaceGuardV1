@@ -241,10 +241,14 @@ network showing system status and service health indicators.*
 
 UAT scenarios: [docs/user-acceptance-tests.md](../../docs/user-acceptance-tests.md)
 
-- Execution status: Customer Review completed; customer scenario confirmation
-  received after the review.
+- Execution status: Customer Review completed; customer-executed UAT recording
+  is provided in the private Moodle evidence package, and customer scenario
+  confirmation was received after the review.
 - UAT results: The customer confirmed that the checked user stories are
   approved.
+- Public evidence: sanitized screenshots and customer confirmation are embedded
+  below. The customer UAT recording link is not committed to the public
+  repository.
 
 Access Logs evidence:
 
