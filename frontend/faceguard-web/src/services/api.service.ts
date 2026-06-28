@@ -10,12 +10,15 @@ import {
   SystemHealth, SystemReadiness, SyncStatus, BulkSyncResponse, AuditLog, AuditQueryParams, AuditStats,
 } from "../types/api.types";
 
+// Read from environment variables (Vite uses import.meta.env)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
 
-
- // const API_BASE_URL = "http://10.93.26.183:8000/api/v1";
-// Provide a minimal declaration for `process.env` for frontend TypeScript builds
-declare const process: { env: { API_URL?: string } };
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+// Extract base URL without /api/v1 for stream endpoints
+const getBaseUrl = () => {
+  const url = API_BASE_URL.replace('/api/v1', '');
+  return url;
+};
 
 class ApiService {
   private client: AxiosInstance;
@@ -457,23 +460,26 @@ class ApiService {
   getCameraStreamUrl(deviceId: string): string {
     if (!deviceId) return "";
     const token = tokenUtils.getToken();
-    return `http://localhost:8001/stream?device_id=${deviceId}&token=${token}`;
+    const baseUrl = getBaseUrl();
+    return `${baseUrl}:8001/stream?device_id=${deviceId}&token=${token}`;
   }
 
   async getStreamSettings(): Promise<{ fps: number; quality: number; camera_fps: number; resolution: string; available_resolutions: string[] }> {
-    const { data } = await axios.get("http://localhost:8001/settings");
+    const baseUrl = getBaseUrl();
+    const { data } = await axios.get(`${baseUrl}:8001/settings`);
     return data;
   }
 
   async updateStreamSettings(settings: { fps?: number; quality?: number; resolution?: string }): Promise<{ fps: number; quality: number; resolution: string }> {
-    const { data } = await axios.post("http://localhost:8001/settings", settings);
+    const baseUrl = getBaseUrl();
+    const { data } = await axios.post(`${baseUrl}:8001/settings`, settings);
     return data;
   }
 
   getWebSocketUrl(): string {
     // WebSocket endpoint for real-time events
     const token = tokenUtils.getToken();
-    return `ws://localhost:8000/ws/events?token=${token}`;
+    return `${WS_BASE_URL}/ws/events?token=${token}`;
   }
 }
 
