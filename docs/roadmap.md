@@ -35,19 +35,23 @@ quality gates.
 - Delivered to `main`: #21, #22, #47, and #48, 10 Story Points.
 - In Review or Pending Merge: none in the selected Sprint scope at the time of
   this update.
-- Customer review and UAT: Pending Customer Session.
-- Assignment 4 release: Pending completion and merge of the selected Sprint
-  increment.
+- Customer review: completed on June 28, 2026.
+- UAT: demonstrated during the customer review; direct customer self-test is
+  still pending deployment access verification.
+- Assignment 4 release: pending final documentation review, deployment
+  verification, and release publication.
 
 Successful PR CI is not counted as protected-main CI evidence. The selected
-scope is now merged, but final release, deployment verification, UAT, and
-customer-review evidence remain pending.
+scope is now merged, but final release, deployment verification, direct
+customer self-test, and protected-main evidence remain pending.
 
 ## Next Sprint
 
 Likely follow-up scope after Assignment 4:
 
 - [#35 - BUG-01: Recognition agent requires restart after authorized-person changes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).
+- Raspberry Pi integration and hardware-oriented deployment work.
+- Anti-spoofing research and implementation.
 - Broader authentication and role-authorisation testing.
 - Real PostgreSQL integration tests for database-dependent backend paths.
 - Frontend component tests for Dashboard, Access Logs, and People flows.
@@ -73,5 +77,6 @@ paths.
   and any cleanup PRs.
 - Branch protection details beyond the public ruleset require repository-owner
   evidence because the branch protection API returned `Requires authentication`.
-- Customer Review, UAT execution, deployment verification, demo recording, and
+- Customer Review was completed on June 28, 2026, but direct customer self-test
+  was blocked by deployment access. Deployment verification, demo recording, and
   Assignment 4 release are still pending.

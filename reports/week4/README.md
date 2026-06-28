@@ -10,8 +10,8 @@
   gates, Sprint evidence, and remaining submission work without exposing private
   customer or credential material.
 - Assignment 4 increment: Sprint 2 - Increment.
-- Report status: In Progress; public documentation prepared, customer session
-  pending.
+- Report status: In Progress; customer review completed, follow-up customer
+  self-test and final release evidence pending.
 - Latest evidence date: June 28, 2026.
 
 ## 2. Team
@@ -86,6 +86,8 @@ Detailed response table: [customer-feedback-response.md](customer-feedback-respo
 | --- | --- | --- | --- | --- | --- |
 | Customer Review | Continue the accepted MVP v1 direction and stabilize on Ubuntu before Raspberry Pi. | Keep local-camera model and track hardware stabilization as follow-up. | [#35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Planned | Confirmed in Week 3 customer review summary. |
 | Customer Review | Recognition data refresh after person changes remains a limitation. | Keep the bug visible and avoid hiding the limitation in Assignment 4 evidence. | [#35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Planned | Confirmed in Week 3 customer review summary. |
+| Customer Review | Hardware work and anti-spoofing are important next priorities. | Prioritize Raspberry Pi integration, recognition-model improvement, and anti-spoofing in the next Sprint. | Future Sprint scope | Planned | Confirmed in Week 4 customer review transcript. |
+| Customer Review | Customer could not access the deployment during the meeting. | Verify customer access before final UAT closure and release evidence. | Deployment verification | Pending Deployment Verification | Confirmed in Week 4 customer review transcript. |
 | Course quality requirement | Assignment 4 requires measurable quality requirements, QRTs, tests, coverage, and CI. | Implement through QA gates PR. | [#48](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/48) | Delivered | Course requirement, not customer feedback. |
 | Team-identified improvement | Dashboard needed clearer manual refresh feedback. | Implemented manual refresh and last-updated state. | [#47](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/47) | Delivered | Delivered through PR #52. |
 
@@ -160,8 +162,8 @@ module coverage, CI, documentation, changelog updates, and evidence preservation
 
 ## 12. Deployment and Release
 
-- Release status: Pending documentation PR, deployment verification, customer
-  session, and release publication.
+- Release status: Pending documentation PR, deployment access verification,
+  follow-up UAT confirmation if required, and release publication.
 - Current published release: [FaceGuard MVP v1 / v1.0.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.0.0), which belongs to Assignment 3.
 - Assignment 4 release: Not Yet Available.
 - Draft release notes: [release-notes-v0.2.0-draft.md](release-notes-v0.2.0-draft.md)
@@ -171,17 +173,22 @@ module coverage, CI, documentation, changelog updates, and evidence preservation
 
 UAT scenarios: [docs/user-acceptance-tests.md](../../docs/user-acceptance-tests.md)
 
-- Execution status: Pending Customer Session.
-- UAT results: Not Yet Available.
-- UAT timecodes: Not Yet Available.
+- Execution status: Customer Review completed; direct customer self-test was
+  blocked by deployment access.
+- UAT results: Demonstrated during review; follow-up customer self-test pending
+  access verification.
+- UAT timecodes: Recorded in [customer-review-notes.md](customer-review-notes.md).
 
 ## 14. Sprint Review
 
-- Status: Pending Customer Session.
+- Status: Customer Review Completed.
 - Summary template: [customer-review-summary.md](customer-review-summary.md)
-- Notes template: [customer-review-notes.md](customer-review-notes.md)
+- Notes: [customer-review-notes.md](customer-review-notes.md)
+- Sanitized transcript: [customer-review-transcript.md](customer-review-transcript.md)
 
-No Week 4 Sprint Review is claimed in this report.
+The customer session took place on June 28, 2026. The team reports that Sprint
+implementation and recording approval were obtained. Restricted recording links
+and access details are kept out of the public repository.
 
 ## 15. Retrospective
 
@@ -264,9 +271,11 @@ Private material must not be committed to the public repository.
 - [ ] Add QRT evidence after final CI run.
 - [ ] Add branch protection/rules evidence from an account with sufficient
   repository permissions.
-- [ ] Complete customer Sprint Review.
-- [ ] Execute UAT scenarios with the customer.
-- [ ] Add customer review summary and notes based on the real session.
+- [x] Complete customer Sprint Review.
+- [ ] Complete direct customer self-test after deployment access is fixed, if
+  required by the team.
+- [x] Add customer review summary, notes, and sanitized transcript based on the
+  real session.
 - [ ] Verify deployment or runnable release artifact.
 - [ ] Publish Assignment 4 release.
 - [ ] Record sanitized public demo.

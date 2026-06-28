@@ -20,15 +20,17 @@ Leave unchecked any item without evidence.
 
 ## Customer Session
 
-- [ ] Recording consent is confirmed.
-- [ ] Sprint Review is completed.
-- [ ] UAT-001 is executed.
-- [ ] UAT-002 is executed.
-- [ ] UAT-003 is executed.
-- [ ] UAT-004 is executed if Dashboard refresh is in the final demo scope.
-- [ ] Notes or transcript are prepared according to publication permission.
-- [ ] Timecodes are captured.
-- [ ] Feedback response table is updated.
+- [x] Recording consent is confirmed by the team and must be preserved
+  privately.
+- [x] Sprint Review is completed.
+- [ ] UAT-001 is completed as direct customer self-test; meeting demonstration
+  exists, but customer access was blocked.
+- [x] UAT-002 is demonstrated during customer review.
+- [x] UAT-003 is demonstrated during customer review.
+- [x] UAT-004 is demonstrated during customer review.
+- [x] Notes and sanitized transcript are prepared.
+- [x] Timecodes are captured in public notes.
+- [x] Feedback response table is updated.
 
 ## Moodle PDF
 

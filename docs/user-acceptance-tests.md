@@ -1,15 +1,18 @@
 # User Acceptance Tests - Assignment 4
 
-This document prepares customer-facing User Acceptance Test scenarios for the
-Assignment 4 / Week 4 Sprint Review. Execution is not recorded yet.
+This document records customer-facing User Acceptance Test scenarios for the
+Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
+2026 customer session.
 
-- Execution status: Pending Customer Session
-- Customer feedback: Pending Customer Session
-- Recording consent: Pending Customer Session
-- UAT evidence location: Not Yet Available
+- Execution status: Customer Review Completed; customer self-test partially
+  blocked by deployment access.
+- Customer feedback: Received during Week 4 customer session.
+- Recording consent: Team reports consent/approval was obtained.
+- UAT evidence location: [Week 4 customer review notes](../reports/week4/customer-review-notes.md)
 
-Do not treat any scenario below as passed or failed until the customer session
-has been completed and evidence has been recorded.
+The scenarios below were demonstrated or discussed during the customer session.
+Direct customer hands-on execution was blocked by deployment access, so the
+team should still verify customer access and collect follow-up confirmation.
 
 ## UAT-001 - Review and filter access events
 
@@ -56,11 +59,11 @@ person/device context, and navigate paginated newest-first results.
 
 | Field | Value |
 | --- | --- |
-| Actual result | [TBD after customer session] |
-| Pass/fail | Pending Customer Session |
-| Recording timecode | [TBD after customer session] |
-| Customer comments | [TBD after customer session] |
-| Follow-up issue | [TBD after customer session] |
+| Actual result | Access Logs were demonstrated by the team. Customer direct self-test was blocked because the customer could not access the deployment. |
+| Pass/fail | Demonstrated; follow-up customer self-test pending access verification. |
+| Recording timecode | 00:03:13-00:05:28 |
+| Customer comments | Customer reported no access to the website and asked the team to show the feature. |
+| Follow-up issue | Verify deployment/customer access before final UAT closure. |
 
 ## UAT-002 - Edit an authorized person
 
@@ -106,11 +109,11 @@ reflects the change immediately.
 
 | Field | Value |
 | --- | --- |
-| Actual result | [TBD after customer session] |
-| Pass/fail | Pending Customer Session |
-| Recording timecode | [TBD after customer session] |
-| Customer comments | [TBD after customer session] |
-| Follow-up issue | [TBD after customer session] |
+| Actual result | User-management improvements were demonstrated, including photo-count choices during creation. |
+| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Recording timecode | 00:00:02-00:00:56; 00:05:28-00:05:40 |
+| Customer comments | Customer asked for a follow-up message with what exactly should be tested or approved. |
+| Follow-up issue | Send checklist and collect follow-up confirmation if required. |
 
 ## UAT-003 - Safely remove an authorized person
 
@@ -154,11 +157,11 @@ removal, the UI shows success feedback and the list updates immediately.
 
 | Field | Value |
 | --- | --- |
-| Actual result | [TBD after customer session] |
-| Pass/fail | Pending Customer Session |
-| Recording timecode | [TBD after customer session] |
-| Customer comments | [TBD after customer session] |
-| Follow-up issue | [TBD after customer session] |
+| Actual result | Delete confirmation for people and logs was demonstrated as a data-loss risk reduction. |
+| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Recording timecode | 00:05:28-00:07:34 |
+| Customer comments | Customer asked to be reminded what was done; team summarized deletion confirmation and Dashboard refresh. |
+| Follow-up issue | Keep data-loss prevention checks in future UAT. |
 
 ## UAT-004 - Dashboard manual refresh
 
@@ -197,8 +200,8 @@ feedback without a full page reload.
 
 | Field | Value |
 | --- | --- |
-| Actual result | [TBD after customer session] |
-| Pass/fail | Pending Customer Session |
-| Recording timecode | [TBD after customer session] |
-| Customer comments | [TBD after customer session] |
-| Follow-up issue | [TBD after customer session] |
+| Actual result | Dashboard refresh button was presented as a completed Sprint improvement. |
+| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Recording timecode | 00:00:02-00:00:56; 00:07:04-00:07:34 |
+| Customer comments | Customer accepted the summary and moved to next-Sprint priorities. |
+| Follow-up issue | None for the demonstrated refresh behavior; verify final deployment evidence. |

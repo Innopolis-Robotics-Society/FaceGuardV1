@@ -6,8 +6,8 @@ Status: Draft. This is not a published GitHub Release.
 
 - Planned version: `v0.2.0`
 - Release type: Assignment 4 / Sprint 2 increment
-- Release status: Pending documentation PR, deployment verification, customer
-  session, and publication
+- Release status: Pending documentation PR, deployment access verification,
+  possible follow-up UAT confirmation, and publication
 
 ## Milestone
 
@@ -54,7 +54,8 @@ These items are not released until completed.
 - Final `main` quality workflow: Pending Deployment Verification.
 - Latest `main` CI/link-check evidence must be rechecked after this
   documentation PR and cleanup PRs.
-- UAT: Pending Customer Session.
+- UAT: Demonstrated during customer review; direct customer self-test was
+  blocked by deployment access and may require follow-up.
 
 ## Known Limitations
 

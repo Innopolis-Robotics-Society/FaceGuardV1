@@ -20,13 +20,17 @@ All notable user-visible changes to this project are documented in this file.
 - Added Assignment 4 / Week 4 public report structure, evidence index,
   customer-review templates, UAT scenarios, release draft, demo script,
   presentation outline, and Moodle submission template.
+- Added sanitized Week 4 customer review transcript, review notes, review
+  summary, UAT evidence updates, and customer feedback response entries based
+  on the June 28, 2026 customer session.
 - Added Dashboard manual refresh and last-updated feedback through the merged
   Assignment 4 Dashboard refresh PR.
 
 ### Changed
 
 - Updated the roadmap to show the current Assignment 4 Sprint, selected PBIs,
-  real issue/PR states, and pending release/customer-session work.
+  real issue/PR states, completed customer review, and pending release,
+  deployment, and direct customer self-test work.
 - Updated project documentation links to include Week 4 report and UAT
   documentation.
 

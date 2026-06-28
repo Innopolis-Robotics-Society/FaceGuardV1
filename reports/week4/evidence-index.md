@@ -20,11 +20,11 @@ access, or instructor-only notes.
 | Branch protection | Public ruleset: [push](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/rules/17606325) | Owner screenshot may be needed | In Progress | Branch protection API returned `Requires authentication`; owner should add evidence. |
 | Release | Current release [v1.0.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.0.0) is Assignment 3 only | Not required | Pending Deployment Verification | Publish Assignment 4 release after documentation, cleanup, UAT, and deployment evidence. |
 | Deployment | Root [README](../../README.md) local run model | Private deployment access if used | Pending Deployment Verification | Verify final increment and avoid publishing credentials. |
-| UAT | [UAT scenarios](../../docs/user-acceptance-tests.md) | Recording/timecodes after session | Pending Customer Session | Execute UAT with customer. |
-| Customer review | [summary template](customer-review-summary.md), [notes template](customer-review-notes.md) | Recording, consent, and timecodes after session | Pending Customer Session | Hold Sprint Review and update notes truthfully. |
+| UAT | [UAT scenarios](../../docs/user-acceptance-tests.md), [review notes](customer-review-notes.md) | Recording/timecodes and follow-up access confirmation if needed | In Progress | Direct customer self-test was blocked by deployment access; verify access before final UAT closure. |
+| Customer review | [summary](customer-review-summary.md), [notes](customer-review-notes.md), [sanitized transcript](customer-review-transcript.md) | Recording, consent, and restricted access details | Delivered | Preserve original recording and consent privately. |
 | Retrospective | [retrospective.md](retrospective.md) | Not required | Delivered | Update if new process evidence appears. |
 | Reflection | [reflection.md](reflection.md) | Not required | Delivered | Update after customer session if needed. |
-| Demo video | [demo script](demo-script.md) | Raw recording if private | Pending Deployment Verification | Record public sanitized demo after final increment is deployed. |
+| Demo video | [demo script](demo-script.md) | Raw recording if private | Pending Deployment Verification | Record public sanitized demo after final deployment/access verification. |
 | Rehearsal video | Not public | Private Moodle evidence | Not Yet Available | Record and attach privately. |
 | LLM report | [llm-report.md](llm-report.md) | Team confirmation if needed | Delivered | Team must add any earlier LLM use not documented here. |
 | Moodle permalink | Not public | Private Moodle PDF | Not Yet Available | Add in Moodle submission only. |
