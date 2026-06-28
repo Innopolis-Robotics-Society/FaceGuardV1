@@ -146,9 +146,20 @@ class AccessEventCreate(AccessEventBase):
     pass
 
 
-class AccessEventResponse(AccessEventBase):
+class AccessEventResponse(BaseModel):
     id: UUID
     created_at: datetime
+
+    event_type: str
+    access_result: str  # "granted" or "denied"
+
+    device_id: UUID
+    device_name: Optional[str]
+
+    person_id: Optional[UUID]
+    person_name: str  # fallback = "Unknown"
+
+    photo_path: Optional[str]
 
     class Config:
         from_attributes = True

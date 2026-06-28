@@ -20,11 +20,12 @@ router = APIRouter(
 @router.get("/", response_model=List[AccessEventResponse])
 def list_events(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(25, ge=1, le=100),
     device_id: Optional[UUID] = Query(None, description="Фильтр по устройству"),
     person_id: Optional[UUID] = Query(None, description="Фильтр по человеку"),
     event_type: Optional[str] = Query(None, description="Фильтр по типу: recognized, unknown, access_denied, manual_open"),
-    days: int = Query(7, ge=1, le=365, description="Количество дней истории"),
+    start_date: Optional[datetime] = Query(None, description="Начальная дата"),
+    end_date: Optional[datetime] = Query(None, description="Конечная дата"),
     db: Session = Depends(get_db),
 ):
     """
@@ -40,9 +41,16 @@ def list_events(
     """
     query = db.query(AccessEvent)
 
-    # Фильтр по дате
-    since = datetime.utcnow() - timedelta(days=days)
-    query = query.filter(AccessEvent.created_at >= since)
+    # Фильтр по дате (диапазон)
+    if start_date:
+        query = query.filter(AccessEvent.created_at >= start_date)
+    if end_date:
+        query = query.filter(AccessEvent.created_at <= end_date)
+
+    # fallback если даты не заданы
+    if not start_date and not end_date:
+        since = datetime.utcnow() - timedelta(days=7)
+        query = query.filter(AccessEvent.created_at >= since)
 
     # Фильтры
     if device_id:
@@ -55,7 +63,24 @@ def list_events(
     # Получение событий
     events = query.order_by(AccessEvent.created_at.desc()).offset(skip).limit(limit).all()
 
-    return events
+    results = []
+    for e in events:
+        device = db.query(Device).filter(Device.id == e.device_id).first()
+        person = db.query(Person).filter(Person.id == e.person_id).first() if e.person_id else None
+
+        results.append({
+            "id": e.id,
+            "created_at": e.created_at,
+            "event_type": e.event_type,
+            "access_result": "granted" if e.door_opened else "denied",
+            "device_id": e.device_id,
+            "device_name": device.name if device else None,
+            "person_id": e.person_id,
+            "person_name": person.name if person else "Unknown",
+            "photo_path": e.photo_path,
+        })
+
+    return results
 
 
 @router.get("/{event_id}", response_model=AccessEventResponse)
