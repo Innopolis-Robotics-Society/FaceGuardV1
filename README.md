@@ -43,7 +43,7 @@ FaceGuard MVP v1 is not deployed as a permanent public camera stream because the
 The reproducible MVP v1 access point is:
 
 - the source code in this repository;
-- the `v1.0.0` GitHub Release and generated source archive after publication;
+- the published `v1.0.0` GitHub Release and generated source archive;
 - the local run instructions in this README;
 - the public sanitized [MVP v1 demo video](https://drive.google.com/file/d/1ROzA_gZtCb6iZ-BpT2tHCJFFDoohaqqQ/view?usp=sharing);
 - the reviewed MVP v1 integration PR: [PR #37](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/37).
@@ -61,10 +61,12 @@ The GitHub Pages site is only a static frontend preview. It does not run the Pyt
 - [Quality requirements](docs/quality-requirements.md)
 - [Quality requirement tests](docs/quality-requirement-tests.md)
 - [Testing guide](docs/testing.md)
+- [User acceptance tests](docs/user-acceptance-tests.md)
 - [Changelog](CHANGELOG.md)
 - [MVP v1 release notes](reports/week3/release-notes-v1.0.0.md)
 - [Customer review summary](reports/week3/customer-review-summary.md)
 - [Customer review transcript](reports/week3/customer-review-transcript.md)
+- [Assignment 4 / Week 4 report](reports/week4/README.md)
 
 ## Prerequisites
 
@@ -192,7 +194,7 @@ Manually check that:
 - [docs](docs/user-stories.md) - current user stories, roadmap, and Definition of Done
 - [reports/week2](reports/week2/README.md) - Assignment 2 / MVP v0 report
 - [reports/week3](reports/week3/README.md) - Assignment 3 / MVP v1 report
-- [reports/week4](reports/week4/README.md) - Assignment 4 quality-gate report index
+- [reports/week4](reports/week4/README.md) - Assignment 4 / Week 4 report, quality gates, evidence index, UAT templates, and submission structure
 
 ## License
 
