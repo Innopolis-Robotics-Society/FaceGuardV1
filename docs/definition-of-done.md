@@ -34,6 +34,5 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Browser-facing code must call the central backend and must not expose the device-agent API key.
 - MVP v1 completion requires a release link, deployment/access point, smoke-check evidence, and customer review outcome.
 - Assignment 4 quality-gate work must update the quality requirements, QRT traceability, testing guide, coverage evidence, and Week 4 report links.
-- Assignment 4 report work must keep pending customer review, UAT, deployment,
-  release, and protected-main evidence explicitly marked until real evidence is
-  available.
+- Assignment 4 report work must link customer review, UAT, deployment, release,
+  and protected-main evidence after it is verified.

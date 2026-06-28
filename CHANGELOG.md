@@ -4,9 +4,20 @@ All notable user-visible changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [v1.1.0] - 2026-06-28
+
 ### Added
 
 - Added Assignment 3 reporting cleanup and final submission evidence links.
+- Added Access Logs integration with detailed event data, search,
+  date/status filtering, newest-first ordering, CSV export, and 25-item
+  pagination.
+- Added editing support for authorized-person names, notes, and reference
+  photographs.
+- Added safer authorized-person removal with a warning, confirmation step,
+  immediate removal feedback, and automatic list refresh after edits or
+  removals.
+- Added Dashboard manual refresh, loading state, and last-updated feedback.
 - Added measurable Assignment 4 quality requirements for health endpoint
   performance, administrator identity rejection, and person-name validation.
 - Added automated Quality Requirement Tests linked to the documented quality
@@ -17,22 +28,22 @@ All notable user-visible changes to this project are documented in this file.
   coverage threshold.
 - Added GitHub Actions quality gates for frontend build, backend Ruff lint,
   tests with coverage, QRTs, and Docker Compose validation.
-- Added Assignment 4 / Week 4 public report structure, evidence index,
-  customer-review templates, UAT scenarios, release draft, demo script,
-  presentation outline, and Moodle submission template.
+- Added Assignment 4 / Week 4 public report structure, embedded screenshot
+  evidence, customer-review summary and transcript, UAT scenarios, release
+  notes, reflection, retrospective, and LLM usage report.
 - Added sanitized Week 4 customer review transcript, review notes, review
   summary, UAT evidence updates, and customer feedback response entries based
   on the June 28, 2026 customer session.
-- Added the Week 4 public two-minute demo video link to the Assignment 4
-  report evidence.
-- Added Dashboard manual refresh and last-updated feedback through the merged
-  Assignment 4 Dashboard refresh PR.
+- Added the Week 4 project presentation video link to the Assignment 4 report
+  evidence:
+  https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing
+- Added customer confirmation evidence approving the checked user stories.
 
 ### Changed
 
 - Updated the roadmap to show the current Assignment 4 Sprint, selected PBIs,
-  real issue/PR states, completed customer review, and pending release,
-  deployment, and direct customer self-test work.
+  real issue/PR states, completed customer review, published release,
+  private-network deployment, and customer scenario confirmation.
 - Updated project documentation links to include Week 4 report and UAT
   documentation.
 - Removed a generated frontend archive from the repository tree.
@@ -61,8 +72,3 @@ All notable user-visible changes to this project are documented in this file.
 ### Fixed
 
 - Fixed stale report links that pointed to missing repository files.
-- Documented the recognition-agent refresh limitation as a known post-MVP bug instead of hiding it in the delivered scope.
-
-### Known
-
-- The recognition agent currently requires restart or model rebuild after authorized-person changes. This is tracked as [BUG-01 / issue #35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).

@@ -3,16 +3,16 @@
 ## 1. Project Identification
 
 - Project: FaceGuard
-- Team number: Not Yet Available in the repository evidence reviewed on June 28,
-  2026.
+- Team number: not included in the public repository evidence reviewed on
+  June 28, 2026.
 - Repository: [Innopolis-Robotics-Society/FaceGuardV1](https://github.com/Innopolis-Robotics-Society/FaceGuardV1)
 - Public report purpose: document the Assignment 4 / Week 4 increment, quality
   gates, Sprint evidence, and remaining submission work without exposing private
   customer or credential material.
 - Assignment 4 increment: Sprint 2 - Increment.
-- Report status: In Progress; customer review and public demo evidence are
-  added, while follow-up customer self-test and final release evidence remain
-  pending.
+- Report status: Assignment 4 release, protected-main CI, private-network
+  deployment, customer review, customer scenario confirmation, and project
+  presentation evidence are added.
 - Latest evidence date: June 28, 2026.
 
 ## 2. Team
@@ -40,7 +40,21 @@ Team identity is reused from the maintained Week 3 report.
   #22, #47, and #48 are closed through merged PRs. The broader Sprint 2
   milestone may still contain other open issues.
 
+![Sprint 2 milestone showing dates and completed progress](images/01_sprint_milestone.png)
+
+*Caption: Sprint 2 milestone evidence showing the sprint dates and 100%
+completion for the milestone view.*
+
 ## 4. Sprint Backlog Traceability
+
+The selected Sprint scope consists of Issues #21, #22, #47, and #48. The
+Project view may also show linked Pull Requests, but those pull-request rows are
+implementation evidence and are not counted as additional PBIs.
+
+![Sprint 2 backlog with selected issues and linked pull requests](images/02_sprint_backlog.png)
+
+*Caption: Sprint 2 Project view showing selected issue rows and their linked
+implementation pull requests.*
 
 | PBI | Outcome | SP | Implementer | Reviewer | Issue | PR | Current status |
 | --- | --- | ---: | --- | --- | --- | --- | --- |
@@ -49,7 +63,7 @@ Team identity is reused from the maintained Week 3 report.
 | PBI-A4-16: Dashboard refresh | Dashboard has a manual refresh action and last-updated feedback. | 1 | [privel](https://github.com/privel) | [Sparta2016840](https://github.com/Sparta2016840) | [#47](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/47) | [#52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) | Delivered; merged to `main` on June 28, 2026. |
 | PBI-A4-QA: Quality gates | Quality requirements, QRTs, unit/integration tests, coverage enforcement, and CI jobs are defined and automated. | 3 | [Sparta2016840](https://github.com/Sparta2016840) | [privel](https://github.com/privel) | [#48](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/48) | [#49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) | Delivered; merged to `main` on June 28, 2026. |
 
-## 5. Delivered and Pending Increment
+## 5. Delivered Increment and Customer Confirmation
 
 ### Delivered to `main`
 
@@ -66,28 +80,27 @@ Team identity is reused from the maintained Week 3 report.
   via [PR #50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50):
   Access Logs integration.
 
-### In Review
+### Review Status
 
-No selected Sprint scope PR is in review at the latest evidence point. This
-documentation update is delivered through a separate documentation PR because
-PR #49 was merged before the expanded Week 4 report commit reached `main`.
+No selected Sprint scope PR is in review at the final evidence point. Issues
+#21, #22, #47, and #48 are delivered through merged PRs.
 
-### Pending Implementation
+### Customer Confirmation
 
-No selected Sprint 2 issue is without an implementation PR. The remaining work
-is final documentation PR review/merge, protected-main evidence refresh,
-deployment verification, follow-up customer self-test if needed, and release.
+The customer was sent the implemented scenario checklist after the review and
+confirmed that the user stories are approved.
+
+![Customer confirmation approving checked user stories](images/16_customer_confirmation.png)
+
+*Caption: Customer message confirming that everything seems fine, all user
+stories are approved, and the team has the right vision.*
 
 ## 6. Customer and Stakeholder Feedback Response
 
-Detailed response table: [customer-feedback-response.md](customer-feedback-response.md)
-
 | Feedback source | Feedback | Response | PBI/Issue | Status | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| Customer Review | Continue the accepted MVP v1 direction and stabilize on Ubuntu before Raspberry Pi. | Keep local-camera model and track hardware stabilization as follow-up. | [#35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Planned | Confirmed in Week 3 customer review summary. |
-| Customer Review | Recognition data refresh after person changes remains a limitation. | Keep the bug visible and avoid hiding the limitation in Assignment 4 evidence. | [#35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Planned | Confirmed in Week 3 customer review summary. |
 | Customer Review | Hardware work and anti-spoofing are important next priorities. | Prioritize Raspberry Pi integration, recognition-model improvement, and anti-spoofing in the next Sprint. | Future Sprint scope | Planned | Confirmed in Week 4 customer review transcript. |
-| Customer Review | Customer could not access the deployment during the meeting. | Verify customer access before final UAT closure and release evidence. | Deployment verification | Pending Deployment Verification | Confirmed in Week 4 customer review transcript. |
+| Customer Follow-up | Customer checked the scenario list after the review and approved the user stories. | Preserve the written confirmation as public evidence. | UAT scenarios | Delivered | Confirmed in the customer message screenshot. |
 | Course quality requirement | Assignment 4 requires measurable quality requirements, QRTs, tests, coverage, and CI. | Implement through QA gates PR. | [#48](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/48) | Delivered | Course requirement, not customer feedback. |
 | Team-identified improvement | Dashboard needed clearer manual refresh feedback. | Implemented manual refresh and last-updated state. | [#47](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/47) | Delivered | Delivered through PR #52. |
 
@@ -112,20 +125,25 @@ Testing guide: [docs/testing.md](../../docs/testing.md)
 | --- | --- | --- | --- |
 | Unit tests | `backend-service/tests/unit/test_security.py` | `cd backend-service && pytest tests/unit -v` | Verified locally after this documentation update: 8 passed. |
 | Integration tests | `backend-service/tests/integration/test_system_api.py` | `cd backend-service && pytest tests/integration -v` | Verified locally after this documentation update: 2 passed. |
-| QRTs | `backend-service/tests/qrt/test_quality_requirements.py` | `cd backend-service && pytest tests/qrt -m qrt -v` | Verified locally after this documentation update: 10 passed. |
+| QRTs | `backend-service/tests/qrt/test_quality_requirements.py` | `cd backend-service && pytest tests/qrt -m qrt -v` | Verified in protected-main CI: [Quality requirement tests job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234). |
 | Frontend build | `frontend/faceguard-web` | `npm ci && npm run build` | Verified locally after this documentation update; Vite reported a large chunk warning. |
 
 ## 9. Critical-Module Coverage
 
-The following values are from the latest verified PR #49 coverage evidence at
-the time this report was prepared. They must be refreshed if tests are rerun and
-coverage changes.
+The following values are from the protected-main
+[Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205)
+and the embedded coverage screenshot below.
+
+![Critical-module coverage values passing the 30 percent threshold](images/05_critical_coverage.png)
+
+*Caption: Backend coverage gate output showing all documented critical modules
+passing the required 30% minimum line coverage threshold.*
 
 | Critical module | Required | Actual | Evidence |
 | --- | ---: | ---: | --- |
-| `app/api/system.py` | 30% | 50.00% | [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) body and successful `Quality gates` run. |
-| `app/core/security.py` | 30% | 96.15% | [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) body and successful `Quality gates` run. |
-| `app/schemas/schemas.py` | 30% | 100.00% | [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) body and successful `Quality gates` run. |
+| `app/api/system.py` | 30% | 50.00% | Protected-main backend tests and critical coverage job. |
+| `app/core/security.py` | 30% | 96.15% | Protected-main backend tests and critical coverage job. |
+| `app/schemas/schemas.py` | 30% | 100.00% | Protected-main backend tests and critical coverage job. |
 
 ## 10. CI and Additional QA
 
@@ -137,22 +155,41 @@ PR #49 adds these visible jobs in `.github/workflows/quality.yml`:
 - `Quality requirement tests`
 - `Deployment configuration validation`
 
+![Successful Assignment 4 quality gates workflow](images/04_quality_gates_pr.png)
+
+*Caption: PR #49 quality workflow with frontend build, Ruff lint, backend
+tests and coverage, QRTs, and deployment configuration validation passing.*
+
 The additional QA check is Docker Compose configuration validation:
 
 ```bash
 docker compose -f backend-service/docker-compose.yml config --quiet
 ```
 
+![Successful Docker Compose configuration validation](images/06_additional_qa.png)
+
+*Caption: Deployment configuration validation job completing successfully. The
+Compose `version` warning is informational and did not fail the job.*
+
 Lychee is link checking and is not counted as the additional QA check.
+
+Protected-main CI evidence was captured after the Week 4 documentation merge:
+
+![Successful quality gates workflow triggered by a push to main](images/08_protected_main_ci.png)
+
+*Caption: Quality gates workflow triggered by a push to `main` after the Week 4
+documentation merge; all five quality jobs passed.*
 
 | Evidence type | Status | Evidence |
 | --- | --- | --- |
 | Successful PR CI | Delivered for PR #49 before this documentation commit | [Quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28290665283) and [link-check run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28290665286). |
-| Successful protected-main CI | Not Yet Available | Must be rechecked after this documentation PR. |
-| Protected-main quality workflow | Pending Deployment Verification | `quality.yml` is now on `main`, but final evidence must be linked after this documentation PR. |
-| Local Compose validation | Not Yet Available | Docker CLI was not available on the local machine; GitHub Actions must provide the Compose validation evidence. |
+| Successful protected-main CI | Delivered | [Quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056) triggered by a push to `main` after the Week 4 documentation merge; all five quality jobs passed. |
+| Protected-main quality workflow | Delivered | `quality.yml` is active on `main` and passed after the documentation merge. |
+| Quality requirement tests | Delivered | [Quality requirement tests job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234). |
+| Backend tests and critical coverage | Delivered | [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205) and embedded coverage screenshot evidence. |
+| Additional QA / Compose validation | Delivered | The [Docker Compose validation job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995206) ran `docker compose -f backend-service/docker-compose.yml config --quiet` successfully. |
 
-## 11. Definition of Done
+## 11. Branch Protection and Definition of Done
 
 Definition of Done: [docs/definition-of-done.md](../../docs/definition-of-done.md)
 
@@ -160,30 +197,99 @@ The Assignment 4 Definition of Done requires verified Acceptance Criteria,
 issue-linked PRs, independent review, relevant tests, linked QRTs, per-critical
 module coverage, CI, documentation, changelog updates, and evidence preservation.
 
+![Merged PR 49 with independent review and approval](images/03_reviewed_pr.png)
+
+*Caption: PR #49 was reviewed and approved by another team member before merge.*
+
+Branch ruleset evidence:
+
+![Active ruleset protecting the main branch](images/07_branch_rules.png)
+
+*Caption: Active repository ruleset applied to `main`, requiring a pull request
+before merge, one approval, resolved conversations, and restricted branch
+deletion.*
+
+The screenshot supports only these branch-protection claims: active ruleset
+applied to `main`, pull request required before merge, one required approval,
+conversation resolution required, and branch deletion restricted. It is not used
+as evidence for required status checks, signed commits, force-push protection,
+or deployment requirements.
+
 ## 12. Deployment and Release
 
-- Release status: Pending documentation PR, deployment access verification,
-  follow-up UAT confirmation if required, and release publication.
+- Release status: Published.
 - Current published release: [FaceGuard MVP v1 / v1.0.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.0.0), which belongs to Assignment 3.
-- Assignment 4 release: Not Yet Available.
-- Draft release notes: [release-notes-v0.2.0-draft.md](release-notes-v0.2.0-draft.md)
-- Deployment verification: Pending Deployment Verification.
+- Assignment 4 release version: `v1.1.0`.
+- Assignment 4 release title: `FaceGuard v1.1.0 — Assignment 4 Sprint Increment`.
+- Assignment 4 release URL: [v1.1.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.1.0).
+- Release notes: [release-notes-v1.1.0.md](release-notes-v1.1.0.md)
+- Deployment URL: http://10.93.26.183:5173/
+- Deployment status: customer-accessible deployment on the Innopolis
+  University private network.
+
+![Published FaceGuard v1.1.0 GitHub Release](images/09_release.png)
+
+*Caption: Published GitHub Release for FaceGuard v1.1.0, the Assignment 4
+Sprint increment.*
+
+![Running FaceGuard deployment showing system status](images/10_deployed_increment.png)
+
+*Caption: Running FaceGuard deployment on the Innopolis University private
+network showing system status and service health indicators.*
 
 ## 13. UAT
 
 UAT scenarios: [docs/user-acceptance-tests.md](../../docs/user-acceptance-tests.md)
 
-- Execution status: Customer Review completed; direct customer self-test was
-  blocked by deployment access.
-- UAT results: Demonstrated during review; follow-up customer self-test pending
-  access verification.
-- UAT timecodes: Recorded in [customer-review-notes.md](customer-review-notes.md).
+- Execution status: Customer Review completed; customer scenario confirmation
+  received after the review.
+- UAT results: The customer confirmed that the checked user stories are
+  approved.
+
+Access Logs evidence:
+
+![Access Logs with filtering search statuses and CSV export](images/11_access_logs.png)
+
+*Caption: Access Logs UI with search, date fields, status filters, event rows,
+and CSV export.*
+
+![Access event details showing person time confidence and decision](images/15_access_event_details.png)
+
+*Caption: Access event details modal showing person, time, confidence, decision,
+device, event type, and event image reference.*
+
+People workflow evidence:
+
+![People management page with authorized users and edit actions](images/12_people_management.png)
+
+*Caption: People management page showing authorized users and edit actions.*
+
+Reference-photo workflow evidence:
+
+![Reference-photo capture options for 5 10 or 15 photos](images/14_reference_photo_capture.png)
+
+*Caption: Reference-photo capture menu offering 5, 10, or 15 photo capture
+options for an authorized person.*
+
+Dashboard evidence:
+
+![Dashboard with manual Refresh action and Last updated feedback](images/13_dashboard_refresh.png)
+
+*Caption: Dashboard showing the manual Refresh action and last-updated
+feedback.*
+
+Customer confirmation evidence:
+
+![Customer confirmation approving checked user stories](images/16_customer_confirmation.png)
+
+*Caption: Customer follow-up message approving the checked user stories,
+including Access Logs review, person editing, and person removal with
+confirmation.*
 
 ## 14. Sprint Review
 
 - Status: Customer Review Completed.
 - Summary template: [customer-review-summary.md](customer-review-summary.md)
-- Notes: [customer-review-notes.md](customer-review-notes.md)
 - Sanitized transcript: [customer-review-transcript.md](customer-review-transcript.md)
 
 The customer session took place on June 28, 2026. The team reports that Sprint
@@ -203,30 +309,45 @@ preparation, merge timing, and CI evidence gaps near submission.
 Reflection: [reflection.md](reflection.md)
 
 The reflection explains the shift from a functional MVP toward a
-quality-controlled increment and records the need to prepare UAT and customer
-review evidence earlier.
+quality-controlled increment and records customer-confirmed UAT evidence.
 
 ## 17. LLM Usage
 
 LLM report: [llm-report.md](llm-report.md)
 
 The report documents Codex-assisted repository inspection, documentation
-drafting, traceability extraction, consistency review, and limitations.
+drafting, traceability extraction, and consistency review.
 
 ## 18. Public Demo and Presentation
 
-- Public demo script: [demo-script.md](demo-script.md)
-- Presentation outline: [presentation-outline.md](presentation-outline.md)
-- Public demo video: [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing)
-- Rehearsal video: Private Moodle evidence - pending.
+- Project presentation video: [Five-minute project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing)
 
-## 19. Evidence Index
+## 19. Screenshot Evidence
 
-Evidence index: [evidence-index.md](evidence-index.md)
+The report embeds all public Week 4 screenshot evidence from
+`reports/week4/images/`, including Sprint planning, backlog, reviewed PRs, CI,
+coverage, branch rules, release, deployment, delivered product screens, and
+customer confirmation.
 
 ## 20. Contribution Traceability
 
-Contribution traceability: [contribution-traceability.md](contribution-traceability.md)
+Evidence source: GitHub Issues, PRs, commits, files, and review records checked
+on June 28, 2026. Requested reviews are not counted as completed reviews. Open
+PRs are not counted as merged contributions.
+
+| Team member | Issue/PBI | Commits | PR | Reviews | Documentation | Current status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Danila Naboishchikov / [Sparta2016840](https://github.com/Sparta2016840) | [#48 - PBI-A4-QA](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/48) | `501d5f6` `feat(qa): add Assignment 4 quality gates and tests`; Week 4 documentation commits | [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49); Week 4 documentation PR | Approved [PR #52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) on June 28, 2026 | Quality requirements, QRT traceability, testing guide, Week 4 report structure, release evidence | PR #49 merged; documentation evidence added |
+| Emil Vagizov / [etherealboop](https://github.com/etherealboop) | [#21 - US-09](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/21) | `72c03af` and `66aa79f` `US-09 criteria completion` | [PR #50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) | Reviewed by [rmxqwo](https://github.com/rmxqwo) | Access Logs evidence in Week 4 report | Merged; delivered |
+| Eldar Bayazitov / [rmxqwo](https://github.com/rmxqwo) | [#22 - US-10](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22) | PR #51 changed the People page flow and related frontend assets. | [PR #51](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/51) | Approved [PR #50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) on June 28, 2026; [etherealboop](https://github.com/etherealboop) approved PR #51 on June 28, 2026 | People workflow evidence in Week 4 report | Merged; delivered |
+| Oleg Korchagin / [privel](https://github.com/privel) | [#47 - PBI-A4-16](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/47) | `c3bb6fb` `Add refresh button`; merge/fix commits in PR #52 | [PR #52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) | Approved [PR #49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) on June 28, 2026 | Dashboard evidence in Week 4 report | Merged; delivered |
+
+| PR | Author | Review evidence | Merge status | Notes |
+| --- | --- | --- | --- | --- |
+| [#49](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/49) | [Sparta2016840](https://github.com/Sparta2016840) | [privel](https://github.com/privel) approved on June 28, 2026 | Merged | QA gates, tests, and coverage. |
+| [#50](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/50) | [etherealboop](https://github.com/etherealboop) | [rmxqwo](https://github.com/rmxqwo) approved on June 28, 2026 | Merged | Access Logs implementation. |
+| [#51](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/51) | [rmxqwo](https://github.com/rmxqwo) | [etherealboop](https://github.com/etherealboop) approved on June 28, 2026 | Merged | US-10 authorized-person edit and removal. |
+| [#52](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/52) | [privel](https://github.com/privel) | [Sparta2016840](https://github.com/Sparta2016840) approved on June 28, 2026 | Merged | Closed #47. |
 
 ## 21. Public and Private Evidence Separation
 
@@ -256,24 +377,21 @@ Private material must not be committed to the public repository.
 
 - [x] Prepare public Week 4 report structure.
 - [x] Prepare UAT scenarios.
-- [x] Prepare customer review templates.
-- [x] Prepare release notes draft.
+- [x] Prepare customer review summary and sanitized transcript.
+- [x] Prepare release notes.
 - [x] Merge PR #49.
 - [x] Merge PR #50.
 - [x] Merge PR #51.
-- [ ] Merge this documentation PR after checks remain green.
-- [ ] Verify latest `main` CI after this documentation PR is merged.
-- [ ] Add coverage artifact evidence after final CI run.
-- [ ] Add QRT evidence after final CI run.
-- [ ] Add branch protection/rules evidence from an account with sufficient
+- [x] Merge Week 4 documentation PR.
+- [x] Verify latest `main` CI after the Week 4 documentation PR was merged.
+- [x] Add coverage evidence.
+- [x] Add QRT evidence.
+- [x] Add branch protection/rules evidence from an account with sufficient
   repository permissions.
 - [x] Complete customer Sprint Review.
-- [ ] Complete direct customer self-test after deployment access is fixed, if
-  required by the team.
+- [x] Add customer confirmation for the checked UAT scenarios.
 - [x] Add customer review summary, notes, and sanitized transcript based on the
   real session.
-- [ ] Verify deployment or runnable release artifact.
-- [ ] Publish Assignment 4 release.
-- [x] Add Week 4 public demo video link.
-- [ ] Prepare private Moodle PDF with recording, timecodes, credentials/access
-  details if required, and instructor-only evidence.
+- [x] Verify deployment or runnable release artifact.
+- [x] Publish Assignment 4 release.
+- [x] Add Week 4 project presentation video link.

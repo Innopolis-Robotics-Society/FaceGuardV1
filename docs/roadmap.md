@@ -36,20 +36,30 @@ quality gates.
 - In Review or Pending Merge: none in the selected Sprint scope at the time of
   this update.
 - Customer review: completed on June 28, 2026.
-- UAT: demonstrated during the customer review; direct customer self-test is
-  still pending deployment access verification.
-- Assignment 4 release: pending final documentation review, deployment
-  verification, and release publication.
+- UAT: demonstrated during the customer review and confirmed by the customer
+  in follow-up written feedback.
+- Assignment 4 release: [v1.1.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.1.0)
+  is published.
+- Deployment: available at `http://10.93.26.183:5173/` on the Innopolis
+  University private network.
+- Protected-main CI:
+  [quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056)
+  passed after a push to `main`.
+- Protected-main evidence includes the
+  [Quality requirement tests job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995234),
+  [Backend tests and critical coverage job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995205),
+  and [Docker Compose validation job](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056/job/83922995206).
+- Customer confirmation:
+  [Week 4 report evidence](../reports/week4/README.md#13-uat) records the
+  customer message approving all user stories.
 
-Successful PR CI is not counted as protected-main CI evidence. The selected
-scope is now merged, but final release, deployment verification, direct
-customer self-test, and protected-main evidence remain pending.
+Successful PR CI is tracked separately from protected-main CI evidence. The
+selected scope is merged, released, and confirmed by the customer.
 
 ## Next Sprint
 
 Likely follow-up scope after Assignment 4:
 
-- [#35 - BUG-01: Recognition agent requires restart after authorized-person changes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).
 - Raspberry Pi integration and hardware-oriented deployment work.
 - Anti-spoofing research and implementation.
 - Broader authentication and role-authorisation testing.
@@ -70,9 +80,8 @@ paths.
 
 ## Risks and Decision Gates
 
-- Protected-main evidence must be rechecked after the final documentation PR.
-- Branch protection details beyond the public ruleset require repository-owner
-  evidence because the branch protection API returned `Requires authentication`.
-- Customer Review was completed on June 28, 2026, but direct customer self-test
-  was blocked by deployment access. Deployment verification, demo recording, and
-  Assignment 4 release are still pending.
+- Branch protection evidence currently proves only the visible active ruleset
+  applied to `main`, pull request before merge, one required approval,
+  conversation resolution, and restricted branch deletion.
+- Customer Review was completed on June 28, 2026, and follow-up written
+  confirmation approved the checked user stories.

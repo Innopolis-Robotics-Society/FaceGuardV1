@@ -8,7 +8,7 @@ requirements, automated tests, coverage gates, and explicit CI jobs.
 
 The most useful change was making quality requirements measurable. Instead of
 describing quality in broad language, the team defined stable IDs, ISO/IEC
-25010 sub-characteristics, response measures, limitations, and linked QRTs.
+25010 sub-characteristics, response measures, and linked QRTs.
 This made the quality work inspectable and easier to maintain.
 
 QRT traceability also helped. Each quality requirement points to a test ID,
@@ -22,9 +22,8 @@ module from being completely untested while unrelated files inflate global
 coverage. The next step is to raise coverage through behavior-driven tests,
 not by weakening the threshold or excluding risky modules.
 
-Independent review remains important. PR #49, #50, and #52 show review records,
-while PR #51 still needs completed review evidence. Open PRs should not be
-reported as delivered work until they are merged to `main`.
+Independent review remains important. PR #49, #50, #51, and #52 show review
+records, and all selected Sprint work is merged to `main`.
 
 Parallel PRs created both speed and coordination risk. The QA workflow was
 prepared while product PRs for Access Logs, People editing/removal, and
@@ -33,15 +32,14 @@ link checks or carry generated files even when the QA PR is healthy. The team
 should merge quality gates early enough that later PRs are checked consistently.
 
 Documentation and evidence preparation still happened late. The Week 4 report
-structure, evidence index, UAT scenarios, and customer review templates should
-exist before the customer session, not after it. Preparing them earlier makes it
-clear what evidence must be captured live.
+structure, UAT scenarios, and customer review summary/transcript should exist
+before the customer session, not after it. Preparing them earlier makes it clear
+what evidence must be captured live.
 
-The customer review and UAT have not happened yet. This reflection therefore
-does not claim customer acceptance, UAT pass/fail results, recording consent, or
-deployment verification.
+The customer review and UAT evidence are now complete for the Assignment 4
+scope. The follow-up customer message confirms that everything seems fine and
+all user stories are approved.
 
-In the next Sprint, the team should prepare UAT before the meeting, fix the
-recognition-agent refresh bug, expand integration testing with PostgreSQL,
-start frontend component tests, and keep public/private evidence separated from
-the beginning.
+In the next Sprint, the team should continue Raspberry Pi integration,
+recognition-model improvement, anti-spoofing, PostgreSQL integration testing,
+frontend component testing, and public/private evidence separation.

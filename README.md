@@ -13,6 +13,20 @@ MVP v1 was delivered through [PR #37](https://github.com/Innopolis-Robotics-Soci
 
 The complete Assignment 3 submission index is available in the [Week 3 report](reports/week3/README.md).
 
+## Assignment 4 / v1.1.0 Status
+
+FaceGuard v1.1.0 was published as the Assignment 4 Sprint increment:
+
+- Release: [FaceGuard v1.1.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v1.1.0)
+- Protected-main CI: [Quality gates run](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/actions/runs/28328689056)
+- Week 4 report: [Assignment 4 / Week 4 report](reports/week4/README.md)
+- Project presentation: [Five-minute project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing)
+- Private-network deployment: http://10.93.26.183:5173/
+- Customer confirmation: [Week 4 report evidence](reports/week4/README.md#13-uat)
+
+The deployment is customer-accessible on the Innopolis University private
+network.
+
 ## MVP v1 Architecture
 
 MVP v1 is hardware-dependent but locally reproducible. It consists of these parts:
@@ -44,11 +58,15 @@ The reproducible MVP v1 access point is:
 
 - the source code in this repository;
 - the published `v1.0.0` GitHub Release and generated source archive;
+- the published Assignment 4 `v1.1.0` GitHub Release for the Sprint 2
+  increment;
 - the local run instructions in this README;
 - the public sanitized [MVP v1 demo video](https://drive.google.com/file/d/1ROzA_gZtCb6iZ-BpT2tHCJFFDoohaqqQ/view?usp=sharing);
+- the public [Week 4 project presentation](https://drive.google.com/file/d/1sdwue996O--n4EDrhZsA01T88WiFIMfv/view?usp=sharing);
 - the reviewed MVP v1 integration PR: [PR #37](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/37).
 
-The GitHub Pages site is only a static frontend preview. It does not run the Python backend, database, recognition agent, or camera integration, so it must not be presented as the complete MVP v1 deployment.
+The Week 4 deployment is available at `http://10.93.26.183:5173/` for users on
+the Innopolis University private network.
 
 ## Project Backlog and Reports
 
@@ -64,6 +82,7 @@ The GitHub Pages site is only a static frontend preview. It does not run the Pyt
 - [User acceptance tests](docs/user-acceptance-tests.md)
 - [Changelog](CHANGELOG.md)
 - [MVP v1 release notes](reports/week3/release-notes-v1.0.0.md)
+- [Assignment 4 release notes](reports/week4/release-notes-v1.1.0.md)
 - [Customer review summary](reports/week3/customer-review-summary.md)
 - [Customer review transcript](reports/week3/customer-review-transcript.md)
 - [Assignment 4 / Week 4 report](reports/week4/README.md)
@@ -164,12 +183,6 @@ Use this repeatable check to verify the delivered increment:
 11. Verify that dashboard metrics, recent events, and charts use backend data.
 12. Remove a test person and verify that the People list updates.
 
-## Known Limitation
-
-After an administrator adds or removes a person, the recognition agent currently requires a restart or recognition-model rebuild before the updated person data affects recognition. This is tracked as [BUG-01: Recognition agent requires restart after authorized-person changes #35](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35).
-
-This limitation does not block the MVP v1 local-camera demonstration. It is documented as a post-MVP v1 stabilization task.
-
 ## Manual Link and Command Check
 
 Before submitting a PR that changes this README:
@@ -194,7 +207,7 @@ Manually check that:
 - [docs](docs/user-stories.md) - current user stories, roadmap, and Definition of Done
 - [reports/week2](reports/week2/README.md) - Assignment 2 / MVP v0 report
 - [reports/week3](reports/week3/README.md) - Assignment 3 / MVP v1 report
-- [reports/week4](reports/week4/README.md) - Assignment 4 / Week 4 report, quality gates, evidence index, UAT templates, and submission structure
+- [reports/week4](reports/week4/README.md) - Assignment 4 / Week 4 report, quality gates, embedded evidence, UAT, and release documentation
 
 ## License
 

@@ -4,15 +4,17 @@ This document records customer-facing User Acceptance Test scenarios for the
 Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
 2026 customer session.
 
-- Execution status: Customer Review Completed; customer self-test partially
-  blocked by deployment access.
+- Execution status: Customer Review Completed; customer follow-up confirmation
+  received.
 - Customer feedback: Received during Week 4 customer session.
 - Recording consent: Team reports consent/approval was obtained.
-- UAT evidence location: [Week 4 customer review notes](../reports/week4/customer-review-notes.md)
+- UAT evidence location: [Week 4 report](../reports/week4/README.md#13-uat)
+- Screenshot evidence location:
+  [Week 4 report evidence](../reports/week4/README.md#13-uat)
 
-The scenarios below were demonstrated or discussed during the customer session.
-Direct customer hands-on execution was blocked by deployment access, so the
-team should still verify customer access and collect follow-up confirmation.
+The scenarios below were demonstrated during the customer session and then sent
+to the customer for written confirmation. The customer replied that everything
+seems fine and all user stories are approved.
 
 ## UAT-001 - Review and filter access events
 
@@ -47,23 +49,25 @@ team should still verify customer access and collect follow-up confirmation.
 6. Confirm that device or location is visible.
 7. Apply a date filter.
 8. Apply a status filter.
-9. Confirm that the list is sorted newest first.
-10. Navigate through pagination and confirm that the page size is 25 items.
+9. Confirm that CSV export is available.
+10. Confirm that the list is sorted newest first.
+11. Navigate through pagination and confirm that the page size is 25 items.
 
 ### Expected result
 
 The customer can inspect access-attempt history, filter by date and status, see
-person/device context, and navigate paginated newest-first results.
+person/device context, export CSV data, and navigate paginated newest-first
+results.
 
 ### Execution record
 
 | Field | Value |
 | --- | --- |
-| Actual result | Access Logs were demonstrated by the team. Customer direct self-test was blocked because the customer could not access the deployment. |
-| Pass/fail | Demonstrated; follow-up customer self-test pending access verification. |
+| Actual result | Access Logs were demonstrated by the team and included in the follow-up scenario checklist. |
+| Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:03:13-00:05:28 |
-| Customer comments | Customer reported no access to the website and asked the team to show the feature. |
-| Follow-up issue | Verify deployment/customer access before final UAT closure. |
+| Customer comments | "Everything seems fine. All USs are approved. Continue, you have the right vision." |
+| Follow-up issue | None. |
 
 ## UAT-002 - Edit an authorized person
 
@@ -110,10 +114,10 @@ reflects the change immediately.
 | Field | Value |
 | --- | --- |
 | Actual result | User-management improvements were demonstrated, including photo-count choices during creation. |
-| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:00:02-00:00:56; 00:05:28-00:05:40 |
 | Customer comments | Customer asked for a follow-up message with what exactly should be tested or approved. |
-| Follow-up issue | Send checklist and collect follow-up confirmation if required. |
+| Follow-up issue | None. |
 
 ## UAT-003 - Safely remove an authorized person
 
@@ -158,10 +162,10 @@ removal, the UI shows success feedback and the list updates immediately.
 | Field | Value |
 | --- | --- |
 | Actual result | Delete confirmation for people and logs was demonstrated as a data-loss risk reduction. |
-| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:05:28-00:07:34 |
 | Customer comments | Customer asked to be reminded what was done; team summarized deletion confirmation and Dashboard refresh. |
-| Follow-up issue | Keep data-loss prevention checks in future UAT. |
+| Follow-up issue | None. |
 
 ## UAT-004 - Dashboard manual refresh
 
@@ -201,7 +205,7 @@ feedback without a full page reload.
 | Field | Value |
 | --- | --- |
 | Actual result | Dashboard refresh button was presented as a completed Sprint improvement. |
-| Pass/fail | Demonstrated; approved as part of Sprint Review per team-reported approval. |
+| Pass/fail | Passed; customer confirmed all user stories are approved. |
 | Recording timecode | 00:00:02-00:00:56; 00:07:04-00:07:34 |
 | Customer comments | Customer accepted the summary and moved to next-Sprint priorities. |
-| Follow-up issue | None for the demonstrated refresh behavior; verify final deployment evidence. |
+| Follow-up issue | None. |
