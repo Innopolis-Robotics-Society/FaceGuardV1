@@ -23,6 +23,8 @@ All notable user-visible changes to this project are documented in this file.
 - Added sanitized Week 4 customer review transcript, review notes, review
   summary, UAT evidence updates, and customer feedback response entries based
   on the June 28, 2026 customer session.
+- Added the Week 4 public two-minute demo video link to the Assignment 4
+  report evidence.
 - Added Dashboard manual refresh and last-updated feedback through the merged
   Assignment 4 Dashboard refresh PR.
 

@@ -24,7 +24,7 @@ access, or instructor-only notes.
 | Customer review | [summary](customer-review-summary.md), [notes](customer-review-notes.md), [sanitized transcript](customer-review-transcript.md) | Recording, consent, and restricted access details | Delivered | Preserve original recording and consent privately. |
 | Retrospective | [retrospective.md](retrospective.md) | Not required | Delivered | Update if new process evidence appears. |
 | Reflection | [reflection.md](reflection.md) | Not required | Delivered | Update after customer session if needed. |
-| Demo video | [demo script](demo-script.md) | Raw recording if private | Pending Deployment Verification | Record public sanitized demo after final deployment/access verification. |
+| Demo video | [Week 4 two-minute demo](https://drive.google.com/file/d/1ThiNXKLDx1JNQqwcmLJ8YAM-QAZy9Xqc/view?usp=sharing), [demo script](demo-script.md) | Raw recording if private | Delivered | Confirm final sanitization before submission. |
 | Rehearsal video | Not public | Private Moodle evidence | Not Yet Available | Record and attach privately. |
 | LLM report | [llm-report.md](llm-report.md) | Team confirmation if needed | Delivered | Team must add any earlier LLM use not documented here. |
 | Moodle permalink | Not public | Private Moodle PDF | Not Yet Available | Add in Moodle submission only. |
