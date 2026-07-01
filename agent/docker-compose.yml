@@ -14,15 +14,20 @@ services:
       - DATA_DIR=/data
     volumes:
       - agent-data:/data
-      - /dev/video0:/dev/video0  # Camera device
-      - /dev/gpiomem:/dev/gpiomem  # GPIO access
+      - /dev/video0:/dev/video0  # Camera device (USB cameras)
+      - /dev/vchiq:/dev/vchiq     # Raspberry Pi camera interface
     devices:
-      - /dev/video0:/dev/video0
-      - /dev/gpiomem:/dev/gpiomem
-    privileged: true  # Required for GPIO and camera
-    network_mode: host  # Use host network to access backend on same machine or local network
+      - /dev/video0:/dev/video0   # USB camera
+      - /dev/vchiq:/dev/vchiq     # Pi Camera Module
+      - /dev/gpiomem:/dev/gpiomem # GPIO memory access
+    privileged: false  # Try without privileged first for security
+    # If camera or GPIO doesn't work, set to true:
+    # privileged: true
     ports:
-      - "8001:8001"  # Stream server port
+      - "8001:8001"  # Stream server port (required for camera feed)
+    network_mode: bridge  # Use bridge mode with explicit ports
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Access host services (backend)
 
 volumes:
   agent-data:

@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
@@ -27,11 +27,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     cmake \
+    libcamera-dev \
+    libcamera-apps \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
 # Install Python dependencies
+# Note: picamera2 and GPIO libs will be installed only on ARM architecture
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

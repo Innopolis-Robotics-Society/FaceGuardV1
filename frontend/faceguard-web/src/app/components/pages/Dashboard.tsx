@@ -88,14 +88,13 @@ function Avatar({ initials, color, size = 8 }: { initials: string; color: string
 }
 
 function ConfidenceBar({ value }: { value: number }) {
-  const displayValue = 100 - value;
-  const color = displayValue > 70 ? "#10b981" : displayValue > 50 ? "#f59e0b" : "#ef4444";
+  const color = value > 70 ? "#10b981" : value > 50 ? "#f59e0b" : "#ef4444";
   return (
     <div className="flex items-center gap-2">
       <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div className="h-full rounded-full" style={{ width: `${displayValue}%`, background: color }} />
+        <div className="h-full rounded-full" style={{ width: `${value}%`, background: color }} />
       </div>
-      <span className="text-xs font-medium tabular-nums" style={{ color }}>{displayValue.toFixed(2)}%</span>
+      <span className="text-xs font-medium tabular-nums" style={{ color }}>{value.toFixed(1)}%</span>
     </div>
   );
 }
@@ -469,9 +468,9 @@ export function Dashboard() {
                   <div>
                     <div className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Confidence</div>
                     <div className="text-sm font-semibold" style={{
-                      color: (100 - lastEvent.confidence) > 70 ? "#10b981" : (100 - lastEvent.confidence) > 50 ? "#f59e0b" : "#ef4444"
+                      color: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
                     }}>
-                      {lastEvent.confidence ? `${(100 - lastEvent.confidence).toFixed(2)}%` : "N/A"}
+                      {lastEvent.confidence ? `${lastEvent.confidence.toFixed(1)}%` : "N/A"}
                     </div>
                   </div>
                   <div>
@@ -491,17 +490,17 @@ export function Dashboard() {
                 <div className="flex justify-between text-xs mb-1.5" style={{ color: "#3a3a3a" }}>
                   <span>Recognition confidence</span>
                   <span style={{
-                    color: (100 - lastEvent.confidence) > 70 ? "#10b981" : (100 - lastEvent.confidence) > 50 ? "#f59e0b" : "#ef4444"
+                    color: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
                   }}>
-                    {(100 - lastEvent.confidence).toFixed(2)}%
+                    {lastEvent.confidence.toFixed(1)}%
                   </span>
                 </div>
                 <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
                   <div
                     className="h-full rounded-full"
                     style={{
-                      width: `${100 - lastEvent.confidence}%`,
-                      background: (100 - lastEvent.confidence) > 70 ? "#10b981" : (100 - lastEvent.confidence) > 50 ? "#f59e0b" : "#ef4444"
+                      width: `${lastEvent.confidence}%`,
+                      background: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
                     }}
                   />
                 </div>
@@ -594,7 +593,7 @@ export function Dashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">{getPersonName(ev)}</div>
                   <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>
-                    {format(parseISO(ev.created_at), "HH:mm:ss")} · {ev.confidence ? `${(100 - ev.confidence).toFixed(2)}%` : "N/A"}
+                    {format(parseISO(ev.created_at), "HH:mm:ss")} · {ev.confidence ? `${ev.confidence.toFixed(1)}%` : "N/A"}
                   </div>
                 </div>
                 <StatusBadge status={ev.event_type} />
