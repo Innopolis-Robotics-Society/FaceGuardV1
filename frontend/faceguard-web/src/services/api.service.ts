@@ -460,24 +460,25 @@ class ApiService {
   getCameraStreamUrl(deviceId: string): string {
     if (!deviceId) return "";
     const token = tokenUtils.getToken();
-    const baseUrl = getBaseUrl();
-    return `${baseUrl}:8001/stream?device_id=${deviceId}&token=${token}`;
+    // Stream URL from agent (default port 8001)
+    const streamUrl = import.meta.env.VITE_STREAM_URL || 'http://localhost:8001';
+    return `${streamUrl}/stream?device_id=${deviceId}&token=${token}`;
   }
 
   async getStreamSettings(): Promise<{ fps: number; quality: number; camera_fps: number; resolution: string; available_resolutions: string[] }> {
-    const baseUrl = getBaseUrl();
-    const { data } = await axios.get(`${baseUrl}:8001/settings`);
+    const streamUrl = import.meta.env.VITE_STREAM_URL || 'http://localhost:8001';
+    const { data } = await axios.get(`${streamUrl}/settings`);
     return data;
   }
 
   async updateStreamSettings(settings: { fps?: number; quality?: number; resolution?: string }): Promise<{ fps: number; quality: number; resolution: string }> {
-    const baseUrl = getBaseUrl();
-    const { data } = await axios.post(`${baseUrl}:8001/settings`, settings);
+    const streamUrl = import.meta.env.VITE_STREAM_URL || 'http://localhost:8001';
+    const { data } = await axios.post(`${streamUrl}/settings`, settings);
     return data;
   }
 
   getWebSocketUrl(): string {
-    // WebSocket endpoint for real-time events
+    // WebSocket endpoint for real-time events from backend
     const token = tokenUtils.getToken();
     return `${WS_BASE_URL}/ws/events?token=${token}`;
   }
