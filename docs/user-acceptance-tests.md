@@ -9,15 +9,24 @@ Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
   confirmation was received.
 - Customer feedback: Received during Week 4 customer session.
 - Recording consent: Team reports consent/approval was obtained.
-- UAT evidence location: [Week 4 report](../reports/week4/README.md#13-uat)
+- UAT evidence location: [Week 4 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week4/README.md#13-uat)
 - Screenshot evidence location:
-  [Week 4 report evidence](../reports/week4/README.md#13-uat)
+  [Week 4 report evidence](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week4/README.md#13-uat)
 
 The scenarios below were covered by customer-executed UAT evidence submitted
 privately through Moodle and then sent to the customer for written confirmation.
 The customer replied that everything seems fine and all user stories are
 approved. The private UAT recording link is intentionally not committed to the
 public repository.
+
+## Table of Contents
+
+- [UAT-001 - Review and filter access events](#uat-001-review-and-filter-access-events)
+- [UAT-002 - Edit an authorized person](#uat-002-edit-an-authorized-person)
+- [UAT-003 - Safely remove an authorized person](#uat-003-safely-remove-an-authorized-person)
+- [UAT-004 - Dashboard manual refresh](#uat-004-dashboard-manual-refresh)
+- [UAT-005 - Authorized-person change is effective without manual agent restart](#uat-005-authorized-person-change-is-effective-without-manual-agent-restart)
+- [UAT-006 - Strong and weak recognition results use correct score meaning](#uat-006-strong-and-weak-recognition-results-use-correct-score-meaning)
 
 ## UAT-001 - Review and filter access events
 
@@ -71,6 +80,93 @@ results.
 | Recording timecode | 00:03:13-00:05:28 |
 | Customer comments | "Everything seems fine. All USs are approved. Continue, you have the right vision." |
 | Follow-up issue | None. |
+
+## UAT-005 - Authorized-person change is effective without manual agent restart
+
+- Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
+- Current implementation status: Pending customer execution and final
+  implementation evidence.
+- Objective: verify that a change to authorized-person data becomes effective
+  without manually restarting the recognition agent.
+
+### Preconditions
+
+- FaceGuard backend, frontend, and recognition agent are running.
+- A test device is online and can receive model refresh or synchronization
+  commands.
+- A disposable test person and non-sensitive test photos are available.
+
+### Test data required
+
+- One authorized disposable test person.
+- One change that affects recognition authorization, such as disabling access,
+  deleting the person, or updating reference photos.
+
+### Customer steps
+
+1. Open the administrator web application.
+2. Change the disposable person's recognition-relevant data.
+3. Do not manually restart the recognition agent process.
+4. Wait for the documented refresh/sync interval or command completion.
+5. Trigger a recognition attempt or inspect the agent/model status evidence.
+6. Confirm that the changed authorization state is effective.
+
+### Expected result
+
+The recognition result reflects the changed authorized-person data without a
+manual agent restart.
+
+### Execution record
+
+| Field | Value |
+| --- | --- |
+| Actual result | Pending customer execution. |
+| Pass/fail | Pending. |
+| Recording timecode | Private evidence only after execution. |
+| Customer comments | Pending. |
+| Follow-up issue | Pending if the scenario fails. |
+
+## UAT-006 - Strong and weak recognition results use correct score meaning
+
+- Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
+- Current implementation status: Repository helper tests added; customer
+  execution pending.
+- Objective: verify that administrators see lower LBPH distance as a stronger
+  match and higher distance as a weaker match.
+
+### Preconditions
+
+- FaceGuard frontend and backend are running with sample recognition events.
+- Events include one lower-distance strong match and one higher-distance weak
+  or unknown match.
+
+### Test data required
+
+- Example lower-distance event, such as distance `35`.
+- Example higher-distance event, such as distance `90`.
+
+### Customer steps
+
+1. Open Dashboard or Access Logs.
+2. Locate the lower-distance recognition event.
+3. Confirm that the UI labels it as match distance and shows it as stronger.
+4. Locate the higher-distance event.
+5. Confirm that it is shown as weaker or negative.
+6. Confirm that no screen presents raw LBPH distance as a probability.
+
+### Expected result
+
+The UI consistently communicates that lower match distance is better.
+
+### Execution record
+
+| Field | Value |
+| --- | --- |
+| Actual result | Pending customer execution. |
+| Pass/fail | Pending. |
+| Recording timecode | Private evidence only after execution. |
+| Customer comments | Pending. |
+| Follow-up issue | Pending if the scenario fails. |
 
 ## UAT-002 - Edit an authorized person
 

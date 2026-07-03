@@ -115,7 +115,7 @@ def create_event(
     1. Распознан знакомый человек:
        - event_type: "recognized"
        - person_id: UUID человека
-       - confidence: 45.2 (чем ниже, тем лучше совпадение)
+       - confidence: 45.2 (raw LBPH distance; lower means a better match)
        - door_opened: true
 
     2. Неизвестный человек:
@@ -183,7 +183,7 @@ def get_events_summary(
     - Общее количество событий
     - Количество по типам
     - Количество уникальных людей
-    - Среднее confidence для распознанных
+    - Average raw LBPH distance for recognized events
     """
     from sqlalchemy import func
 
@@ -220,7 +220,7 @@ def get_events_summary(
         .scalar()
     )
 
-    # Среднее confidence для recognized
+    # Average raw LBPH distance for recognized events.
     avg_confidence = (
         db.query(func.avg(AccessEvent.confidence))
         .filter(
@@ -246,6 +246,7 @@ def get_events_summary(
         "total_events": total_events,
         "events_by_type": types_dict,
         "unique_people_recognized": unique_people or 0,
+        # Compatibility name: this is average raw LBPH distance, not probability.
         "average_confidence": round(avg_confidence, 2) if avg_confidence else None,
         "total_doors_opened": doors_opened or 0,
     }

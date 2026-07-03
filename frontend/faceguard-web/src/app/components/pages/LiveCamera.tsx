@@ -19,6 +19,7 @@ import { apiService } from "../../../services/api.service";
 import { AccessEvent } from "../../../types/api.types";
 import { useWebSocket, useWebSocketEvent } from "../../../hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatRecognitionDistanceSummary } from "../../../utils/recognitionScore";
 
 const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 
@@ -165,11 +166,11 @@ export function LiveCamera() {
     // Show toast notification
     if (data.event_type === "recognized" && data.person_name) {
       toast.success(`${data.person_name} recognized`, {
-        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
+        description: formatRecognitionDistanceSummary(data.confidence),
       });
     } else if (data.event_type === "unknown") {
       toast.warning("Unknown person detected", {
-        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
+        description: formatRecognitionDistanceSummary(data.confidence),
       });
     }
 
@@ -464,7 +465,7 @@ export function LiveCamera() {
                     <div>
                       <div className="text-xs font-medium text-white">{name}</div>
                       <div className="text-xs mt-0.5" style={{ color }}>
-                        {event.confidence ? `${(100 - event.confidence).toFixed(2)}%` : "--"} · {time}
+                        {formatRecognitionDistanceSummary(event.confidence).replace("Distance: ", "")} · {time}
                       </div>
                     </div>
                   </div>
