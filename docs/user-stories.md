@@ -1,6 +1,6 @@
 # User Story Index
 
-This file is the authoritative current index of stable FaceGuard user-story IDs. It is not a copy of full issue bodies. The historical Assignment 2 story file remains unchanged at [reports/week2/user-stories.md](../reports/week2/user-stories.md).
+This file is the authoritative current index of stable FaceGuard user-story IDs. It is not a copy of full issue bodies. The historical Assignment 2 story file remains unchanged at [reports/week2/user-stories.md](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week2/user-stories.md).
 
 US-11 was added during Assignment 3 backlog refinement because a connected entrance camera is needed for a coherent end-to-end FaceGuard MVP v1 increment.
 

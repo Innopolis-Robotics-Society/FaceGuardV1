@@ -1,0 +1,25 @@
+site_name: FaceGuard Documentation
+site_url: https://innopolis-robotics-society.github.io/FaceGuardV1/
+repo_url: https://github.com/Innopolis-Robotics-Society/FaceGuardV1
+docs_dir: docs
+strict: true
+theme:
+  name: mkdocs
+nav:
+  - Home: index.md
+  - Roadmap: roadmap.md
+  - Development Process: development-process.md
+  - Architecture:
+      - Overview: architecture/README.md
+      - Static View: architecture/static-view/component-diagram.svg
+      - Dynamic View: architecture/dynamic-view/recognition-workflow.svg
+      - Deployment View: architecture/deployment-view/deployment-diagram.svg
+      - ADR-001 Backend Boundary: architecture/adr/ADR-001-backend-integration-boundary.md
+      - ADR-002 Score Semantics: architecture/adr/ADR-002-recognition-score-semantics.md
+      - ADR-003 Edge Agent: architecture/adr/ADR-003-central-server-and-edge-agent.md
+  - Testing: testing.md
+  - Quality Requirements: quality-requirements.md
+  - Quality Requirement Tests: quality-requirement-tests.md
+  - Definition of Done: definition-of-done.md
+  - User Acceptance Tests: user-acceptance-tests.md
+  - User Stories: user-stories.md

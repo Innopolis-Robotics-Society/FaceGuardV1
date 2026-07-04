@@ -9,6 +9,8 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Required CI checks are green.
 - Relevant unit and integration tests pass.
 - Linked Quality Requirement Tests pass.
+- Architecture, ADR, development-process, testing, and hosted-docs navigation
+  are updated when the PBI changes those maintained assets.
 - Every affected critical module has at least 30% line coverage.
 - Manual checks and environment are documented.
 - Documentation and exact run/access instructions are updated.
@@ -36,3 +38,8 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Assignment 4 quality-gate work must update the quality requirements, QRT traceability, testing guide, coverage evidence, and Week 4 report links.
 - Assignment 4 report work must link customer review, UAT, deployment, release,
   and protected-main evidence after it is verified.
+- Sprint 3 / Assignment 5 MVP v2 delivery work must leave UAT, Sprint Review, hosted-docs,
+  demo, release, protected-main CI, and private Moodle evidence as Pending until
+  the real evidence exists.
+- Recognition-score changes must preserve the documented LBPH distance
+  semantics: lower is better and equality with the threshold is rejected.

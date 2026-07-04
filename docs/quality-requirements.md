@@ -5,6 +5,13 @@ FaceGuard quality gates. The requirements use ISO/IEC 25010 terminology and are
 linked to automated Quality Requirement Tests in
 [quality-requirement-tests.md](quality-requirement-tests.md).
 
+## Table of Contents
+
+- [QR-PERF-001 - Health endpoint response time](#qr-perf-001-health-endpoint-response-time)
+- [QR-SEC-001 - Invalid administrator identity is rejected](#qr-sec-001-invalid-administrator-identity-is-rejected)
+- [QR-USE-001 - Invalid person names are rejected](#qr-use-001-invalid-person-names-are-rejected)
+- [QR-REL-001 - Recognition score semantics are consistent](#qr-rel-001-recognition-score-semantics-are-consistent)
+
 ## QR-PERF-001 - Health endpoint response time
 
 - Stable ID: `QR-PERF-001`
@@ -37,6 +44,7 @@ or inconsistent health endpoint makes deployment feedback unreliable.
 - Quality Requirement Test: `QRT-PERF-001`
 - Test source: `backend-service/tests/qrt/test_quality_requirements.py`
 - CI job: `Quality requirement tests`
+- Related ADR: [ADR-003 - Central server and edge agent](architecture/adr/ADR-003-central-server-and-edge-agent.md)
 
 ### Limitations
 
@@ -77,6 +85,7 @@ minimum authenticity gate for protected administrator workflows.
 - Quality Requirement Test: `QRT-SEC-001`
 - Test source: `backend-service/tests/qrt/test_quality_requirements.py`
 - CI job: `Quality requirement tests`
+- Related ADR: [ADR-001 - Backend integration boundary](architecture/adr/ADR-001-backend-integration-boundary.md)
 
 ### Limitations
 
@@ -118,9 +127,64 @@ invalid values from reaching persistence logic.
 - Quality Requirement Test: `QRT-USE-001`
 - Test source: `backend-service/tests/qrt/test_quality_requirements.py`
 - CI job: `Quality requirement tests`
+- Related ADR: [ADR-001 - Backend integration boundary](architecture/adr/ADR-001-backend-integration-boundary.md)
 
 ### Limitations
 
 This requirement validates backend schema boundaries only. It does not cover
 frontend form usability, localisation, duplicate names, profanity filtering, or
 database-level constraints.
+
+## QR-REL-001 - Recognition score semantics are consistent
+
+- Stable ID: `QR-REL-001`
+- Characteristic: Reliability
+- Sub-characteristic: Fault tolerance
+- Status: Approved for Sprint 3 / Assignment 5 automation
+- Priority: Must Have
+- Linked tests: `test_distance_below_threshold_is_match`,
+  `test_distance_equal_threshold_uses_documented_boundary`,
+  `test_distance_above_threshold_is_not_match`,
+  `test_good_match_has_positive_display`,
+  `test_bad_match_has_negative_display`
+
+### Quality Scenario
+
+- Source: recognition agent and administrator UI.
+- Stimulus: raw OpenCV LBPH recognition scores below, equal to, and above the
+  configured threshold.
+- Environment: automated unit/helper tests without camera hardware, biometric
+  images, or a trained recognition model.
+- Artifact: recognition threshold helper and frontend recognition-distance
+  display helper.
+- Response: lower distances are treated as better matches, equality with the
+  threshold is rejected, and the UI displays stronger matches as stronger.
+- Response measure:
+  - distance below threshold is accepted;
+  - distance equal to threshold is rejected;
+  - distance above threshold is rejected;
+  - a good lower-distance match has positive display state;
+  - a bad higher-distance match has negative display state.
+
+### Rationale
+
+OpenCV LBPH returns a raw distance, not a higher-is-better probability. A
+consistent interpretation prevents access decisions and UI feedback from
+contradicting each other.
+
+### Traceability
+
+- Backend/helper tests:
+  `backend-service/tests/unit/test_recognition_score.py`
+- Frontend/helper tests:
+  `frontend/faceguard-web/src/utils/recognitionScore.test.mjs`
+- CI jobs: `Backend tests and critical coverage`,
+  `Frontend recognition score tests`
+- Related ADR: [ADR-002 - Recognition score semantics](architecture/adr/ADR-002-recognition-score-semantics.md)
+
+### Limitations
+
+This requirement verifies deterministic threshold and display semantics only.
+It does not test camera capture, real-face recognition accuracy, agent model
+reloads, dataset versioning, WebSocket delivery, concurrency, or browser
+end-to-end behaviour.

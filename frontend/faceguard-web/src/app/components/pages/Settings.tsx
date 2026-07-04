@@ -81,7 +81,7 @@ function PwInput({ value, onChange }: { value: string; onChange: (v: string) => 
 }
 
 const DEFAULTS = {
-  confidenceThreshold: 75, unknownThreshold: 40, recognitionInterval: 500,
+  distanceThreshold: 70, unknownThreshold: 40, recognitionInterval: 500,
   cameraFPS: 30, cameraResolution: "1280×720", brightness: 50, contrast: 50,
   doorDuration: 5, doorAutoClose: true, doorBell: true,
   adminPassword: "", sessionTimeout: 30, twoFactor: false,
@@ -100,8 +100,8 @@ export function Settings() {
   return (
     <div className="space-y-4 max-w-2xl">
       <Section icon={Brain} title="Recognition Settings">
-        <Row label="Confidence Threshold" description="Minimum confidence to grant access">
-          <Slider value={s.confidenceThreshold} onChange={(v) => set("confidenceThreshold", v)} min={50} max={99} unit="%" />
+        <Row label="Recognition Distance Threshold" description="Lower is stricter; LBPH distances below the threshold are accepted">
+          <Slider value={s.distanceThreshold} onChange={(v) => set("distanceThreshold", v)} min={30} max={120} />
         </Row>
         <Row label="Unknown Person Threshold" description="Below this is flagged as unknown">
           <Slider value={s.unknownThreshold} onChange={(v) => set("unknownThreshold", v)} min={10} max={60} unit="%" />

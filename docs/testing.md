@@ -10,6 +10,7 @@ FaceGuard backend in `backend-service` and frontend in `frontend/faceguard-web`.
   TestClient.
 - Automated Quality Requirement Tests linked to measurable quality
   requirements.
+- Recognition-score threshold and display helper tests for MVP v2.
 - Frontend production build verification.
 - Deployment configuration validation through Docker Compose.
 
@@ -25,12 +26,20 @@ services:
 - password hashing and verification in `app/core/security.py`;
 - JWT creation and decoding in `app/core/security.py`;
 - person-name validation boundaries in `app/schemas/schemas.py`.
+- recognition threshold semantics through the pure helper used by the agent.
 
 Local command:
 
 ```bash
 cd backend-service
 pytest tests/unit -v
+```
+
+Focused Sprint 3 / Assignment 5 recognition-score command:
+
+```bash
+cd backend-service
+pytest tests/unit/test_recognition_score.py -v
 ```
 
 ## Integration Tests
@@ -115,7 +124,11 @@ Frontend build:
 cd frontend/faceguard-web
 npm ci
 npm run build
+npm test -- --run
 ```
+
+The frontend test command currently runs helper-level tests for recognition
+distance presentation. It does not launch a browser.
 
 Deployment configuration validation:
 
@@ -132,6 +145,8 @@ The `.github/workflows/quality.yml` workflow runs on pull requests and pushes to
 - `Backend Ruff lint`
 - `Backend tests and critical coverage`
 - `Quality requirement tests`
+- `Frontend recognition score tests`
+- `Documentation build`
 - `Deployment configuration validation`
 
 The existing Lychee workflow remains a link checker and is not counted as the
@@ -156,6 +171,8 @@ Compose before merge.
   database outage behaviour.
 - Camera, recognition quality, and biometric matching are outside this automated
   baseline.
+- Sprint 3 / Assignment 5 score tests do not cover agent reload behaviour, dataset versioning,
+  WebSockets, concurrency, real-face recognition, or full browser flows.
 - These tests do not replace security review or penetration testing.
 
 ## Maintenance Policy

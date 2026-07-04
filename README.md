@@ -1,6 +1,24 @@
 # FaceGuard
 
-FaceGuard is an MVP access-control system for restricted rooms and protected areas. MVP v1 combines an administrator web application, a central backend with persistent storage, a device-side face-recognition agent, and a locally connected camera.
+FaceGuard is an MVP access-control system for restricted rooms and protected areas. The current MVP line combines an administrator web application, a central backend with persistent storage, a device-side face-recognition agent, and a locally connected camera.
+
+## MVP v2 / Assignment 5 Status
+
+Repository-side Sprint 3 / Assignment 5 work is prepared locally for MVP v2 documentation,
+architecture, process, QA, and delivery evidence:
+
+- Week 5 report: [reports/week5/README.md](reports/week5/README.md)
+- Architecture package: [docs/architecture/README.md](docs/architecture/README.md)
+- Development process: [docs/development-process.md](docs/development-process.md)
+- Hosted documentation source: [docs/index.md](docs/index.md) and
+  [mkdocs.yml](mkdocs.yml)
+- Hosted documentation target:
+  [FaceGuard documentation](https://innopolis-robotics-society.github.io/FaceGuardV1/)
+  after the GitHub Pages workflow publishes from `main`.
+
+External evidence remains Pending until the team opens reviewed PRs, runs
+protected-main CI, publishes hosted documentation, executes customer UAT and
+Sprint Review, and creates a SemVer release from protected `main`.
 
 ## MVP v1 Status
 
@@ -75,6 +93,8 @@ the Innopolis University private network.
 - [MVP v1 scope project view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/3)
 - [User-story index](docs/user-stories.md)
 - [Roadmap](docs/roadmap.md)
+- [Architecture](docs/architecture/README.md)
+- [Development process and configuration management](docs/development-process.md)
 - [Definition of Done](docs/definition-of-done.md)
 - [Quality requirements](docs/quality-requirements.md)
 - [Quality requirement tests](docs/quality-requirement-tests.md)
@@ -86,6 +106,7 @@ the Innopolis University private network.
 - [Customer review summary](reports/week3/customer-review-summary.md)
 - [Customer review transcript](reports/week3/customer-review-transcript.md)
 - [Assignment 4 / Week 4 report](reports/week4/README.md)
+- [Assignment 5 / Week 5 report](reports/week5/README.md)
 
 ## Prerequisites
 

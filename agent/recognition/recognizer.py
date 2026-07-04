@@ -9,6 +9,7 @@ import os
 
 from core.config import Config
 from core.logging import get_logger
+from recognition.score import is_distance_match
 
 
 logger = get_logger(__name__)
@@ -206,8 +207,8 @@ class RecognitionService:
         # Predict
         label, confidence = self.recognizer.predict(face_resized)
 
-        # Check if confidence is below threshold (lower = better match)
-        recognized = confidence < Config.RECOGNITION_THRESHOLD
+        # OpenCV LBPH returns a distance score where lower is a better match.
+        recognized = is_distance_match(confidence, Config.RECOGNITION_THRESHOLD)
         person_id = self.label_map.get(label) if recognized else None
 
         return {

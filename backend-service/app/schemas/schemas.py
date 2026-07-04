@@ -159,7 +159,10 @@ class AccessEventResponse(BaseModel):
     person_id: Optional[UUID]
     person_name: str  # fallback = "Unknown"
 
+    confidence: Optional[float] = None  # LBPH distance: lower means a better match.
+    door_opened: bool = False
     photo_path: Optional[str]
+    video_path: Optional[str] = None
 
     class Config:
         from_attributes = True

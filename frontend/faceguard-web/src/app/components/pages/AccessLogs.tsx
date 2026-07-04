@@ -8,6 +8,7 @@ import { format, parseISO } from "date-fns";
 import { useCleanupEvents, useDeleteEvent, useGetEvents } from "../../../hooks/api/useEvents";
 import { useGetPeople } from "../../../hooks/api/usePeople";
 import { AccessEvent } from "../../../types/api.types";
+import { formatRecognitionDistance, recognitionDistanceStrength } from "../../../utils/recognitionScore";
 
 const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 
@@ -112,19 +113,19 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
               </div>
             ))}
             <div className="col-span-2">
-              <p className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Confidence</p>
+              <p className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Match distance</p>
               {log.confidence === null ? (
                 <p className="text-sm font-semibold text-white">Not reported</p>
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${100 - log.confidence}%`,
-                      background: (100 - log.confidence) > 70 ? "#10b981" : (100 - log.confidence) > 50 ? "#f59e0b" : "#ef4444",
+                      width: `${recognitionDistanceStrength(log.confidence).barPercent}%`,
+                      background: recognitionDistanceStrength(log.confidence).color,
                     }} />
                   </div>
-                  <span className="text-sm font-bold" style={{ color: (100 - log.confidence) > 70 ? "#10b981" : (100 - log.confidence) > 50 ? "#f59e0b" : "#ef4444" }}>
-                    {(100 - log.confidence).toFixed(2)}%
+                  <span className="text-sm font-bold" style={{ color: recognitionDistanceStrength(log.confidence).color }}>
+                    {formatRecognitionDistance(log.confidence)}
                   </span>
                 </div>
               )}
@@ -195,7 +196,7 @@ function toLogEntry(event: AccessEvent, peopleById: Map<string, string>): LogEnt
     date: format(parsed, "yyyy-MM-dd"),
     time: format(parsed, "HH:mm:ss"),
     createdAt: event.created_at,
-    confidence: null,
+    confidence: event.confidence,
     status,
     action: eventAction(event.access_result),
     doorOpened: event.access_result === "granted",
@@ -240,13 +241,13 @@ export function AccessLogs() {
       l.name,
       l.date,
       l.time,
-      l.confidence === null ? "" : `${(100 - l.confidence).toFixed(2)}%`,
+      l.confidence === null ? "" : formatRecognitionDistance(l.confidence),
       l.status,
       l.eventType,
       l.action,
       l.doorOpened ? "yes" : "no",
     ].join(",")).join("\n");
-    const blob = new Blob(["ID,Name,Date,Time,Confidence,Status,Event Type,Action,Door Opened\n" + rows], { type: "text/csv" });
+    const blob = new Blob(["ID,Name,Date,Time,Match Distance,Status,Event Type,Action,Door Opened\n" + rows], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "access_logs.csv"; a.click();
     toast.success("Logs exported as CSV");
   }
@@ -331,7 +332,7 @@ export function AccessLogs() {
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="hidden lg:grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-3 px-5 py-3"
             style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            {["Photo", "Name", "Date", "Time", "Confidence", "Status", "Details"].map((h) => (
+            {["Photo", "Name", "Date", "Time", "Distance", "Status", "Details"].map((h) => (
               <div key={h} className="text-xs font-medium" style={{ color: "#3a3a3a" }}>{h}</div>
             ))}
           </div>
@@ -351,12 +352,12 @@ export function AccessLogs() {
                 <div className="flex items-center gap-2 min-w-[90px]">
                   <div className="w-10 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${100 - (log.confidence ?? 0)}%`,
-                      background: (100 - (log.confidence ?? 0)) > 70 ? "#10b981" : (100 - (log.confidence ?? 0)) > 50 ? "#f59e0b" : "#ef4444",
+                      width: `${recognitionDistanceStrength(log.confidence).barPercent}%`,
+                      background: recognitionDistanceStrength(log.confidence).color,
                     }} />
                   </div>
-                  <span className="text-xs font-medium" style={{ color: (100 - (log.confidence ?? 0)) > 70 ? "#10b981" : (100 - (log.confidence ?? 0)) > 50 ? "#f59e0b" : "#ef4444" }}>
-                    {log.confidence === null ? "--" : `${(100 - log.confidence).toFixed(2)}%`}
+                  <span className="text-xs font-medium" style={{ color: recognitionDistanceStrength(log.confidence).color }}>
+                    {log.confidence === null ? "--" : formatRecognitionDistance(log.confidence)}
                   </span>
                 </div>
                 <StatusBadge status={log.status} />
@@ -377,7 +378,7 @@ export function AccessLogs() {
                   style={{ background: `${log.color}15`, color: log.color }}>{log.initials}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">{log.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : `${(100 - log.confidence).toFixed(2)}%`}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : formatRecognitionDistance(log.confidence)}</div>
                 </div>
                 <StatusBadge status={log.status} />
                 <button onClick={() => setDetailLog(log)} className="p-1.5 text-neutral-700 hover:text-white">

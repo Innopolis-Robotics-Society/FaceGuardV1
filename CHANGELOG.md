@@ -4,6 +4,23 @@ All notable user-visible changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added Sprint 3 / Assignment 5 architecture documentation with static, dynamic, and
+  deployment views plus three ADRs.
+- Added development-process and configuration-management documentation.
+- Added MVP v2 recognition-score helper tests for threshold semantics and UI
+  distance presentation.
+- Added MkDocs configuration and Week 5 public report structure with Pending
+  external-evidence sections.
+
+### Changed
+
+- Updated recognition-score UI wording to display OpenCV LBPH output as raw
+  match distance where lower is better.
+- Updated quality, testing, Definition of Done, UAT, roadmap, and root README
+  traceability for Sprint 3 / Assignment 5.
+
 ## [v1.1.0] - 2026-06-28
 
 ### Added
