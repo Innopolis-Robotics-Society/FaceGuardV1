@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Outlet, NavLink, useLocation } from "react-router";
 import {
   LayoutDashboard, Camera, Users, FileText, Server, Settings,
-  Shield, Bell, ChevronDown, LogOut, Menu, X, Wifi, WifiOff,
+  Shield, ChevronDown, LogOut, Menu, X, Wifi, WifiOff,
   Clock, User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../../hooks/useAuth";
+import { useGetDevices } from "../../hooks/api/useDevices";
 
 const NAV_ITEMS = [
   { path: "/",        label: "Dashboard",   icon: LayoutDashboard, end: true },
@@ -14,7 +15,7 @@ const NAV_ITEMS = [
   { path: "/people",  label: "People",      icon: Users },
   { path: "/logs",    label: "Access Logs", icon: FileText },
   { path: "/system",  label: "System",      icon: Server },
-  { path: "/settings",label: "Settings",    icon: Settings },
+  // { path: "/settings",label: "Settings",    icon: Settings },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -43,11 +44,21 @@ const NOTIFICATIONS = [
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const { data: devices = [] } = useGetDevices();
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [notifOpen,   setNotifOpen]     = useState(false);
   const [profileOpen, setProfileOpen]   = useState(false);
   const location = useLocation();
   const now = useCurrentTime();
+
+  // Get active device status
+  const activeDevice = useMemo(
+    () => devices.find((d) => d.status === "online") ?? devices[0],
+    [devices]
+  );
+
+  const piStatus = activeDevice?.status === "online" ? "online" : "offline";
+  const piName = activeDevice?.name ?? "No Device";
 
   const pageTitle =
     PAGE_TITLES[location.pathname] ??
@@ -185,11 +196,15 @@ export function Layout() {
             {/* Pi status */}
             <div
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
-              style={{ background: "rgba(16,185,129,0.08)", color: "#10b981" }}
+              style={
+                piStatus === "online"
+                  ? { background: "rgba(16,185,129,0.08)", color: "#10b981" }
+                  : { background: "rgba(239,68,68,0.08)", color: "#ef4444" }
+              }
             >
-              <Wifi className="w-3 h-3" />
-              <span className="hidden md:inline">Pi</span>
-              <span>Online</span>
+              {piStatus === "online" ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              <span className="hidden md:inline">{piName}</span>
+              <span>{piStatus === "online" ? "Online" : "Offline"}</span>
             </div>
 
             {/* Time */}
@@ -199,92 +214,6 @@ export function Layout() {
             >
               <Clock className="w-3 h-3" />
               {now.toLocaleTimeString("en-GB")}
-            </div>
-
-            {/* Notifications */}
-            <div className="relative" onClick={stopProp}>
-              <button
-                className="relative p-2 rounded-lg text-neutral-600 hover:text-white hover:bg-white/5 transition-colors"
-                onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
-              >
-                <Bell className="w-4 h-4" />
-                <span
-                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-                  style={{ background: "#f59e0b" }}
-                />
-              </button>
-
-              {notifOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1.5 w-76 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                  style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.07)", width: "300px" }}
-                >
-                  <div
-                    className="px-4 py-3"
-                    style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                  >
-                    <span className="text-xs font-semibold text-white">Notifications</span>
-                  </div>
-                  {NOTIFICATIONS.map((n) => (
-                    <div
-                      key={n.id}
-                      className="flex items-start gap-3 px-4 py-3 hover:bg-white/3 transition-colors"
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
-                    >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ background: n.dot }}
-                      />
-                      <div>
-                        <p className="text-xs text-white leading-relaxed">{n.text}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{n.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Profile */}
-            <div className="relative" onClick={stopProp}>
-              <button
-                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-black"
-                  style={{ background: "#ffffff" }}
-                >
-                  {user?.username.charAt(0).toUpperCase() || "A"}
-                </div>
-                <ChevronDown className="w-3 h-3 text-neutral-600 hidden sm:block" />
-              </button>
-
-              {profileOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                  style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.07)" }}
-                >
-                  <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div className="text-xs font-medium text-white">{user?.username || "Admin"}</div>
-                    <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>
-                      {user?.role === "superadmin" ? "Superadmin" : "Administrator"}
-                    </div>
-                  </div>
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-neutral-500 hover:text-white hover:bg-white/5 transition-colors"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    <User className="w-3.5 h-3.5" /> Profile
-                  </button>
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-red-500 hover:bg-red-500/10 transition-colors"
-                    onClick={() => { logout(); setProfileOpen(false); }}
-                  >
-                    <LogOut className="w-3.5 h-3.5" /> Logout
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </header>

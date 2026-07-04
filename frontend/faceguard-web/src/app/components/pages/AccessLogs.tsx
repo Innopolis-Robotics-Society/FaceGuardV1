@@ -8,6 +8,8 @@ import { format, parseISO } from "date-fns";
 import { useCleanupEvents, useDeleteEvent, useGetEvents } from "../../../hooks/api/useEvents";
 import { useGetPeople } from "../../../hooks/api/usePeople";
 import { AccessEvent } from "../../../types/api.types";
+import { useWebSocketEvent } from "../../../hooks/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatRecognitionDistance, recognitionDistanceStrength } from "../../../utils/recognitionScore";
 
 const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
@@ -103,13 +105,13 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
               { label: "Person", value: log.name },
               { label: "Date & Time", value: `${log.date} ${log.time}` },
               { label: "Action", value: log.action },
-              { label: "Event Type", value: log.eventType },
-              { label: "Device", value: log.deviceId.slice(0, 8) },
-              { label: "Person ID", value: log.personId ? log.personId.slice(0, 8) : "None" },
+              { label: "Event Type", value: log.eventType === "recognized" ? "Recognized" : log.eventType === "unknown" ? "Unknown" : log.eventType === "access_denied" ? "Access Denied" : log.eventType },
+              { label: "Device ID", value: log.deviceId.slice(0, 13) + "..." },
+              { label: "Person ID", value: log.personId ? log.personId.slice(0, 13) + "..." : "None" },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-xs mb-1" style={{ color: "#3a3a3a" }}>{label}</p>
-                <p className="text-sm font-semibold text-white truncate">{value}</p>
+                <p className="text-sm font-semibold text-white truncate" title={value}>{value}</p>
               </div>
             ))}
             <div className="col-span-2">
@@ -120,12 +122,12 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${recognitionDistanceStrength(log.confidence).barPercent}%`,
-                      background: recognitionDistanceStrength(log.confidence).color,
+                      width: `${log.confidence}%`,
+                      background: log.confidence > 70 ? "#10b981" : log.confidence > 50 ? "#f59e0b" : "#ef4444",
                     }} />
                   </div>
-                  <span className="text-sm font-bold" style={{ color: recognitionDistanceStrength(log.confidence).color }}>
-                    {formatRecognitionDistance(log.confidence)}
+                  <span className="text-sm font-bold" style={{ color: log.confidence > 70 ? "#10b981" : log.confidence > 50 ? "#f59e0b" : "#ef4444" }}>
+                    {log.confidence.toFixed(1)}%
                   </span>
                 </div>
               )}
@@ -156,7 +158,9 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
   );
 }
 
-function ClearModal({ onConfirm, onCancel, loading }: { onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+function ClearModal({ onConfirm, onCancel, loading }: { onConfirm: (deleteAll: boolean) => void; onCancel: () => void; loading: boolean }) {
+  const [clearAll, setClearAll] = useState(false);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80" onClick={onCancel} />
@@ -165,14 +169,28 @@ function ClearModal({ onConfirm, onCancel, loading }: { onConfirm: () => void; o
         <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,0.1)" }}>
           <Trash2 className="w-5 h-5 text-red-500" />
         </div>
-        <h3 className="text-sm font-semibold text-white text-center mb-2">Clear Old Logs</h3>
+        <h3 className="text-sm font-semibold text-white text-center mb-2">Clear Logs</h3>
         <p className="text-xs text-center mb-5 leading-relaxed" style={{ color: "#5a5a5a" }}>
-          Access log entries older than 30 days will be deleted.
+          {clearAll
+            ? "This will delete ALL access log entries permanently."
+            : "This will delete access log entries older than 30 days."}
         </p>
+        <div className="flex items-center gap-2 mb-5 p-3 rounded-xl" style={{ background: "rgba(239,68,68,0.05)" }}>
+          <input
+            type="checkbox"
+            id="clearAll"
+            checked={clearAll}
+            onChange={(e) => setClearAll(e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <label htmlFor="clearAll" className="text-xs text-white cursor-pointer">
+            Delete all logs (not just old ones)
+          </label>
+        </div>
         <div className="flex gap-2">
           <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
             style={{ background: "#1a1a1a", color: "#a0a0a0" }} disabled={loading}>Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
+          <button onClick={() => onConfirm(clearAll)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
             style={{ background: "#ef4444" }} disabled={loading}>{loading ? "Clearing..." : "Clear Logs"}</button>
         </div>
       </div>
@@ -215,10 +233,23 @@ export function AccessLogs() {
   const [page, setPage] = useState(1);
   const PER_PAGE = 8;
 
+  const queryClient = useQueryClient();
   const { data: events = [], isLoading, isError } = useGetEvents({ days: 365, limit: 1000 });
   const { data: people = [] } = useGetPeople();
   const deleteEvent = useDeleteEvent();
   const cleanupEvents = useCleanupEvents();
+
+  // Auto-update when new events come via WebSocket
+  useWebSocketEvent("recognition_event", (data: any) => {
+    console.log("[AccessLogs] Recognition event received:", data);
+    queryClient.invalidateQueries({ queryKey: ["events"] });
+
+    if (data.event_type === "recognized" && data.person_name) {
+      toast.success(`${data.person_name} recognized`);
+    } else if (data.event_type === "unknown") {
+      toast.warning("Unknown person detected");
+    }
+  });
 
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
   const logs = useMemo(() => events.map((event) => toLogEntry(event, peopleById)), [events, peopleById]);
@@ -236,20 +267,42 @@ export function AccessLogs() {
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   function exportCSV() {
+    if (filtered.length === 0) {
+      toast.error("No logs to export");
+      return;
+    }
+
+    // Функция для экранирования CSV полей
+    const escapeCSV = (value: any): string => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      // Если содержит запятую, кавычки или перенос строки - оборачиваем в кавычки
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     const rows = filtered.map((l) => [
-      l.id,
-      l.name,
-      l.date,
-      l.time,
-      l.confidence === null ? "" : formatRecognitionDistance(l.confidence),
-      l.status,
-      l.eventType,
-      l.action,
-      l.doorOpened ? "yes" : "no",
+      escapeCSV(l.id),
+      escapeCSV(l.name),
+      escapeCSV(l.date),
+      escapeCSV(l.time),
+      l.confidence === null ? "" : escapeCSV(`${l.confidence.toFixed(1)}%`),
+      escapeCSV(l.status),
+      escapeCSV(l.eventType),
+      escapeCSV(l.action),
+      escapeCSV(l.doorOpened ? "yes" : "no"),
     ].join(",")).join("\n");
-    const blob = new Blob(["ID,Name,Date,Time,Match Distance,Status,Event Type,Action,Door Opened\n" + rows], { type: "text/csv" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "access_logs.csv"; a.click();
-    toast.success("Logs exported as CSV");
+
+    const csvContent = "ID,Name,Date,Time,Confidence,Status,Event Type,Action,Door Opened\n" + rows;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `access_logs_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success(`Exported ${filtered.length} log entries`);
   }
 
   function deleteSelectedLog() {
@@ -259,8 +312,8 @@ export function AccessLogs() {
     });
   }
 
-  function clearOldLogs() {
-    cleanupEvents.mutate(30, {
+  function clearOldLogs(deleteAll: boolean) {
+    cleanupEvents.mutate(deleteAll ? 0 : 30, {
       onSuccess: () => setShowClear(false),
     });
   }
@@ -352,12 +405,12 @@ export function AccessLogs() {
                 <div className="flex items-center gap-2 min-w-[90px]">
                   <div className="w-10 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="h-full rounded-full" style={{
-                      width: `${recognitionDistanceStrength(log.confidence).barPercent}%`,
-                      background: recognitionDistanceStrength(log.confidence).color,
+                      width: `${log.confidence ?? 0}%`,
+                      background: (log.confidence ?? 0) > 70 ? "#10b981" : (log.confidence ?? 0) > 50 ? "#f59e0b" : "#ef4444",
                     }} />
                   </div>
-                  <span className="text-xs font-medium" style={{ color: recognitionDistanceStrength(log.confidence).color }}>
-                    {log.confidence === null ? "--" : formatRecognitionDistance(log.confidence)}
+                  <span className="text-xs font-medium" style={{ color: (log.confidence ?? 0) > 70 ? "#10b981" : (log.confidence ?? 0) > 50 ? "#f59e0b" : "#ef4444" }}>
+                    {log.confidence === null ? "--" : `${log.confidence.toFixed(1)}%`}
                   </span>
                 </div>
                 <StatusBadge status={log.status} />
@@ -378,7 +431,7 @@ export function AccessLogs() {
                   style={{ background: `${log.color}15`, color: log.color }}>{log.initials}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">{log.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : formatRecognitionDistance(log.confidence)}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>{log.date} · {log.time} · {log.confidence === null ? "--" : `${log.confidence.toFixed(1)}%`}</div>
                 </div>
                 <StatusBadge status={log.status} />
                 <button onClick={() => setDetailLog(log)} className="p-1.5 text-neutral-700 hover:text-white">

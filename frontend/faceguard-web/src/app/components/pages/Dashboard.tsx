@@ -88,14 +88,14 @@ function Avatar({ initials, color, size = 8 }: { initials: string; color: string
   );
 }
 
-function RecognitionDistanceBar({ value }: { value: number }) {
-  const display = recognitionDistanceStrength(value);
+function ConfidenceBar({ value }: { value: number }) {
+  const color = value > 70 ? "#10b981" : value > 50 ? "#f59e0b" : "#ef4444";
   return (
     <div className="flex items-center gap-2">
       <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div className="h-full rounded-full" style={{ width: `${display.barPercent}%`, background: display.color }} />
+        <div className="h-full rounded-full" style={{ width: `${value}%`, background: color }} />
       </div>
-      <span className="text-xs font-medium tabular-nums" style={{ color: display.color }}>{formatRecognitionDistance(value)}</span>
+      <span className="text-xs font-medium tabular-nums" style={{ color }}>{value.toFixed(1)}%</span>
     </div>
   );
 }
@@ -467,9 +467,11 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-center gap-5 mt-3">
                   <div>
-                    <div className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Match distance</div>
-                    <div className="text-sm font-semibold" style={{ color: recognitionDistanceStrength(lastEvent.confidence).color }}>
-                      {formatRecognitionDistance(lastEvent.confidence)}
+                    <div className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Confidence</div>
+                    <div className="text-sm font-semibold" style={{
+                      color: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
+                    }}>
+                      {lastEvent.confidence ? `${lastEvent.confidence.toFixed(1)}%` : "N/A"}
                     </div>
                   </div>
                   <div>
@@ -487,17 +489,19 @@ export function Dashboard() {
             {lastEvent.confidence !== null && (
               <div className="mt-5">
                 <div className="flex justify-between text-xs mb-1.5" style={{ color: "#3a3a3a" }}>
-                  <span>Recognition distance (lower is better)</span>
-                  <span style={{ color: recognitionDistanceStrength(lastEvent.confidence).color }}>
-                    {formatRecognitionDistance(lastEvent.confidence)}
+                  <span>Recognition confidence</span>
+                  <span style={{
+                    color: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
+                  }}>
+                    {lastEvent.confidence.toFixed(1)}%
                   </span>
                 </div>
                 <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
                   <div
                     className="h-full rounded-full"
                     style={{
-                      width: `${recognitionDistanceStrength(lastEvent.confidence).barPercent}%`,
-                      background: recognitionDistanceStrength(lastEvent.confidence).color
+                      width: `${lastEvent.confidence}%`,
+                      background: lastEvent.confidence > 70 ? "#10b981" : lastEvent.confidence > 50 ? "#f59e0b" : "#ef4444"
                     }}
                   />
                 </div>
@@ -590,7 +594,7 @@ export function Dashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">{getPersonName(ev)}</div>
                   <div className="text-xs mt-0.5" style={{ color: "#3a3a3a" }}>
-                    {format(parseISO(ev.created_at), "HH:mm:ss")} · {formatRecognitionDistance(ev.confidence)}
+                    {format(parseISO(ev.created_at), "HH:mm:ss")} · {ev.confidence ? `${ev.confidence.toFixed(1)}%` : "N/A"}
                   </div>
                 </div>
                 <StatusBadge status={ev.event_type} />

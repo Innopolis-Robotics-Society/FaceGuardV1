@@ -11,6 +11,7 @@ from core.config import Config
 from core.logging import get_logger
 from camera.camera_service import CameraService
 from recognition.recognizer import RecognitionService
+from recognition.liveness_detector import LivenessDetector
 
 
 logger = get_logger(__name__)
@@ -34,6 +35,13 @@ class RecognitionLoop:
         self.is_running = False
         self.loop_thread: Optional[threading.Thread] = None
         self.last_action_time = {}
+
+        # Liveness detector
+        self.liveness_detector = LivenessDetector() if Config.LIVENESS_ENABLED else None
+        if Config.LIVENESS_ENABLED:
+            logger.info("Liveness detection enabled (anti-spoofing)")
+        else:
+            logger.warning("Liveness detection disabled - vulnerable to photo spoofing!")
 
     def start(self):
         """Start recognition loop"""
@@ -79,6 +87,26 @@ class RecognitionLoop:
                     # No face detected
                     time.sleep(0.1)
                     continue
+
+                # Check liveness if enabled
+                if self.liveness_detector is not None:
+                    liveness_result = self.liveness_detector.check_liveness(
+                        frame,
+                        result["face_bbox"],
+                        require_blink=Config.LIVENESS_BLINK_REQUIRED,
+                        require_motion=Config.LIVENESS_MOTION_REQUIRED,
+                        timeout=Config.LIVENESS_TIMEOUT_SECONDS
+                    )
+
+                    if not liveness_result["is_live"]:
+                        logger.warning(
+                            f"Liveness check failed: {liveness_result['method']} "
+                            f"(confidence: {liveness_result['confidence']:.2f})"
+                        )
+                        time.sleep(0.1)
+                        continue
+
+                    logger.debug(f"Liveness check passed: {liveness_result['method']}")
 
                 # Process recognition result
                 if result["recognized"]:

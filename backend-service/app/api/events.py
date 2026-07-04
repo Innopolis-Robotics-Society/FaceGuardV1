@@ -83,6 +83,143 @@ def list_events(
     return results
 
 
+@router.get("/stats/summary")
+def get_events_summary(
+    days: int = Query(7, ge=1, le=365),
+    device_id: Optional[UUID] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Получить статистику событий за период.
+
+    Возвращает:
+    - Общее количество событий
+    - Количество по типам
+    - Количество уникальных людей
+    - Среднее confidence для распознанных
+    """
+    from sqlalchemy import func
+
+    since = datetime.utcnow() - timedelta(days=days)
+
+    query = db.query(AccessEvent).filter(AccessEvent.created_at >= since)
+
+    if device_id:
+        query = query.filter(AccessEvent.device_id == device_id)
+
+    # Общее количество
+    total_events = query.count()
+
+    # Количество по типам
+    event_types = (
+        db.query(
+            AccessEvent.event_type,
+            func.count(AccessEvent.id).label("count"),
+        )
+        .filter(AccessEvent.created_at >= since)
+        .group_by(AccessEvent.event_type)
+        .all()
+    )
+
+    types_dict = {event_type: count for event_type, count in event_types}
+
+    # Уникальные люди
+    unique_people = (
+        db.query(func.count(func.distinct(AccessEvent.person_id)))
+        .filter(
+            AccessEvent.created_at >= since,
+            AccessEvent.person_id.isnot(None),
+        )
+        .scalar()
+    )
+
+    # Среднее confidence для recognized
+    avg_confidence = (
+        db.query(func.avg(AccessEvent.confidence))
+        .filter(
+            AccessEvent.created_at >= since,
+            AccessEvent.event_type == "recognized",
+            AccessEvent.confidence.isnot(None),
+        )
+        .scalar()
+    )
+
+    # Количество открытий двери
+    doors_opened = (
+        db.query(func.count(AccessEvent.id))
+        .filter(
+            AccessEvent.created_at >= since,
+            AccessEvent.door_opened == True,
+        )
+        .scalar()
+    )
+
+    return {
+        "period_days": days,
+        "total_events": total_events,
+        "events_by_type": types_dict,
+        "unique_people_recognized": unique_people or 0,
+        "average_confidence": round(avg_confidence, 2) if avg_confidence else None,
+        "total_doors_opened": doors_opened or 0,
+    }
+
+
+@router.delete("/cleanup")
+def cleanup_old_events(
+    days: int = Query(30, ge=0, le=365, description="Удалить события старше N дней (0 = все события)"),
+    event_types: Optional[List[str]] = Query(None, description="Типы событий для удаления"),
+    db: Session = Depends(get_db),
+):
+    """
+    Очистка старых событий для освобождения места.
+
+    По умолчанию удаляет все события старше 30 дней.
+    Можно указать конкретные типы событий для удаления.
+
+    Если days=0, удаляет ВСЕ события.
+
+    Рекомендуется запускать автоматически по расписанию.
+    """
+    if days == 0:
+        # Удалить все события
+        query = db.query(AccessEvent)
+    else:
+        # Удалить события старше указанного количества дней
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        query = db.query(AccessEvent).filter(AccessEvent.created_at < cutoff_date)
+
+    if event_types:
+        query = query.filter(AccessEvent.event_type.in_(event_types))
+
+    # Получение событий для удаления файлов
+    events_to_delete = query.all()
+
+    # Удаление файлов
+    deleted_files = 0
+    for event in events_to_delete:
+        if event.photo_path:
+            photo_path = Path(settings.data_dir) / event.photo_path
+            if photo_path.exists():
+                photo_path.unlink()
+                deleted_files += 1
+
+        if event.video_path:
+            video_path = Path(settings.data_dir) / event.video_path
+            if video_path.exists():
+                video_path.unlink()
+                deleted_files += 1
+
+    # Удаление записей из БД
+    deleted_count = query.delete()
+    db.commit()
+
+    return {
+        "deleted_events": deleted_count,
+        "deleted_files": deleted_files,
+        "cutoff_date": "all" if days == 0 else cutoff_date.isoformat(),
+    }
+
+
 @router.get("/{event_id}", response_model=AccessEventResponse)
 def get_event(
     event_id: UUID,
@@ -166,6 +303,29 @@ def create_event(
     db.add(event)
     db.commit()
     db.refresh(event)
+
+    # Broadcast WebSocket event to connected clients
+    from app.api.websocket import broadcast_recognition_event
+    import asyncio
+
+    person_name = None
+    if event_data.person_id:
+        person = db.query(Person).filter(Person.id == event_data.person_id).first()
+        if person:
+            person_name = person.name
+
+    # Send WebSocket notification in background
+    try:
+        asyncio.create_task(broadcast_recognition_event(
+            event_type=event_data.event_type,
+            person_id=str(event_data.person_id) if event_data.person_id else None,
+            person_name=person_name,
+            confidence=event_data.confidence,
+            door_opened=event_data.door_opened
+        ))
+    except Exception as e:
+        # Don't fail the request if WebSocket broadcast fails
+        print(f"[Events] Failed to broadcast WebSocket event: {e}")
 
     return event
 
@@ -288,7 +448,7 @@ def delete_event(
 
 @router.delete("/cleanup")
 def cleanup_old_events(
-    days: int = Query(30, ge=7, le=365, description="Удалить события старше N дней"),
+    days: int = Query(30, ge=0, le=365, description="Удалить события старше N дней (0 = все события)"),
     event_types: Optional[List[str]] = Query(None, description="Типы событий для удаления"),
     db: Session = Depends(get_db),
 ):
@@ -298,11 +458,17 @@ def cleanup_old_events(
     По умолчанию удаляет все события старше 30 дней.
     Можно указать конкретные типы событий для удаления.
 
+    Если days=0, удаляет ВСЕ события.
+
     Рекомендуется запускать автоматически по расписанию.
     """
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
-
-    query = db.query(AccessEvent).filter(AccessEvent.created_at < cutoff_date)
+    if days == 0:
+        # Удалить все события
+        query = db.query(AccessEvent)
+    else:
+        # Удалить события старше указанного количества дней
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        query = db.query(AccessEvent).filter(AccessEvent.created_at < cutoff_date)
 
     if event_types:
         query = query.filter(AccessEvent.event_type.in_(event_types))
@@ -332,5 +498,5 @@ def cleanup_old_events(
     return {
         "deleted_events": deleted_count,
         "deleted_files": deleted_files,
-        "cutoff_date": cutoff_date.isoformat(),
+        "cutoff_date": "all" if days == 0 else cutoff_date.isoformat(),
     }
