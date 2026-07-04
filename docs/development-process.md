@@ -81,12 +81,12 @@ This keeps the issue, branch, pull request, CI output, and release notes tied to
 ```mermaid
 gitGraph
    commit id: "main"
-   branch feature/pbi-a5-development-process-docs
-   checkout feature/pbi-a5-development-process-docs
+   branch feature_pbi_a5_docs
+   checkout feature_pbi_a5_docs
    commit id: "docs work"
    commit id: "validation fixes"
    checkout main
-   merge feature/pbi-a5-development-process-docs tag: "after review + CI"
+   merge feature_pbi_a5_docs
   commit id: "release/changelog"
 ```
 
