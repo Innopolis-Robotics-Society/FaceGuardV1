@@ -817,7 +817,7 @@ find data/events/ -type f -mtime +7 -delete
 
 - [Backend API Documentation](../backend-service/API_DOCUMENTATION.md)
 - [Backend Setup Guide](../backend-service/SETUP.md)
-- [FaceGuard Full Guide](../vib/FaceGuard_Guide.md)
+- [Project README](../README.md)
 
 ---
 

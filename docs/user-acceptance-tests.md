@@ -21,11 +21,9 @@ public repository.
 Assignment 5 / Week 5 update: the July 4, 2026 Sprint Review validated the
 customer-facing MVP v2 fixes for unavailable-camera visibility and corrected
 recognition-score meaning. The team reports that recording was permitted. The
-public evidence is kept in
-[Week 5 Sprint Review summary](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-summary.md),
-[Week 5 Sprint Review notes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-notes.md),
-and the
-[sanitized transcript](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-transcript.md).
+public evidence is kept in `reports/week5/sprint-review-summary.md`,
+`reports/week5/sprint-review-notes.md`, and
+`reports/week5/sprint-review-transcript.md`.
 
 ## Table of Contents
 
@@ -34,8 +32,10 @@ and the
 - [UAT-003 - Safely remove an authorized person](#uat-003-safely-remove-an-authorized-person)
 - [UAT-004 - Dashboard manual refresh](#uat-004-dashboard-manual-refresh)
 - [UAT-005 - Authorized-person change is effective without manual agent restart](#uat-005-authorized-person-change-is-effective-without-manual-agent-restart)
-- [UAT-006 - Strong and weak recognition results use correct score meaning](#uat-006-strong-and-weak-recognition-results-use-correct-score-meaning)
+- [UAT-006 - Strong and weak recognition results use correct confidence meaning](#uat-006-strong-and-weak-recognition-results-use-correct-confidence-meaning)
 - [UAT-007 - Unavailable camera and service status are clear](#uat-007-unavailable-camera-and-service-status-are-clear)
+
+<a id="uat-001-review-and-filter-access-events"></a>
 
 ## UAT-001 - Review and filter access events
 
@@ -90,6 +90,8 @@ results.
 | Customer comments | "Everything seems fine. All USs are approved. Continue, you have the right vision." |
 | Follow-up issue | None. |
 
+<a id="uat-005-authorized-person-change-is-effective-without-manual-agent-restart"></a>
+
 ## UAT-005 - Authorized-person change is effective without manual agent restart
 
 - Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
@@ -135,47 +137,58 @@ manual agent restart.
 | Customer comments | Customer did not raise this as a blocking issue and asked the team to focus next on Raspberry Pi testing, recognition quality, and speed. |
 | Follow-up issue | #35 is closed for the reviewed MVP v2 scope. Create a successor follow-up only if full automatic dataset/model synchronization becomes part of a later Sprint. |
 
-## UAT-006 - Strong and weak recognition results use correct score meaning
+<a id="uat-006-strong-and-weak-recognition-results-use-correct-score-meaning"></a>
+<a id="uat-006-strong-and-weak-recognition-results-use-correct-confidence-meaning"></a>
+
+## UAT-006 - Strong and weak recognition results use correct confidence meaning
 
 - Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
 - Current implementation status: Repository helper tests added; customer
   reviewed the display during the July 4 Sprint Review.
-- Objective: verify that administrators see lower LBPH distance as a stronger
-  match and higher distance as a weaker match.
+- Objective: verify that the administrator interface presents normalized
+  confidence consistently: a stronger match has higher confidence, while a
+  weaker or unknown match has lower confidence.
 
 ### Preconditions
 
 - FaceGuard frontend and backend are running with sample recognition events.
-- Events include one lower-distance strong match and one higher-distance weak
-  or unknown match.
+- Events include one stronger known-person match and one weaker or unknown
+  match.
 
 ### Test data required
 
-- Example lower-distance event, such as distance `35`.
-- Example higher-distance event, such as distance `90`.
+- Example known-person event with higher normalized confidence.
+- Example weaker or unknown event with lower normalized confidence.
 
 ### Customer steps
 
-1. Open Dashboard or Access Logs.
-2. Locate the lower-distance recognition event.
-3. Confirm that the UI labels it as match distance and shows it as stronger.
-4. Locate the higher-distance event.
-5. Confirm that it is shown as weaker or negative.
-6. Confirm that no screen presents raw LBPH distance as a probability.
+1. Open Access Logs.
+2. Locate a known-person recognition event.
+3. Check its displayed `Confidence` value.
+4. Locate an `Unknown` or weaker recognition event.
+5. Check that its displayed `Confidence` is lower than the stronger known-person
+   event.
+6. Confirm that a higher percentage is understandable as a stronger match.
+7. Confirm that raw LBPH distance remains an internal recognition value and is
+   not shown as a probability.
 
 ### Expected result
 
-The UI consistently communicates that lower match distance is better.
+The known-person event is displayed with higher confidence than the weaker or
+unknown event. Raw LBPH distance remains an internal recognition value and is
+not shown as a probability.
 
 ### Execution record
 
 | Field | Value |
 | --- | --- |
-| Actual result | Customer reviewed Access Logs score display after the LBPH distance semantics fix and confirmed that the corrected confidence/distance display was clear. |
+| Actual result | Customer reviewed Access Logs confidence display after the confidence-semantics fix and confirmed that the corrected display was clear. |
 | Pass/fail | Passed for the demonstrated MVP v2 scope. |
 | Recording timecode | Private recording evidence only. |
 | Customer comments | Customer confirmed that the confidence display was clear. |
 | Follow-up issue | None for the display semantics fix; continue model-quality improvements separately. |
+
+<a id="uat-007-unavailable-camera-and-service-status-are-clear"></a>
 
 ## UAT-007 - Unavailable camera and service status are clear
 
@@ -220,6 +233,8 @@ service statuses from the operator UI.
 | Recording timecode | Private recording evidence only. |
 | Customer comments | Customer confirmed that the camera was clearly not working in the demonstrated state. |
 | Follow-up issue | #17 / US-05 is closed for the reviewed MVP v2 scope. Continue incremental real monitoring only if it is selected for a later Sprint. |
+
+<a id="uat-002-edit-an-authorized-person"></a>
 
 ## UAT-002 - Edit an authorized person
 
@@ -271,6 +286,8 @@ reflects the change immediately.
 | Customer comments | Customer asked for a follow-up message with what exactly should be tested or approved. |
 | Follow-up issue | None. |
 
+<a id="uat-003-safely-remove-an-authorized-person"></a>
+
 ## UAT-003 - Safely remove an authorized person
 
 - Related issue: [US-10 / issue #22](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22)
@@ -318,6 +335,8 @@ removal, the UI shows success feedback and the list updates immediately.
 | Recording timecode | 00:05:28-00:07:34 |
 | Customer comments | Customer asked to be reminded what was done; team summarized deletion confirmation and Dashboard refresh. |
 | Follow-up issue | None. |
+
+<a id="uat-004-dashboard-manual-refresh"></a>
 
 ## UAT-004 - Dashboard manual refresh
 
