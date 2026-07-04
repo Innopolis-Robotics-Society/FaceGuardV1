@@ -1,8 +1,7 @@
-# User Acceptance Tests - Assignment 4
+# User Acceptance Tests - Assignments 4 and 5
 
 This document records customer-facing User Acceptance Test scenarios for the
-Assignment 4 / Week 4 Sprint Review and the evidence status after the June 28,
-2026 customer session.
+Assignment 4 / Week 4 Sprint Review and Assignment 5 / Week 5 MVP v2 review.
 
 - Execution status: Customer Review Completed; customer-executed UAT recording
   is provided in the private Moodle evidence package, and customer follow-up
@@ -19,6 +18,15 @@ The customer replied that everything seems fine and all user stories are
 approved. The private UAT recording link is intentionally not committed to the
 public repository.
 
+Assignment 5 / Week 5 update: the July 4, 2026 Sprint Review validated the
+customer-facing MVP v2 fixes for unavailable-camera visibility and corrected
+recognition-score meaning. The team reports that recording was permitted. The
+public evidence is kept in
+[Week 5 Sprint Review summary](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-summary.md),
+[Week 5 Sprint Review notes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-notes.md),
+and the
+[sanitized transcript](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/sprint-review-transcript.md).
+
 ## Table of Contents
 
 - [UAT-001 - Review and filter access events](#uat-001-review-and-filter-access-events)
@@ -27,6 +35,7 @@ public repository.
 - [UAT-004 - Dashboard manual refresh](#uat-004-dashboard-manual-refresh)
 - [UAT-005 - Authorized-person change is effective without manual agent restart](#uat-005-authorized-person-change-is-effective-without-manual-agent-restart)
 - [UAT-006 - Strong and weak recognition results use correct score meaning](#uat-006-strong-and-weak-recognition-results-use-correct-score-meaning)
+- [UAT-007 - Unavailable camera and service status are clear](#uat-007-unavailable-camera-and-service-status-are-clear)
 
 ## UAT-001 - Review and filter access events
 
@@ -84,8 +93,8 @@ results.
 ## UAT-005 - Authorized-person change is effective without manual agent restart
 
 - Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
-- Current implementation status: Pending customer execution and final
-  implementation evidence.
+- Current implementation status: MVP v2 workaround reviewed; full automatic
+  dataset/model synchronization remains follow-up work.
 - Objective: verify that a change to authorized-person data becomes effective
   without manually restarting the recognition agent.
 
@@ -120,17 +129,17 @@ manual agent restart.
 
 | Field | Value |
 | --- | --- |
-| Actual result | Pending customer execution. |
-| Pass/fail | Pending. |
-| Recording timecode | Private evidence only after execution. |
-| Customer comments | Pending. |
-| Follow-up issue | Pending if the scenario fails. |
+| Actual result | The team demonstrated and explained model-management controls, including restarting recognition/model loading through the interface after authorized-person changes. |
+| Pass/fail | Accepted for MVP v2 scope as an operator-controlled workaround; not a full automatic sync pass. |
+| Recording timecode | Private recording evidence only. |
+| Customer comments | Customer did not raise this as a blocking issue and asked the team to focus next on Raspberry Pi testing, recognition quality, and speed. |
+| Follow-up issue | #35 is closed for the reviewed MVP v2 scope. Create a successor follow-up only if full automatic dataset/model synchronization becomes part of a later Sprint. |
 
 ## UAT-006 - Strong and weak recognition results use correct score meaning
 
 - Related issue: [PBI-A5-QA / issue #61](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61)
 - Current implementation status: Repository helper tests added; customer
-  execution pending.
+  reviewed the display during the July 4 Sprint Review.
 - Objective: verify that administrators see lower LBPH distance as a stronger
   match and higher distance as a weaker match.
 
@@ -162,11 +171,55 @@ The UI consistently communicates that lower match distance is better.
 
 | Field | Value |
 | --- | --- |
-| Actual result | Pending customer execution. |
-| Pass/fail | Pending. |
-| Recording timecode | Private evidence only after execution. |
-| Customer comments | Pending. |
-| Follow-up issue | Pending if the scenario fails. |
+| Actual result | Customer reviewed Access Logs score display after the LBPH distance semantics fix and confirmed that the corrected confidence/distance display was clear. |
+| Pass/fail | Passed for the demonstrated MVP v2 scope. |
+| Recording timecode | Private recording evidence only. |
+| Customer comments | Customer confirmed that the confidence display was clear. |
+| Follow-up issue | None for the display semantics fix; continue model-quality improvements separately. |
+
+## UAT-007 - Unavailable camera and service status are clear
+
+- Related issue: [US-05 / issue #17](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/17)
+- Current implementation status: Customer reviewed and accepted the MVP v2
+  visibility behavior.
+- Objective: verify that the operator can see when the camera or main services
+  require attention.
+
+### Preconditions
+
+- FaceGuard frontend and backend are running in a demonstration environment.
+- The camera may be intentionally unavailable, or the Raspberry Pi camera may
+  be disconnected, to test unavailable-state clarity.
+
+### Test data required
+
+- A device/service status state available through backend health or latest
+  edge-device heartbeat data.
+- A camera panel state where the camera is unavailable.
+
+### Customer steps
+
+1. Open the administrator web application.
+2. Navigate to the camera panel.
+3. Confirm that the unavailable camera state is visible and understandable.
+4. Navigate to the system/status area.
+5. Confirm that backend, camera/agent, and recognition status are visible.
+6. Confirm that visual indicators distinguish healthy and unavailable states.
+
+### Expected result
+
+The customer can tell that the camera is unavailable and can inspect the main
+service statuses from the operator UI.
+
+### Execution record
+
+| Field | Value |
+| --- | --- |
+| Actual result | Customer confirmed that the camera was clearly shown as unavailable. The team also presented backend, camera/agent, and recognition service status displays. |
+| Pass/fail | Passed for MVP v2 heartbeat-derived service visibility. |
+| Recording timecode | Private recording evidence only. |
+| Customer comments | Customer confirmed that the camera was clearly not working in the demonstrated state. |
+| Follow-up issue | #17 / US-05 is closed for the reviewed MVP v2 scope. Continue incremental real monitoring only if it is selected for a later Sprint. |
 
 ## UAT-002 - Edit an authorized person
 

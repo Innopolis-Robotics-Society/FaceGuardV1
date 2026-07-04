@@ -9,34 +9,45 @@ Backlog is maintained in GitHub Issues and GitHub Project views.
 - Milestone: [Sprint 3 - MVP v2](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/3)
 - Product Backlog: [GitHub Project view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/1)
 - Sprint Backlog: [GitHub Project Sprint view](https://github.com/orgs/Innopolis-Robotics-Society/projects/7/views/2)
-- Latest repository evidence date: July 2, 2026
+- Latest repository evidence date: July 4, 2026
 
 ### Sprint Goal
 
 Prepare MVP v2 repository evidence by documenting the architecture and
 development process, extending recognition-score correctness tests, preserving
 Assignment 4 quality gates, and creating truthful Week 5 delivery materials
-with Pending sections for external evidence.
+with public evidence separated from private recording/access material.
+The July 4 Sprint Review validated the demonstrated MVP v2 behavior and left
+Raspberry Pi stability, recognition quality/performance, and fake/spoofing
+handling as the next product improvement focus.
 
 ### Selected Sprint PBIs
 
 | PBI | Expected outcome | SP | Implementer | Reviewer | Current status |
 | --- | --- | ---: | --- | --- | --- |
-| [#59 - PBI-A5-ARCH](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/59) | Maintained architecture package with diagrams and ADRs. | 5 | Sparta2016840 | rmxqwo | Local work prepared; PR/review pending. |
-| [#60 - PBI-A5-PROC](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/60) | Maintained development process and configuration management document. | 3 | Sparta2016840 | etherealboop | Local work prepared; PR/review pending. |
-| [#61 - PBI-A5-QA](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61) | Recognition-score semantics tests and updated quality/UAT docs. | 3 | Sparta2016840 | privel | Local tests/docs prepared; UAT and CI evidence pending. |
-| [#62 - PBI-A5-DELIVERY](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/62) | Week 5 public report, hosted docs setup, release/deployment evidence plan. | 5 | Sparta2016840 | rmxqwo | Public structure prepared; external evidence pending. |
-| [#35 - BUG-01: Recognition agent requires restart after authorized-person changes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Authorized-person data changes should become effective without manual agent restart. | 5 | privel | Sparta2016840 | Open; not fully fixed in this repository state. |
-| [#58 - BUG-02: Recognition confidence is displayed in reverse](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/58) | Recognition score display uses raw LBPH distance semantics where lower is better. | 3 | privel | Sparta2016840 | Local score-semantics fix/tests prepared; PR/review pending. |
+| [#17 - US-05: Monitor service status](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/17) | Operator can see backend/server API, edge device/agent, camera, and recognition status from backend health and heartbeat-derived data. | 3 | privel | Sparta2016840 | Delivered and closed through reviewed MVP v2 scope. |
+| [#59 - PBI-A5-ARCH](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/59) | Maintained architecture package with diagrams and ADRs. | 5 | Sparta2016840 | rmxqwo | Reviewed, merged, and closed. |
+| [#60 - PBI-A5-PROC](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/60) | Maintained development process and configuration management document. | 3 | Sparta2016840 | etherealboop | Reviewed, merged, and closed. |
+| [#61 - PBI-A5-QA](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/61) | Recognition-score semantics tests and updated quality/UAT docs. | 3 | Sparta2016840 | privel | Reviewed, merged, customer-UAT verified, and closed. |
+| [#62 - PBI-A5-DELIVERY](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/62) | Week 5 public report, hosted docs setup, release/deployment evidence plan. | 5 | Sparta2016840 | rmxqwo | Reviewed, merged, Sprint Review evidence added, and closed. |
+| [#35 - BUG-01: Recognition agent requires restart after authorized-person changes](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/35) | Authorized-person data changes should become effective without manual agent restart. | 5 | privel | Sparta2016840 | Closed for the reviewed MVP v2 model-management scope. |
+| [#58 - BUG-02: Recognition confidence is displayed in reverse](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/58) | Recognition score display uses raw LBPH distance semantics where lower is better. | 3 | privel | Sparta2016840 | Reviewed, merged, customer-UAT verified, and closed. |
 
-### MVP v2 Next Evidence Gates
+### MVP v2 Evidence Status
 
-- Open issue-linked PRs from the prepared local changes.
-- Request the assigned reviewers.
-- Run protected-main CI after merge.
-- Publish hosted documentation.
-- Conduct customer UAT and Sprint Review.
-- Publish a truthful SemVer release only after required evidence exists.
+- Hosted documentation is published:
+  [FaceGuard documentation](https://innopolis-robotics-society.github.io/FaceGuardV1/).
+- MVP v2 release is published:
+  [v2.0.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v2.0.0).
+- Relevant protected-main Quality Gates and GitHub Pages evidence is captured
+  in Week 5 screenshots.
+- Sprint milestone and GitHub Project board evidence is captured in Week 5
+  screenshots.
+- Public sanitized demo video is published:
+  [Two-minute demo video](https://drive.google.com/file/d/1SLaFwTe7_OE0T8-UPiGuFQQmNtrOl65F/view?usp=sharing).
+- Preserve the completed July 4 customer UAT and Sprint Review evidence.
+- System service-status evidence is captured in Week 5 screenshots.
+- Remaining evidence gate: Moodle private evidence package.
 
 ## Previous Sprint - Assignment 4
 

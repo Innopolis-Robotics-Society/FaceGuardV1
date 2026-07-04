@@ -14,9 +14,9 @@ US-11 was added during Assignment 3 backlog refinement because a connected entra
 | US-06 | Receive a scanner decision signal | Must Have | [#18](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/18) | Active | To Do | - |
 | US-07 | Use a clear admin web interface | Must Have | [#19](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/19) | Active | To Do | - |
 | US-08 | Manage access remotely | Must Have | [#20](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/20) | Active | To Do | - |
-| US-05 | Monitor service status | Should Have | [#17](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/17) | Active | To Do | - |
-| US-09 | Review access-attempt events | Should Have | [#21](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/21) | Active | To Do | - |
-| US-10 | Edit or remove authorized people | Should Have | [#22](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22) | Active | To Do | - |
+| US-05 | Monitor service status | Should Have | [#17](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/17) | Active | Done | [Sprint 3](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/3) |
+| US-09 | Review access-attempt events | Should Have | [#21](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/21) | Active | Done | [Sprint 2](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/2) |
+| US-10 | Edit or remove authorized people | Should Have | [#22](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/22) | Active | Done | [Sprint 2](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/milestone/2) |
 
 ## Synchronization Notes
 
