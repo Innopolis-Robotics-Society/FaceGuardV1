@@ -10,6 +10,7 @@ import { useGetPeople } from "../../../hooks/api/usePeople";
 import { AccessEvent } from "../../../types/api.types";
 import { useWebSocketEvent } from "../../../hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatRecognitionDistance, recognitionDistanceStrength } from "../../../utils/recognitionScore";
 
 const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 
@@ -53,19 +54,16 @@ function getPersonColor(name: string, status: LogStatus) {
   return colors[hash % colors.length];
 }
 
-function eventStatus(eventType: string, doorOpened: boolean): LogStatus {
-  if (eventType === "unknown") return "unknown";
-  if (eventType === "access_denied" || !doorOpened) return "denied";
-  return "granted";
+function eventStatus(accessResult: string): LogStatus {
+  if (accessResult === "granted") return "granted";
+  if (accessResult === "denied") return "denied";
+  return "unknown";
 }
 
-function eventAction(eventType: string, doorOpened: boolean) {
-  if (eventType === "manual_open") return "Manual open";
-  if (eventType === "door_opened") return "Door opened";
-  if (eventType === "access_denied") return "Access denied";
-  if (eventType === "unknown") return "Alert sent";
-  if (eventType === "recognition_error") return "Recognition error";
-  return doorOpened ? "Door opened" : "Access checked";
+function eventAction(accessResult: string) {
+  if (accessResult === "granted") return "Door opened";
+  if (accessResult === "denied") return "Access denied";
+  return "Unknown person";
 }
 
 function StatusBadge({ status }: { status: LogStatus }) {
@@ -117,7 +115,7 @@ function DetailModal({ log, onClose, onDelete, deleting }: { log: LogEntry; onCl
               </div>
             ))}
             <div className="col-span-2">
-              <p className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Confidence</p>
+              <p className="text-xs mb-1" style={{ color: "#3a3a3a" }}>Match distance</p>
               {log.confidence === null ? (
                 <p className="text-sm font-semibold text-white">Not reported</p>
               ) : (
@@ -201,15 +199,15 @@ function ClearModal({ onConfirm, onCancel, loading }: { onConfirm: (deleteAll: b
 }
 
 function toLogEntry(event: AccessEvent, peopleById: Map<string, string>): LogEntry {
-  const status = eventStatus(event.event_type, event.door_opened);
-  const name = event.person_id ? peopleById.get(event.person_id) ?? `Person ${event.person_id.slice(0, 8)}` : "Unknown";
+  const status = eventStatus(event.access_result);
+  const name = event.person_name || "Unknown";
   const parsed = parseISO(event.created_at);
   const color = getPersonColor(name, status);
   return {
     id: event.id,
-    eventType: event.event_type,
-    personId: event.person_id,
-    deviceId: event.device_id,
+    eventType: event.access_result,
+    personId: null,
+    deviceId: event.device_name || "Unknown device",
     name,
     initials: getInitials(name),
     color,
@@ -218,10 +216,10 @@ function toLogEntry(event: AccessEvent, peopleById: Map<string, string>): LogEnt
     createdAt: event.created_at,
     confidence: event.confidence,
     status,
-    action: eventAction(event.event_type, event.door_opened),
-    doorOpened: event.door_opened,
+    action: eventAction(event.access_result),
+    doorOpened: event.access_result === "granted",
     photoPath: event.photo_path,
-    videoPath: event.video_path,
+    videoPath: null,
   };
 }
 
@@ -387,7 +385,7 @@ export function AccessLogs() {
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="hidden lg:grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-3 px-5 py-3"
             style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            {["Photo", "Name", "Date", "Time", "Confidence", "Status", "Details"].map((h) => (
+            {["Photo", "Name", "Date", "Time", "Distance", "Status", "Details"].map((h) => (
               <div key={h} className="text-xs font-medium" style={{ color: "#3a3a3a" }}>{h}</div>
             ))}
           </div>

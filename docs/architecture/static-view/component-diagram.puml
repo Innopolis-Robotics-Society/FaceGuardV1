@@ -1,0 +1,36 @@
+@startuml
+title FaceGuard Static Component View
+
+actor "Administrator" as Admin
+node "Browser" {
+  component "React admin frontend\nfrontend/faceguard-web" as Frontend
+}
+node "Central server" {
+  component "FastAPI backend\nbackend-service/app" as Backend
+  database "PostgreSQL\npeople, photos, events,\ndevices, commands" as DB
+}
+node "Edge device / laptop" {
+  component "Recognition agent\nagent/main.py" as Agent
+  component "Camera service\nagent/camera" as CameraService
+  component "LBPH recognition\nagent/recognition" as Recognition
+  component "Command poller\nagent/commands" as Commands
+  component "Local SQLite queue\nagent/core/database.py" as SQLite
+}
+node "Hardware boundary" {
+  component "Camera" as Camera
+  component "Door relay" as Door
+}
+
+Admin --> Frontend : HTTPS/HTTP UI
+Frontend --> Backend : REST API, WebSocket
+Backend --> DB : SQLAlchemy
+Agent --> Backend : REST sync, heartbeat,\ncommand polling
+Commands --> Backend : command status updates
+Agent --> SQLite : offline event queue
+Agent --> CameraService
+CameraService --> Camera : OpenCV capture
+Agent --> Recognition : frames and model calls
+Agent --> Door : unlock command
+Recognition --> Agent : person id, LBPH distance
+
+@enduml

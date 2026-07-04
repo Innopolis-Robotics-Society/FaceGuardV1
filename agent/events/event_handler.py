@@ -29,10 +29,10 @@ class EventHandler:
 
         Args:
             person_id: UUID of recognized person
-            confidence: Recognition confidence (lower is better)
+            confidence: Raw OpenCV LBPH distance (lower is better)
             snapshot_path: Path to event snapshot
         """
-        logger.info(f"Person recognized: {person_id} (confidence: {confidence:.1f})")
+        logger.info(f"Person recognized: {person_id} (distance: {confidence:.1f})")
 
         # Open door
         door_opened = await asyncio.to_thread(self.door.open_door)
@@ -62,10 +62,10 @@ class EventHandler:
         Handle unknown person event
 
         Args:
-            confidence: Recognition confidence
+            confidence: Raw OpenCV LBPH distance (lower is better)
             snapshot_path: Path to event snapshot
         """
-        logger.info(f"Unknown person detected (confidence: {confidence:.1f})")
+        logger.info(f"Unknown person detected (distance: {confidence:.1f})")
 
         # Create event
         event_data = {

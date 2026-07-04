@@ -146,9 +146,23 @@ class AccessEventCreate(AccessEventBase):
     pass
 
 
-class AccessEventResponse(AccessEventBase):
+class AccessEventResponse(BaseModel):
     id: UUID
     created_at: datetime
+
+    event_type: str
+    access_result: str  # "granted" or "denied"
+
+    device_id: UUID
+    device_name: Optional[str]
+
+    person_id: Optional[UUID]
+    person_name: str  # fallback = "Unknown"
+
+    confidence: Optional[float] = None  # LBPH distance: lower means a better match.
+    door_opened: bool = False
+    photo_path: Optional[str]
+    video_path: Optional[str] = None
 
     class Config:
         from_attributes = True

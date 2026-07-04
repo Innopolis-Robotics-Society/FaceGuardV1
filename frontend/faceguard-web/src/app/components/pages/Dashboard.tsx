@@ -15,6 +15,7 @@ import { format, startOfDay, subDays, parseISO, subHours, formatDistanceToNow } 
 import { useWebSocketEvent } from "../../../hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { formatRecognitionDistance, recognitionDistanceStrength } from "../../../utils/recognitionScore";
 
 /* ── Sub-components ───────────────────────────────────────── */
 const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
@@ -533,7 +534,7 @@ export function Dashboard() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  {["Photo", "Person", "Date & Time", "Confidence", "Status"].map((h) => (
+                  {["Photo", "Person", "Date & Time", "Distance", "Status"].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "#3a3a3a" }}>
                       {h}
                     </th>
@@ -565,7 +566,7 @@ export function Dashboard() {
                     </td>
                     <td className="px-5 py-3.5">
                       {ev.confidence !== null ? (
-                        <ConfidenceBar value={ev.confidence} />
+                        <RecognitionDistanceBar value={ev.confidence} />
                       ) : (
                         <span className="text-xs" style={{ color: "#3a3a3a" }}>N/A</span>
                       )}

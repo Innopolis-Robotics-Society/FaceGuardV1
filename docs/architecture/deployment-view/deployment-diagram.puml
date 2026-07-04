@@ -1,0 +1,34 @@
+@startuml
+title FaceGuard Deployment View
+
+node "Administrator workstation" {
+  artifact "Web browser" as Browser
+}
+
+node "Central service host" {
+  artifact "frontend container / Vite dev server" as FE
+  artifact "backend-service FastAPI container" as BE
+  database "PostgreSQL volume" as PG
+}
+
+node "Edge recognition host" {
+  artifact "agent Python process/container" as AG
+  database "agent SQLite events.db" as LDB
+  folder "data/faces and data/models" as Models
+}
+
+node "Entrance hardware" {
+  node "Camera" as Cam <<hardware>>
+  node "Door relay / lock" as Lock <<hardware>>
+}
+
+Browser --> FE : HTTP :5173
+FE --> BE : HTTP REST/WS :8000
+BE --> PG : TCP 5432
+AG --> BE : HTTP REST :8000
+AG --> LDB : local file
+AG --> Models : local files
+AG --> Cam : OpenCV device index
+AG --> Lock : GPIO or development stub
+
+@enduml
