@@ -212,3 +212,8 @@ Manually check that:
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+## Development workflow guide
+
+- [Development and configuration process](docs/development-process.md)
+- [Week 5 report](reports/week5/README.md)
