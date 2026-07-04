@@ -4,6 +4,8 @@ All notable user-visible changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [v2.0.0] - 2026-07-04
+
 ### Added
 
 - Added Sprint 3 / Assignment 5 architecture documentation with static, dynamic, and

@@ -12,6 +12,8 @@ linked to automated Quality Requirement Tests in
 - [QR-USE-001 - Invalid person names are rejected](#qr-use-001-invalid-person-names-are-rejected)
 - [QR-REL-001 - Recognition score semantics are consistent](#qr-rel-001-recognition-score-semantics-are-consistent)
 
+<a id="qr-perf-001-health-endpoint-response-time"></a>
+
 ## QR-PERF-001 - Health endpoint response time
 
 - Stable ID: `QR-PERF-001`
@@ -51,6 +53,8 @@ or inconsistent health endpoint makes deployment feedback unreliable.
 This is an in-process CI measurement with FastAPI TestClient. It is not a
 production network benchmark and does not measure reverse proxies, container
 networking, database readiness, camera integrations, or internet latency.
+
+<a id="qr-sec-001-invalid-administrator-identity-is-rejected"></a>
 
 ## QR-SEC-001 - Invalid administrator identity is rejected
 
@@ -93,6 +97,8 @@ This automated check does not replace penetration testing, complete
 role-authorisation testing, token revocation checks, or production security
 review. It covers the documented invalid-identity boundary only.
 
+<a id="qr-use-001-invalid-person-names-are-rejected"></a>
+
 ## QR-USE-001 - Invalid person names are rejected
 
 - Stable ID: `QR-USE-001`
@@ -134,6 +140,8 @@ invalid values from reaching persistence logic.
 This requirement validates backend schema boundaries only. It does not cover
 frontend form usability, localisation, duplicate names, profanity filtering, or
 database-level constraints.
+
+<a id="qr-rel-001-recognition-score-semantics-are-consistent"></a>
 
 ## QR-REL-001 - Recognition score semantics are consistent
 

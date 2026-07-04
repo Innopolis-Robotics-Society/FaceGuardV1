@@ -90,10 +90,9 @@ No selected Sprint scope PR is in review at the final evidence point. Issues
 The customer was sent the implemented scenario checklist after the review and
 confirmed that the user stories are approved.
 
-![Customer confirmation approving checked user stories](images/16_customer_confirmation.png)
-
-*Caption: Customer message confirming that everything seems fine, all user
-stories are approved, and the team has the right vision.*
+Customer confirmation was preserved in the private Moodle evidence package. The
+public report records the outcome without committing the private message
+screenshot.
 
 ## 6. Customer and Stakeholder Feedback Response
 
@@ -284,11 +283,9 @@ feedback.*
 
 Customer confirmation evidence:
 
-![Customer confirmation approving checked user stories](images/16_customer_confirmation.png)
-
-*Caption: Customer follow-up message approving the checked user stories,
-including Access Logs review, person editing, and person removal with
-confirmation.*
+Customer follow-up confirmation was preserved in the private Moodle evidence
+package. The public report records the outcome without committing the private
+message screenshot.
 
 ## 14. Sprint Review
 
