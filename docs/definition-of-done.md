@@ -38,8 +38,10 @@ A PBI is Done only when all applicable conditions are satisfied:
 - Assignment 4 quality-gate work must update the quality requirements, QRT traceability, testing guide, coverage evidence, and Week 4 report links.
 - Assignment 4 report work must link customer review, UAT, deployment, release,
   and protected-main evidence after it is verified.
-- Sprint 3 / Assignment 5 MVP v2 delivery work must leave UAT, Sprint Review, hosted-docs,
-  demo, release, protected-main CI, and private Moodle evidence as Pending until
-  the real evidence exists.
+- Sprint 3 / Assignment 5 MVP v2 delivery work must leave hosted-docs, demo,
+  release, protected-main CI, and private Moodle evidence as Pending until the
+  real evidence exists. UAT and Sprint Review evidence may be marked completed
+  only when sanitized public notes are added and private recording/access
+  evidence is kept out of the repository.
 - Recognition-score changes must preserve the documented LBPH distance
   semantics: lower is better and equality with the threshold is rejected.

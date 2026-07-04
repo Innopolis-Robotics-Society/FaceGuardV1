@@ -1,16 +1,43 @@
 # Sprint Review Notes
 
-Status: Pending real Sprint Review execution.
+Status: Completed on July 4, 2026.
 
-Use this public file for sanitized notes when a full transcript cannot be
-published. Do not include private recording links, customer-identifying
-information, exact private timecodes, credentials, or consent evidence.
+These are sanitized public notes. Private recording links, credentials, exact
+private access details, and instructor-only evidence are intentionally omitted.
+The team reports that recording was permitted and that review materials may be
+shared privately with instructors.
 
-## Preparation Checklist
+## Participants
 
-- Review Sprint Goal and selected Sprint 3 MVP v2 PBIs.
-- Demonstrate the MVP v2 repository changes that are merged and deployed.
-- Discuss architecture views and ADR traceability.
-- Discuss quality gates and added recognition-score tests.
-- Execute or summarize customer UAT results.
-- Record remaining risks and follow-up backlog items.
+- Customer: Artyom Tuzov.
+- Team presenters: Danila Naboishchikov and Oleg Korchagin.
+
+## Agenda Covered
+
+- MVP v2 status and deployment access.
+- Corrected recognition-score/confidence display.
+- Recognition/model restart from the interface.
+- Backend, camera/agent, and recognition-service status displays.
+- Access Logs improvements.
+- Unavailable-camera handling in the camera panel.
+- Architecture diagrams, ADRs, development process, tests, and documentation.
+- Raspberry Pi lab testing status.
+- Remaining priorities for the final project period.
+
+## Scenario Notes
+
+- Camera panel: the customer confirmed that the camera was clearly shown as not
+  working/unavailable in the demonstrated deployment.
+- Access Logs: the customer confirmed that the corrected score display was
+  clear.
+- Raspberry Pi: the team reported that local lab testing successfully connected
+  the Raspberry Pi to the admin panel, displayed video, and ran recognition.
+
+## Decisions and Follow-Up
+
+- The customer accepted the demonstrated MVP v2 scope without blocking change
+  requests.
+- Next focus: Raspberry Pi testing, recognition quality and performance, and
+  fake/spoofing handling.
+- Public documentation should keep private recording links and credentials out
+  of the repository.

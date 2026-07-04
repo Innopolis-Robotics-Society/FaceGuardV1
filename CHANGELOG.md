@@ -11,8 +11,17 @@ All notable user-visible changes to this project are documented in this file.
 - Added development-process and configuration-management documentation.
 - Added MVP v2 recognition-score helper tests for threshold semantics and UI
   distance presentation.
-- Added MkDocs configuration and Week 5 public report structure with Pending
-  external-evidence sections.
+- Added MkDocs configuration and Week 5 public report structure.
+- Added sanitized Week 5 Sprint Review notes, summary, transcript, and UAT
+  status updates from the July 4 customer session.
+- Marked reviewed and merged Assignment 5 PBIs, BUG-01, BUG-02, and US-05 as
+  closed in the public status documentation.
+- Added Week 5 screenshot evidence for hosted documentation, CI/pages,
+  reviewed PR #65, release v2.0.0, architecture documentation, Access Logs
+  confidence display, and Live Camera offline state.
+- Added Sprint milestone and GitHub Project board screenshots plus the public
+  sanitized MVP v2 demo link.
+- Added System service-status screenshot evidence for US-05.
 
 ### Changed
 

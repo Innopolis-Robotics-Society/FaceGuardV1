@@ -4,8 +4,8 @@ FaceGuard is an MVP access-control system for restricted rooms and protected are
 
 ## MVP v2 / Assignment 5 Status
 
-Repository-side Sprint 3 / Assignment 5 work is prepared locally for MVP v2 documentation,
-architecture, process, QA, and delivery evidence:
+Sprint 3 / Assignment 5 delivered MVP v2 documentation, architecture, process,
+QA, and delivery evidence:
 
 - Week 5 report: [reports/week5/README.md](reports/week5/README.md)
 - Architecture package: [docs/architecture/README.md](docs/architecture/README.md)
@@ -14,11 +14,23 @@ architecture, process, QA, and delivery evidence:
   [mkdocs.yml](mkdocs.yml)
 - Hosted documentation target:
   [FaceGuard documentation](https://innopolis-robotics-society.github.io/FaceGuardV1/)
-  after the GitHub Pages workflow publishes from `main`.
+  published from `main`.
+- Public sanitized MVP v2 demo:
+  [Two-minute demo video](https://drive.google.com/file/d/1SLaFwTe7_OE0T8-UPiGuFQQmNtrOl65F/view?usp=sharing).
 
-External evidence remains Pending until the team opens reviewed PRs, runs
-protected-main CI, publishes hosted documentation, executes customer UAT and
-Sprint Review, and creates a SemVer release from protected `main`.
+MVP v2 is delivered to `main` and documented in the Week 5 report. The
+maintained documentation/evidence package was delivered through
+[PR #63](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/63),
+and recognition/deployment improvements were delivered through
+[PR #65](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/65).
+Hosted documentation is published at
+[FaceGuard documentation](https://innopolis-robotics-society.github.io/FaceGuardV1/),
+the MVP v2 SemVer release is
+[v2.0.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v2.0.0),
+and relevant protected-main Quality Gates / GitHub Pages evidence is captured in
+the Week 5 screenshots. Customer UAT and Sprint Review are documented; the
+public sanitized demo video is linked. All required public screenshot evidence,
+including System-page service-status evidence, is included in the Week 5 report.
 
 ## MVP v1 Status
 
