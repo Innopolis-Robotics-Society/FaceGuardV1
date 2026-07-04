@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Camera, Zap, Monitor, RotateCcw, Square, DoorOpen,
-  AlertTriangle, CheckCircle, XCircle, Maximize2, Wifi,
+  AlertTriangle, CheckCircle, XCircle, Maximize2, Wifi, Pause, Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
@@ -121,7 +121,9 @@ export function LiveCamera() {
   const [tempFps, setTempFps] = useState(30);
   const [lastFrame, setLastFrame] = useState<string>("");
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+  const [streamPaused, setStreamPaused] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
   // API hooks
@@ -165,16 +167,17 @@ export function LiveCamera() {
     // Show toast notification
     if (data.event_type === "recognized" && data.person_name) {
       toast.success(`${data.person_name} recognized`, {
-        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
+        description: `Confidence: ${data.confidence ? data.confidence.toFixed(1) : 'N/A'}%`,
       });
     } else if (data.event_type === "unknown") {
       toast.warning("Unknown person detected", {
-        description: `Confidence: ${data.confidence ? (100 - data.confidence).toFixed(2) : 'N/A'}%`,
+        description: `Confidence: ${data.confidence ? data.confidence.toFixed(1) : 'N/A'}%`,
       });
     }
 
-    // Invalidate events query to refresh the list
+    // Invalidate ALL events queries to refresh the list
     queryClient.invalidateQueries({ queryKey: ["events"] });
+    queryClient.invalidateQueries({ queryKey: ["people"] });
   });
 
   // Listen for door events
@@ -205,7 +208,7 @@ export function LiveCamera() {
 
   // Setup stream connection
   useEffect(() => {
-    if (!streamUrl || !imgRef.current) return;
+    if (!streamUrl || !imgRef.current || streamPaused) return;
 
     const img = imgRef.current;
 
@@ -239,7 +242,7 @@ export function LiveCamera() {
       img.onerror = null;
       clearInterval(interval);
     };
-  }, [streamUrl]);
+  }, [streamUrl, streamPaused]);
 
   // Load stream settings
   useEffect(() => {
@@ -355,24 +358,57 @@ export function LiveCamera() {
     updateStreamSettings(undefined, resolution);
   }
 
+  function toggleFullscreen() {
+    if (!videoContainerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      videoContainerRef.current.requestFullscreen().catch((err) => {
+        toast.error(`Fullscreen error: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
   return (
     <div className="flex flex-col xl:flex-row gap-4">
       {/* Camera feed */}
       <div className="flex-1 min-w-0 space-y-3">
         {/* Main feed */}
         <div
+          ref={videoContainerRef}
           className="relative rounded-2xl overflow-hidden"
           style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)", aspectRatio: "16/9", minHeight: "300px" }}
         >
           {/* Video stream */}
           {streamUrl ? (
-            <img
-              ref={imgRef}
-              src={streamUrl}
-              alt="Live camera feed"
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ display: streamConnected ? "block" : "none" }}
-            />
+            <>
+              <img
+                ref={imgRef}
+                src={streamPaused ? "" : streamUrl}
+                alt="Live camera feed"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ display: streamConnected && !streamPaused ? "block" : "none" }}
+              />
+
+              {/* Paused state with last frame */}
+              {streamPaused && lastFrame && (
+                <div className="absolute inset-0">
+                  <img
+                    src={lastFrame}
+                    alt="Paused frame"
+                    className="w-full h-full object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <div className="text-center">
+                      <Pause className="w-12 h-12 mb-3 mx-auto text-white" />
+                      <p className="text-sm font-medium text-white mb-1">Stream Paused</p>
+                      <p className="text-xs" style={{ color: "#a0a0a0" }}>Saving Raspberry Pi resources</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
@@ -422,21 +458,29 @@ export function LiveCamera() {
             }
           </div>
 
-          <div className="absolute top-3 right-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(0,0,0,0.7)", color: wsConnected ? "#10b981" : "#5a5a5a" }}>
-              <Wifi className="w-3 h-3" />
-              {wsConnected ? "Connected" : "Disconnected"}
-            </div>
-          </div>
-
           <div className="absolute bottom-3 left-3 text-xs px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
             <Monitor className="w-3 h-3 inline mr-1" />
             {telemetry?.camera_fps ? `${Math.round(telemetry.camera_fps)} fps` : "-- fps"}
           </div>
 
-          <button className="absolute bottom-3 right-3 p-2 rounded-lg transition-colors" style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}>
-            <Maximize2 className="w-4 h-4" />
-          </button>
+          <div className="absolute bottom-3 right-3 flex gap-2">
+            <button
+              onClick={() => setStreamPaused(!streamPaused)}
+              className="p-2 rounded-lg transition-colors"
+              style={{ background: "rgba(0,0,0,0.7)", color: streamPaused ? "#f59e0b" : "#10b981" }}
+              title={streamPaused ? "Resume stream" : "Pause stream"}
+            >
+              {streamPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 rounded-lg transition-colors hover:bg-white/10"
+              style={{ background: "rgba(0,0,0,0.7)", color: "#5a5a5a" }}
+              title="Fullscreen"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Event strip */}
@@ -464,7 +508,7 @@ export function LiveCamera() {
                     <div>
                       <div className="text-xs font-medium text-white">{name}</div>
                       <div className="text-xs mt-0.5" style={{ color }}>
-                        {event.confidence ? `${(100 - event.confidence).toFixed(2)}%` : "--"} · {time}
+                        {event.confidence ? `${event.confidence.toFixed(1)}%` : "--"} · {time}
                       </div>
                     </div>
                   </div>
