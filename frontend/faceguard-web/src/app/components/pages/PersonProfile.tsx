@@ -73,8 +73,6 @@ function PhotoCard({
         <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
           {[
             { icon: Eye, title: "View", action: onView, textColor: "#ffffff" },
-            { icon: Star, title: "Primary", action: onSetPrimary, textColor: "#f59e0b" },
-            { icon: Edit, title: "Rename", action: onRename, textColor: "#3b82f6" },
             { icon: Trash2, title: "Delete", action: onDelete, textColor: "#ef4444" },
           ].map(({ icon: Icon, title, action, textColor }) => (
             <button key={title} onClick={() => action(photo.id)} title={title}
@@ -97,14 +95,14 @@ function ViewModal({ personId, photo, color, onClose }: { personId: string; phot
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/90" onClick={onClose} />
-      <div className="relative rounded-2xl overflow-hidden w-full max-w-md"
+      <div className="relative rounded-2xl overflow-hidden w-full max-w-4xl"
         style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <span className="text-xs font-semibold text-white">{photoName(photo)}</span>
           <button onClick={onClose} className="text-neutral-600 hover:text-white"><X className="w-4 h-4" /></button>
         </div>
-        <div className="aspect-square flex items-center justify-center overflow-hidden" style={{ background: `${color}08` }}>
+        <div className="flex items-center justify-center overflow-hidden" style={{ background: `${color}08`, maxHeight: "80vh" }}>
           <PhotoImage personId={personId} photoId={photo.id} type="original" className="w-full h-full object-contain" />
         </div>
         <div className="px-5 py-4 flex items-center gap-3">
@@ -148,6 +146,37 @@ function RenameModal({ photo, onConfirm, onCancel }: { photo: PersonPhoto; onCon
   );
 }
 
+function DeleteConfirmModal({ photo, onConfirm, onCancel, deleting }: { photo: PersonPhoto; onConfirm: () => void; onCancel: () => void; deleting: boolean }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80" onClick={onCancel} />
+      <div className="relative rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+        style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ background: "rgba(239,68,68,0.1)" }}>
+          <Trash2 className="w-5 h-5" style={{ color: "#ef4444" }} />
+        </div>
+        <h3 className="text-sm font-semibold text-white text-center mb-2">Delete Photo?</h3>
+        <p className="text-xs text-center mb-5 leading-relaxed" style={{ color: "#5a5a5a" }}>
+          This will permanently delete "{photoName(photo)}". This action cannot be undone.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={onCancel} disabled={deleting}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "#1a1a1a", color: "#a0a0a0" }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={deleting}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "#ef4444", color: "#fff" }}>
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PersonProfile() {
   const { id } = useParams<{ id: string }>();
   const personId = id ?? "";
@@ -166,9 +195,11 @@ export function PersonProfile() {
 
   const [viewPhoto, setViewPhoto] = useState<PersonPhoto | null>(null);
   const [renamePhoto, setRenamePhoto] = useState<PersonPhoto | null>(null);
+  const [deletePhotoConfirm, setDeletePhotoConfirm] = useState<PersonPhoto | null>(null);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [showCaptureOptions, setShowCaptureOptions] = useState(false);
 
   useEffect(() => {
     if (person) {
@@ -176,6 +207,19 @@ export function PersonProfile() {
       setDescription(person.description ?? "");
     }
   }, [person]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.capture-dropdown')) {
+        setShowCaptureOptions(false);
+      }
+    }
+    if (showCaptureOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showCaptureOptions]);
 
   function savePerson() {
     if (!person || !name.trim()) return;
@@ -201,13 +245,14 @@ export function PersonProfile() {
     });
   }
 
-  function captureMorePhotos() {
+  function captureMorePhotos(count: number) {
     if (!personId) return;
     if (!activeDevice) {
       toast.error("No device available for capture");
       return;
     }
-    capturePhotos.mutate({ deviceId: activeDevice.id, personId, count: 15 });
+    capturePhotos.mutate({ deviceId: activeDevice.id, personId, count });
+    setShowCaptureOptions(false);
   }
 
   function setPrimary() {
@@ -317,12 +362,27 @@ export function PersonProfile() {
               <Upload className="w-3.5 h-3.5" /> {uploadPhotos.isPending ? "Uploading..." : "Add Photo"}
               <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
             </label>
-            <button onClick={captureMorePhotos}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-black"
-              style={{ background: "#ffffff" }}
-              disabled={capturePhotos.isPending}>
-              <Camera className="w-3.5 h-3.5" /> {capturePhotos.isPending ? "Capturing..." : "Capture"}
-            </button>
+            <div className="relative capture-dropdown">
+              <button onClick={() => setShowCaptureOptions(!showCaptureOptions)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-black"
+                style={{ background: "#ffffff" }}
+                disabled={capturePhotos.isPending}>
+                <Camera className="w-3.5 h-3.5" /> {capturePhotos.isPending ? "Capturing..." : "Capture"}
+              </button>
+              {showCaptureOptions && !capturePhotos.isPending && (
+                <div className="absolute right-0 top-full mt-2 rounded-xl py-1 shadow-2xl z-10 min-w-[140px]"
+                  style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  {[5, 10, 15].map((count) => (
+                    <button key={count}
+                      onClick={() => captureMorePhotos(count)}
+                      className="w-full px-4 py-2 text-xs font-medium text-left hover:bg-white/5 transition-colors"
+                      style={{ color: "#a0a0a0" }}>
+                      Capture {count} photos
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -350,7 +410,7 @@ export function PersonProfile() {
               <PhotoCard key={ph.id} personId={person.id} photo={ph} color={color}
                 onSetPrimary={setPrimary}
                 onRename={(photoId) => setRenamePhoto(photos.find((p) => p.id === photoId) ?? null)}
-                onDelete={(photoId) => deletePhoto.mutate({ personId: person.id, photoId })}
+                onDelete={(photoId) => setDeletePhotoConfirm(photos.find((p) => p.id === photoId) ?? null)}
                 onView={(photoId) => setViewPhoto(photos.find((p) => p.id === photoId) ?? null)} />
             ))}
             <label className="rounded-2xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:bg-white/3 transition-colors"
@@ -365,6 +425,19 @@ export function PersonProfile() {
 
       {viewPhoto && <ViewModal personId={person.id} photo={viewPhoto} color={color} onClose={() => setViewPhoto(null)} />}
       {renamePhoto && <RenameModal photo={renamePhoto} onConfirm={renamePhotoLocally} onCancel={() => setRenamePhoto(null)} />}
+      {deletePhotoConfirm && (
+        <DeleteConfirmModal
+          photo={deletePhotoConfirm}
+          onConfirm={() => {
+            deletePhoto.mutate(
+              { personId: person.id, photoId: deletePhotoConfirm.id },
+              { onSuccess: () => setDeletePhotoConfirm(null) }
+            );
+          }}
+          onCancel={() => setDeletePhotoConfirm(null)}
+          deleting={deletePhoto.isPending}
+        />
+      )}
     </div>
   );
 }

@@ -173,30 +173,58 @@ class FaceGuardAgent:
         """Stop all agent services"""
         logger.info("Stopping FaceGuard Agent...")
 
-        # Stop recognition loop
+        # Stop recognition loop first (blocking operation)
+        logger.info("Stopping recognition loop...")
         self.recognition_loop.stop()
 
+        # Give recognition thread time to stop
+        await asyncio.sleep(0.5)
+
         # Stop command poller
+        logger.info("Stopping command poller...")
         await self.command_poller.stop()
 
         # Stop sync manager
+        logger.info("Stopping sync manager...")
         await self.sync_manager.stop()
 
-        # Stop background tasks
-        if self.heartbeat_task:
+        # Cancel background tasks with timeout
+        logger.info("Cancelling background tasks...")
+        tasks_to_cancel = []
+        if self.heartbeat_task and not self.heartbeat_task.done():
             self.heartbeat_task.cancel()
-        if self.telemetry_task:
+            tasks_to_cancel.append(self.heartbeat_task)
+        if self.telemetry_task and not self.telemetry_task.done():
             self.telemetry_task.cancel()
-        if self.stream_server_task:
+            tasks_to_cancel.append(self.telemetry_task)
+        if self.stream_server_task and not self.stream_server_task.done():
             self.stream_server_task.cancel()
+            tasks_to_cancel.append(self.stream_server_task)
+
+        # Wait for tasks to complete with timeout
+        if tasks_to_cancel:
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks_to_cancel, return_exceptions=True),
+                    timeout=2.0
+                )
+            except asyncio.TimeoutError:
+                logger.warning("Some background tasks did not stop in time")
 
         # Stop camera
+        logger.info("Stopping camera...")
         self.camera.stop()
+        await asyncio.sleep(0.3)
 
         # Close backend client
-        await self.backend.close()
+        logger.info("Closing backend connection...")
+        try:
+            await asyncio.wait_for(self.backend.close(), timeout=2.0)
+        except asyncio.TimeoutError:
+            logger.warning("Backend client close timed out")
 
         # Release hardware
+        logger.info("Releasing hardware...")
         self.door.release()
         self.camera.release()
 
@@ -270,12 +298,12 @@ class FaceGuardAgent:
         """Print agent status"""
         logger.info("")
         logger.info("Status:")
-        logger.info(f"  Camera: {'✓ Available' if self.camera.is_available() else '✗ Not available'}")
-        logger.info(f"  Recognition: {'✓ Trained' if self.recognition.is_trained else '✗ Not trained'}")
-        logger.info(f"  Door controller: {'✓ Ready' if self.door.get_status()['available'] else '✗ Not available'}")
+        logger.info(f"  Camera: {'[OK] Available' if self.camera.is_available() else '[!] Not available'}")
+        logger.info(f"  Recognition: {'[OK] Trained' if self.recognition.is_trained else '[!] Not trained'}")
+        logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
 
         sync_status = self.sync_manager.get_sync_status()
-        logger.info(f"  Backend: {'✓ Online' if sync_status['is_online'] else '✗ Offline'}")
+        logger.info(f"  Backend: {'[OK] Online' if sync_status['is_online'] else '[!] Offline'}")
 
         if sync_status['needs_sync']:
             logger.info(f"  Unsynced: {sync_status['unsynced_events']} events, {sync_status['unsynced_telemetry']} telemetry")
@@ -313,7 +341,7 @@ def main():
     asyncio.set_event_loop(loop)
 
     def signal_handler(signum, frame):
-        logger.info(f"Received signal {signum}")
+        logger.info(f"Received signal {signum}, initiating shutdown...")
         agent.shutdown()
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -324,10 +352,29 @@ def main():
         loop.run_until_complete(agent.start())
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt received")
+        agent.shutdown()
     finally:
-        loop.run_until_complete(agent.stop())
-        loop.close()
-        logger.info("Agent shutdown complete")
+        try:
+            logger.info("Running cleanup...")
+            loop.run_until_complete(agent.stop())
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+        finally:
+            # Force close any remaining tasks
+            pending = asyncio.all_tasks(loop)
+            for task in pending:
+                task.cancel()
+
+            # Wait briefly for cancellation
+            if pending:
+                loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+
+            loop.close()
+            logger.info("Agent shutdown complete")
+
+            # Force exit if still hanging
+            import sys
+            sys.exit(0)
 
 
 if __name__ == "__main__":

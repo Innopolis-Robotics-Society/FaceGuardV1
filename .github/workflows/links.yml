@@ -1,0 +1,35 @@
+name: Check links
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    name: Lychee link check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Restore Lychee cache
+        uses: actions/cache@v5
+        with:
+          path: .lycheecache
+          key: lychee-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            lychee-${{ runner.os }}-
+
+      - name: Check repository links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --config .lychee.toml --root-dir "${{ github.workspace }}" "./**/*.md" "./**/*.html"
+          fail: true
+          jobSummary: true
+          token: ${{ secrets.GITHUB_TOKEN }}

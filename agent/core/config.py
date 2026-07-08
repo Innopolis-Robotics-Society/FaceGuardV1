@@ -28,10 +28,19 @@ class Config:
     CAMERA_FPS: int = int(os.getenv("CAMERA_FPS", "30"))
 
     # Recognition settings
+    RECOGNITION_MODEL: str = os.getenv("RECOGNITION_MODEL", "lbph")  # lbph, deepface
+    DEEPFACE_MODEL: str = os.getenv("DEEPFACE_MODEL", "Facenet")  # VGG-Face, Facenet, OpenFace, ArcFace, DeepFace, DeepID, Dlib
+    DEEPFACE_DISTANCE_METRIC: str = os.getenv("DEEPFACE_DISTANCE_METRIC", "cosine")  # cosine, euclidean, euclidean_l2
     RECOGNITION_THRESHOLD: float = float(os.getenv("RECOGNITION_THRESHOLD", "70"))
     MIN_FACE_SIZE: int = int(os.getenv("MIN_FACE_SIZE", "80"))
     FACE_SCALE_FACTOR: float = float(os.getenv("FACE_SCALE_FACTOR", "1.2"))
     FACE_MIN_NEIGHBORS: int = int(os.getenv("FACE_MIN_NEIGHBORS", "5"))
+
+    # Liveness detection settings
+    LIVENESS_ENABLED: bool = os.getenv("LIVENESS_ENABLED", "false").lower() == "true"
+    LIVENESS_BLINK_REQUIRED: bool = os.getenv("LIVENESS_BLINK_REQUIRED", "true").lower() == "true"
+    LIVENESS_MOTION_REQUIRED: bool = os.getenv("LIVENESS_MOTION_REQUIRED", "false").lower() == "true"
+    LIVENESS_TIMEOUT_SECONDS: int = int(os.getenv("LIVENESS_TIMEOUT_SECONDS", "3"))
 
     # Door control
     SERVO_GPIO_PIN: int = int(os.getenv("SERVO_GPIO_PIN", "17"))

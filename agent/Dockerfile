@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libopenblas-dev \
     libgfortran5 \
+    libatlas-base-dev \
     libjpeg-dev \
     libpng-dev \
     libavcodec-dev \
@@ -25,8 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libv4l-dev \
     libxvidcore-dev \
     libx264-dev \
-    libgtk-3-0 \
+    libgtk-3-dev \
     libcanberra-gtk3-module \
+    gcc \
+    g++ \
+    libcamera-dev \
+    libcamera-apps \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -38,12 +43,14 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 
 COPY . .
 
-RUN mkdir -p /app/data/faces \
-    /app/data/events \
-    /app/data/models \
-    /app/data/logs
+# Create data directories
+RUN mkdir -p /data/faces \
+    /data/events \
+    /data/models \
+    /data/logs
 
 ENV PYTHONUNBUFFERED=1
-ENV HARDWARE_MODE=development
+ENV HARDWARE_MODE=raspberry_pi
+ENV DATA_DIR=/data
 
 CMD ["python", "-u", "main.py"]

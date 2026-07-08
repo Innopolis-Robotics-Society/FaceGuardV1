@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: faceguard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: faceguard
+      POSTGRES_USER: faceguard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-faceguard_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - faceguard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faceguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend-service
+      dockerfile: Dockerfile
+    container_name: faceguard-backend
+    restart: unless-stopped
+    environment:
+      # Application
+      APP_NAME: "FaceGuard API"
+      APP_VERSION: "0.1.0"
+      APP_ENV: ${APP_ENV:-development}
+
+      # Database
+      DATABASE_URL: postgresql://faceguard:${POSTGRES_PASSWORD:-faceguard_secure_password}@postgres:5432/faceguard
+
+      # Data directories
+      DATA_DIR: /data
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-change-this-to-a-secure-random-string-in-production}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    networks:
+      - faceguard-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/system/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Web Application
+  frontend:
+    build:
+      context: ./frontend/faceguard-web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:8000}
+        VITE_STREAM_URL: ${VITE_STREAM_URL:-http://localhost:8001}
+    container_name: faceguard-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - faceguard-network
+    depends_on:
+      - backend
+
+networks:
+  faceguard-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

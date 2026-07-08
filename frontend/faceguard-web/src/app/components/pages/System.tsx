@@ -11,6 +11,7 @@ import { useGetLatestTelemetry } from "../../../hooks/api/useTelemetry";
 import {
   useGetCommands,
   useRebootDevice,
+  useRebuildModel,
   useRestartAgent,
   useRestartCamera,
   useRestartRecognition,
@@ -135,6 +136,7 @@ export function System() {
   const restartCamera = useRestartCamera();
   const restartAgent = useRestartAgent();
   const rebootDevice = useRebootDevice();
+  const rebuildModel = useRebuildModel();
   const sendCommand = useSendCommand();
 
   const logs = useMemo(() => {
@@ -169,6 +171,13 @@ export function System() {
   }
 
   const CONTROLS = [
+    {
+      label: "Rebuild Recognition Model",
+      icon: Zap,
+      danger: false,
+      msg: "This will retrain the AI model with all current photos. Recognition will be unavailable during training.",
+      action: () => requireDevice(() => rebuildModel.mutate(deviceId)),
+    },
     {
       label: "Restart Recognition Service",
       icon: Zap,

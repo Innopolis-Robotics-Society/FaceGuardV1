@@ -5,24 +5,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: faceguard_agent
+    container_name: faceguard-agent
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
-      - DEVICE_CODE=${DEVICE_CODE:-rpi-main-001}
-      - HARDWARE_MODE=${HARDWARE_MODE:-development}
-      - RECOGNITION_THRESHOLD=${RECOGNITION_THRESHOLD:-70}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - HARDWARE_MODE=raspberry_pi
+      - DATA_DIR=/data
     volumes:
-      - ./data:/app/data
-      - /dev/video0:/dev/video0  # Camera device (Linux only)
+      - agent-data:/data
+      - /dev/video0:/dev/video0  # Camera device (USB cameras)
+      - /dev/vchiq:/dev/vchiq     # Raspberry Pi camera interface
     devices:
-      - /dev/video0:/dev/video0  # Camera access
-    privileged: true  # Required for GPIO on Raspberry Pi
-    networks:
-      - faceguard_network
+      - /dev/video0:/dev/video0   # USB camera
+      - /dev/vchiq:/dev/vchiq     # Pi Camera Module
+      - /dev/gpiomem:/dev/gpiomem # GPIO memory access
+    privileged: false  # Try without privileged first for security
+    # If camera or GPIO doesn't work, set to true:
+    # privileged: true
+    ports:
+      - "8001:8001"  # Stream server port (required for camera feed)
+    network_mode: bridge  # Use bridge mode with explicit ports
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Access host services (backend)
 
-networks:
-  faceguard_network:
-    external: true
-    name: faceguard_network
+volumes:
+  agent-data:
+    driver: local
