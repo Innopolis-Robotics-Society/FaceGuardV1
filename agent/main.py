@@ -333,6 +333,17 @@ def main():
     print("=" * 60)
     print()
 
+    # Download required models if not present
+    try:
+        from scripts.download_models import download_models
+        print("Checking required models...")
+        download_models(force=False, skip_optional=False)
+        print()
+    except Exception as e:
+        logger.warning(f"Failed to download models: {e}")
+        logger.info("Continuing without optional models...")
+        print()
+
     # Create agent
     agent = FaceGuardAgent()
 

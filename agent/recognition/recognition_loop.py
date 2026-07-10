@@ -36,12 +36,42 @@ class RecognitionLoop:
         self.loop_thread: Optional[threading.Thread] = None
         self.last_action_time = {}
 
-        # Liveness detector
+        # Liveness detector (basic checks: blink, motion, texture)
         self.liveness_detector = LivenessDetector() if Config.LIVENESS_ENABLED else None
         if Config.LIVENESS_ENABLED:
             logger.info("Liveness detection enabled (anti-spoofing)")
         else:
             logger.warning("Liveness detection disabled - vulnerable to photo spoofing!")
+
+        # MiniFASNet Anti-Spoofing detector (advanced CNN-based)
+        self.antispoofing_detector = None
+        if Config.ANTISPOOFING_ENABLED:
+            try:
+                from recognition.minifasnet_detector import MiniFASNetDetector
+
+                model_path = None
+                if Config.ANTISPOOFING_MODEL_PATH:
+                    model_path = Path(Config.ANTISPOOFING_MODEL_PATH)
+                    if not model_path.exists():
+                        logger.warning(f"MiniFASNet model not found: {model_path}")
+                        model_path = None
+
+                self.antispoofing_detector = MiniFASNetDetector(
+                    model_path=model_path,
+                    device=Config.ANTISPOOFING_DEVICE
+                )
+
+                if self.antispoofing_detector.is_loaded:
+                    logger.info(f"MiniFASNet anti-spoofing enabled (threshold: {Config.ANTISPOOFING_THRESHOLD})")
+                else:
+                    logger.warning("MiniFASNet enabled but model not loaded - download model weights first")
+
+            except Exception as e:
+                logger.error(f"Failed to initialize MiniFASNet: {e}")
+                logger.warning("MiniFASNet anti-spoofing disabled")
+                self.antispoofing_detector = None
+        else:
+            logger.info("MiniFASNet anti-spoofing disabled")
 
     def start(self):
         """Start recognition loop"""
@@ -107,6 +137,28 @@ class RecognitionLoop:
                         continue
 
                     logger.debug(f"Liveness check passed: {liveness_result['method']}")
+
+                # Check anti-spoofing with MiniFASNet if enabled
+                if self.antispoofing_detector is not None and self.antispoofing_detector.is_loaded:
+                    antispoofing_result = self.antispoofing_detector.detect_spoofing(
+                        frame,
+                        result["face_bbox"],
+                        threshold=Config.ANTISPOOFING_THRESHOLD
+                    )
+
+                    if not antispoofing_result["is_real"]:
+                        logger.warning(
+                            f"Anti-spoofing check failed: {antispoofing_result['label']} "
+                            f"(confidence: {antispoofing_result['confidence']:.2f}) "
+                            f"scores: {antispoofing_result['scores']}"
+                        )
+                        time.sleep(0.1)
+                        continue
+
+                    logger.debug(
+                        f"Anti-spoofing check passed: real face detected "
+                        f"(confidence: {antispoofing_result['confidence']:.2f})"
+                    )
 
                 # Process recognition result
                 if result["recognized"]:
