@@ -49,6 +49,10 @@ RUN mkdir -p /data/faces \
     /data/models \
     /data/logs
 
+# Download required models (anti-spoofing, etc.)
+RUN python scripts/download_models.py --skip-optional || \
+    echo "Warning: Optional models download failed - some features may be unavailable"
+
 ENV PYTHONUNBUFFERED=1
 ENV HARDWARE_MODE=raspberry_pi
 ENV DATA_DIR=/data
