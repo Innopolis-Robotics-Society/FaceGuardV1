@@ -566,7 +566,7 @@ export function Dashboard() {
                     </td>
                     <td className="px-5 py-3.5">
                       {ev.confidence !== null ? (
-                        <RecognitionDistanceBar value={ev.confidence} />
+                        <ConfidenceBar value={ev.confidence} />
                       ) : (
                         <span className="text-xs" style={{ color: "#3a3a3a" }}>N/A</span>
                       )}
