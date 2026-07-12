@@ -19,6 +19,7 @@ import { apiService } from "../../../services/api.service";
 import { AccessEvent } from "../../../types/api.types";
 import { useWebSocket, useWebSocketEvent } from "../../../hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatRecognitionDistanceSummary } from "../../../utils/recognitionScore";
 
 const CARD  = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 

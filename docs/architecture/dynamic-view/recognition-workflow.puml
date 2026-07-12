@@ -1,0 +1,28 @@
+@startuml
+title Recognition Event Submission Workflow
+
+participant Camera
+participant "Recognition agent" as Agent
+participant "LBPH recognizer" as Recognizer
+participant "Local SQLite queue" as Queue
+participant "Backend API" as Backend
+database "PostgreSQL" as DB
+participant "Admin frontend" as Frontend
+
+Camera -> Agent : frame
+Agent -> Recognizer : recognize_face(frame)
+Recognizer --> Agent : recognized?, person_id,\nLBPH distance, threshold
+alt recognized and access enabled locally
+  Agent -> Agent : open door
+  Agent -> Queue : save recognized event
+else unknown or denied
+  Agent -> Queue : save unknown/denied event
+end
+Agent -> Backend : POST /api/v1/events or sync batch
+Backend -> DB : persist AccessEvent
+Backend --> Agent : accepted response
+Frontend -> Backend : GET /api/v1/events
+Backend -> DB : query recent events
+Backend --> Frontend : events with raw distance
+
+@enduml

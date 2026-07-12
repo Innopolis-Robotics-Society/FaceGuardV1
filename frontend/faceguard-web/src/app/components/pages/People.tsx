@@ -2,10 +2,19 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router";
 import {
   Search, Plus, Grid, List, Edit, Trash2,
-  User, ChevronLeft, ChevronRight,
+  User, ChevronLeft, ChevronRight, X, Upload, Camera, AlertTriangle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { useGetPeople, useCreatePerson, useDeletePerson } from "../../../hooks/api/usePeople";
+import { toast } from "sonner";
+import {
+  useGetPeople,
+  useCreatePerson,
+  useDeletePerson,
+  useUpdatePerson,
+  useUploadPhotos,
+} from "../../../hooks/api/usePeople";
+import { apiService } from "../../../services/api.service";
+import { Person, PersonUpdate } from "../../../types/api.types";
 
 const CARD = { background: "#111111", border: "1px solid rgba(255,255,255,0.06)" };
 
@@ -50,9 +59,7 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
   const [loading, setLoading] = useState(false);
 
   async function save() {
-    if (!name.trim()) {
-      return;
-    }
+    if (!name.trim()) return;
     setLoading(true);
     try {
       await onSave({
@@ -61,7 +68,7 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
         access_enabled: true,
       });
       onClose();
-    } catch (error) {
+    } catch {
       setLoading(false);
     }
   }
@@ -75,7 +82,7 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <h2 className="text-sm font-semibold text-white">Add New Person</h2>
           <button onClick={onClose} className="text-neutral-600 hover:text-white transition-colors">
-            <User className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -86,7 +93,6 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
               className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-neutral-700 outline-none"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: "#5a5a5a" }}>Note</label>
             <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note…" rows={2}
@@ -96,10 +102,11 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
         </div>
 
         <div className="flex gap-2 px-6 pb-5">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "#1a1a1a", color: "#a0a0a0" }} disabled={loading}>Cancel</button>
-          <button onClick={save} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-black"
-            style={{ background: "#ffffff" }} disabled={loading || !name.trim()}>
+          <button onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+            style={{ background: "#1a1a1a", color: "#a0a0a0" }}>Cancel</button>
+          <button onClick={save} disabled={loading || !name.trim()}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-black"
+            style={{ background: "#ffffff" }}>
             {loading ? "Saving..." : "Save Person"}
           </button>
         </div>
@@ -108,27 +115,178 @@ function AddPersonModal({ onClose, onSave }: { onClose: () => void; onSave: (dat
   );
 }
 
+/* ── Edit Person Modal ────────────────────────────────── */
+function EditPersonModal({
+  person,
+  onClose,
+  onSave,
+}: {
+  person: Person;
+  onClose: () => void;
+  onSave: (personId: string, data: PersonUpdate, photo: File | null) => Promise<void>;
+}) {
+  const [name,    setName]    = useState(person.name);
+  const [note,    setNote]    = useState(person.description ?? "");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [photo,   setPhoto]   = useState<File | null>(null);
+  const [saving,  setSaving]  = useState(false);
+
+  const color = getPersonColor(person.name);
+
+  async function save() {
+    if (!name.trim()) { toast.error("Name is required"); return; }
+    setSaving(true);
+    try {
+      await onSave(
+        person.id,
+        { name: name.trim(), description: note.trim() || null },
+        photo,
+      );
+      onClose();
+    } catch {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="relative rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+        style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <h2 className="text-sm font-semibold text-white">Edit Person</h2>
+          <button onClick={onClose} className="text-neutral-600 hover:text-white transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="px-6 py-5 space-y-4">
+          {/* Face image */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
+              style={{ background: preview ? "transparent" : `${color}10`, border: `1.5px dashed ${color}30` }}>
+              {preview
+                ? <img src={preview} alt="" className="w-full h-full object-cover" />
+                : <span className="text-2xl font-bold" style={{ color }}>{getInitials(person.name)}</span>
+              }
+            </div>
+            <div className="flex gap-2">
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer"
+                style={{ background: "#1a1a1a", color: "#a0a0a0", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <Upload className="w-3 h-3" /> Replace Photo
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) { setPhoto(f); setPreview(URL.createObjectURL(f)); }
+                }} />
+              </label>
+              <button onClick={() => toast.info("Camera capture coming soon")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium"
+                style={{ background: "#1a1a1a", color: "#a0a0a0", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <Camera className="w-3 h-3" /> Capture
+              </button>
+            </div>
+          </div>
+
+          {/* Name */}
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#5a5a5a" }}>Full Name *</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. John Doe"
+              className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-neutral-700 outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#5a5a5a" }}>Note</label>
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note…" rows={2}
+              className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-neutral-700 outline-none resize-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
+          </div>
+        </div>
+
+        <div className="flex gap-2 px-6 pb-5">
+          <button onClick={onClose} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+            style={{ background: "#1a1a1a", color: "#a0a0a0" }}>Cancel</button>
+          <button onClick={save} disabled={saving || !name.trim()}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-black"
+            style={{ background: "#ffffff" }}>
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Delete Modal ─────────────────────────────────────── */
-function DeleteModal({ name, onConfirm, onCancel, loading }: { name: string; onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+function DeleteModal({
+  name,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  name: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const [typed, setTyped] = useState("");
+  const confirmed = typed === "DELETE";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80" onClick={onCancel} />
       <div className="relative rounded-2xl p-6 w-full max-w-sm shadow-2xl"
         style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)" }}>
+
         <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-4"
           style={{ background: "rgba(239,68,68,0.1)" }}>
-          <Trash2 className="w-5 h-5 text-red-500" />
+          <AlertTriangle className="w-5 h-5 text-red-500" />
         </div>
-        <h3 className="text-sm font-semibold text-white text-center mb-2">Delete Person</h3>
-        <p className="text-xs text-center mb-5 leading-relaxed" style={{ color: "#5a5a5a" }}>
-          Delete <strong className="text-white">{name}</strong> and all their photos?
+
+        <h3 className="text-sm font-semibold text-white text-center mb-1">Remove Person</h3>
+        <p className="text-xs text-center mb-4 leading-relaxed" style={{ color: "#5a5a5a" }}>
+          This will revoke access for <strong className="text-white">{name}</strong> and remove them from the authorized list. This cannot be undone.
         </p>
+
+        {/* Confirmation input */}
+        <div className="mb-5">
+          <p className="text-xs text-center mb-2" style={{ color: "#5a5a5a" }}>
+            Type <span className="font-mono font-bold text-red-400">DELETE</span> to confirm
+          </p>
+          <input
+            type="text"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            placeholder="DELETE"
+            autoFocus
+            className="w-full px-3 py-2.5 rounded-xl text-sm text-center font-mono outline-none transition-all"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: confirmed ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.07)",
+              color: confirmed ? "#ef4444" : "#ffffff",
+            }}
+          />
+        </div>
+
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "#1a1a1a", color: "#a0a0a0" }} disabled={loading}>Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
-            style={{ background: "#ef4444" }} disabled={loading}>
-            {loading ? "Deleting..." : "Delete"}
+          <button onClick={onCancel} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+            style={{ background: "#1a1a1a", color: "#a0a0a0" }}>
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!confirmed || loading}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-all"
+            style={{
+              background: confirmed ? "#ef4444" : "rgba(239,68,68,0.15)",
+              color: confirmed ? "#fff" : "rgba(239,68,68,0.4)",
+              cursor: confirmed && !loading ? "pointer" : "not-allowed",
+            }}>
+            {loading ? "Removing..." : "Remove Person"}
           </button>
         </div>
       </div>
@@ -138,23 +296,26 @@ function DeleteModal({ name, onConfirm, onCancel, loading }: { name: string; onC
 
 /* ── Page ─────────────────────────────────────────────── */
 export function People() {
-  const [view, setView] = useState<"grid" | "list">("grid");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
-  const [showAdd, setShowAdd] = useState(false);
+  const [view,         setView]         = useState<"grid" | "list">("grid");
+  const [search,       setSearch]       = useState("");
+  const [filter,       setFilter]       = useState<"all" | "active" | "inactive">("all");
+  const [showAdd,      setShowAdd]      = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [page, setPage] = useState(1);
+  const [editTarget,   setEditTarget]   = useState<Person | null>(null);
+  const [page,         setPage]         = useState(1);
   const PER_PAGE = 6;
 
   const { data: people = [], isLoading } = useGetPeople();
   const createMutation = useCreatePerson();
+  const updateMutation = useUpdatePerson();
   const deleteMutation = useDeletePerson();
+  const uploadMutation = useUploadPhotos();
 
   const filtered = useMemo(() => {
     return people.filter((p) => {
-      const okName = p.name.toLowerCase().includes(search.toLowerCase());
-      const okStatus = filter === "all" ||
-        (filter === "active" && p.access_enabled) ||
+      const okName    = p.name.toLowerCase().includes(search.toLowerCase());
+      const okStatus  = filter === "all" ||
+        (filter === "active"   &&  p.access_enabled) ||
         (filter === "inactive" && !p.access_enabled);
       const notDeleted = !p.deleted_at;
       return okName && okStatus && notDeleted;
@@ -162,16 +323,59 @@ export function People() {
   }, [people, search, filter]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  // ── Handlers ──
 
   function handleDelete() {
     if (!deleteTarget) return;
     deleteMutation.mutate(
       { personId: deleteTarget.id },
       {
-        onSuccess: () => setDeleteTarget(null),
+        onSuccess: () => {
+          // Fire audit log (best-effort, don't block UI)
+          apiService.createAuditLog({
+            action: "delete_person",
+            entity_type: "person",
+            entity_id: deleteTarget.id,
+            old_value: JSON.stringify({ name: deleteTarget.name }),
+          }).catch(() => null);
+          setDeleteTarget(null);
+        },
       }
     );
+  }
+
+  async function handleEditSave(personId: string, data: PersonUpdate, photo: File | null) {
+    const oldPerson = people.find((p) => p.id === personId);
+
+    await new Promise<void>((resolve, reject) => {
+      updateMutation.mutate(
+        { personId, data },
+        {
+          onSuccess: () => {
+            // Upload new photo if provided
+            if (photo) {
+              uploadMutation.mutate(
+                { personId, files: [photo] },
+                { onSuccess: () => resolve(), onError: () => resolve() } // don't fail edit if photo upload fails
+              );
+            } else {
+              resolve();
+            }
+            // Audit log
+            apiService.createAuditLog({
+              action: "update_person",
+              entity_type: "person",
+              entity_id: personId,
+              old_value: JSON.stringify({ name: oldPerson?.name, description: oldPerson?.description }),
+              new_value: JSON.stringify(data),
+            }).catch(() => null);
+          },
+          onError: reject,
+        }
+      );
+    });
   }
 
   return (
@@ -186,7 +390,6 @@ export function People() {
             style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }} />
         </div>
 
-        {/* Filter pills */}
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
           {(["all", "active", "inactive"] as const).map((f) => (
             <button key={f} onClick={() => { setFilter(f); setPage(1); }}
@@ -197,7 +400,6 @@ export function People() {
           ))}
         </div>
 
-        {/* View toggle */}
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
           {([["grid", Grid], ["list", List]] as const).map(([v, Icon]) => (
             <button key={v} onClick={() => setView(v)}
@@ -239,7 +441,8 @@ export function People() {
       {!isLoading && view === "grid" && paginated.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {paginated.map((p) => (
-            <div key={p.id} className="rounded-2xl p-5" style={CARD}>
+            <div key={p.id} className="rounded-2xl p-5 transition-all duration-200 hover:border-white/10"
+              style={CARD}>
               <div className="flex items-start gap-3 mb-4">
                 <Avatar initials={getInitials(p.name)} color={getPersonColor(p.name)} />
                 <div className="flex-1 min-w-0">
@@ -255,11 +458,12 @@ export function People() {
                 <span>{format(parseISO(p.created_at), "yyyy-MM-dd")}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Link to={`/people/${p.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-black"
+                <button
+                  onClick={() => setEditTarget(p)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-black transition-opacity hover:opacity-90"
                   style={{ background: "#ffffff" }}>
                   <Edit className="w-3.5 h-3.5" /> Edit
-                </Link>
+                </button>
                 <button onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
                   className="p-2 rounded-xl text-neutral-600 hover:text-red-400 transition-colors"
                   style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -285,8 +489,16 @@ export function People() {
               <span className="text-xs" style={{ color: "#3a3a3a" }}>{p.photo_count} photos</span>
               <StatusBadge active={p.access_enabled} />
               <div className="flex items-center gap-1">
-                <Link to={`/people/${p.id}`} className="p-1.5 rounded-lg text-neutral-600 hover:text-white hover:bg-white/5 transition-colors"><Edit className="w-4 h-4" /></Link>
-                <button onClick={() => setDeleteTarget({ id: p.id, name: p.name })} className="p-1.5 rounded-lg text-neutral-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                <button
+                  onClick={() => setEditTarget(p)}
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-white hover:bg-white/5 transition-colors">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
@@ -316,8 +528,27 @@ export function People() {
         </div>
       )}
 
-      {showAdd && <AddPersonModal onClose={() => setShowAdd(false)} onSave={(data) => createMutation.mutate(data)} />}
-      {deleteTarget && <DeleteModal name={deleteTarget.name} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} loading={deleteMutation.isPending} />}
+      {showAdd && (
+        <AddPersonModal
+          onClose={() => setShowAdd(false)}
+          onSave={(data) => createMutation.mutateAsync(data)}
+        />
+      )}
+      {editTarget && (
+        <EditPersonModal
+          person={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSave={handleEditSave}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteModal
+          name={deleteTarget.name}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleteMutation.isPending}
+        />
+      )}
     </div>
   );
 }

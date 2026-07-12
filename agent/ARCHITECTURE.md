@@ -268,17 +268,17 @@ def recognize_face(frame: np.ndarray) -> Optional[Dict]:
     face_resized = cv2.resize(face_roi, (200, 200))
     
     # 4. Распознавание (LBPH)
-    label, confidence = recognizer.predict(face_resized)
+    label, distance = recognizer.predict(face_resized)
     # ~20-50ms
     
-    # 5. Проверка порога
-    recognized = confidence < RECOGNITION_THRESHOLD
+    # 5. Проверка порога: LBPH distance ниже threshold = match
+    recognized = distance < RECOGNITION_THRESHOLD
     person_id = label_map.get(label) if recognized else None
     
     return {
         "recognized": recognized,
         "person_id": person_id,
-        "confidence": confidence,
+        "confidence": distance,  # compatibility field; raw LBPH distance
         "face_bbox": {"x": x, "y": y, "w": w, "h": h}
     }
 ```

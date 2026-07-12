@@ -2,22 +2,48 @@
 
 Describe what this pull request changes and why.
 
-## Assignment / user-story coverage
+## Linked Issue
 
-- Related user-story IDs:
-- Related report or issue:
+Closes #[issue-number]
+Branch: `<issue-number>-short-description`
 
-## Validation
+## PBI / User Story Coverage
 
-- [ ] I reviewed the changed files.
-- [ ] I ran the relevant build, tests, or smoke check.
-- [ ] I checked that documentation links are valid.
-- [ ] I did not commit credentials, personal data, or generated secrets.
-- [ ] The change is ready for another team member to review.
+- Related stable user-story IDs:
+- Related supporting PBIs:
+- MVP version:
+- Sprint milestone:
 
-## Test evidence
+## Acceptance Criteria Verification
 
-List the commands or manual steps used and their results.
+| Acceptance criterion | Result | Evidence |
+|---|---|---|
+| AC1 | Pass / Fail | link, screenshot, log, test |
+| AC2 | Pass / Fail | ... |
+| AC3 | Pass / Fail | ... |
+
+## Testing and Validation
+
+- Commands executed:
+- Manual smoke checks:
+- Environment:
+
+## Definition of Done
+
+- [ ] Issue is assigned and has a different reviewer
+- [ ] Acceptance criteria are verified
+- [ ] Tests/build checks pass
+- [ ] Documentation is updated
+- [ ] `CHANGELOG.md` is updated for user-visible changes
+- [ ] No secrets, PII, or generated credentials are committed
+- [ ] Screenshots are added for visible UI changes or marked N/A
+- [ ] Deployment/runtime check is complete when applicable
+- [ ] I reviewed the changed files
+- [ ] I checked that documentation links are valid
+
+## Reviewer Notes
+
+Leave at least one meaningful review comment when applicable.
 
 ## Screenshots
 

@@ -278,6 +278,10 @@ Content-Type: application/json
 }
 ```
 
+`confidence` is kept for backward compatibility but stores raw OpenCV LBPH
+distance. Lower values mean stronger matches; it is not a probability or
+percentage.
+
 **Типы событий:**
 - `recognized` - человек распознан
 - `unknown` - неизвестный человек
@@ -395,6 +399,9 @@ Content-Type: application/json
   // ... больше событий
 ]
 ```
+
+Bulk sync keeps the same score semantics: `confidence` is raw LBPH distance,
+where lower is better.
 
 **Используется когда Pi работал офлайн и накопил события в SQLite.**
 

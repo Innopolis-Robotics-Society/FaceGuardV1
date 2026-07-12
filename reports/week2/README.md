@@ -23,7 +23,7 @@ License: [MIT License](../../LICENSE)
 The primary external interface is a graphical administrator web application.
 
 - Interactive prototype: <https://www.figma.com/make/SRfKSsmTXU7thEWzW2f78g/FaceGuard-Admin-Panel-Design?t=QgeFJjbXiSSuzG8h-1>
-- Runnable prototype source: [frontend/prototype](../../frontend/prototype/)
+- Runnable frontend source: [frontend/faceguard-web](../../frontend/faceguard-web/)
 - Public frontend deployment: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
 
 ### Dashboard
@@ -51,7 +51,7 @@ The primary external interface is a graphical administrator web application.
 - University VM deployment: <http://10.90.138.70:3000>
 - Public GitHub Pages deployment: <https://innopolis-robotics-society.github.io/FaceGuardV1/>
 - Public video demonstration: <https://disk.yandex.ru/i/cgaJVBhka7gISw>
-- Local setup instructions: [root README](../../README.md)
+- Local setup instructions: [frontend web README](../../frontend/faceguard-web/README.md)
 - Detailed report and repeatable smoke check: [mvp-v0-report.md](./mvp-v0-report.md)
 
 
@@ -71,9 +71,9 @@ The primary external interface is a graphical administrator web application.
 |---|---|---|
 | Private IP addresses, including `10.90.138.70` | Automated GitHub-hosted runners cannot access services inside the university network or VPN. `.lychee.toml` uses `exclude_all_private = true`. | Open the VM URL while connected to the university network or VPN and complete the documented smoke check. |
 | Figma and Yandex Disk links | These services may block or rate-limit automated link-checking clients. | Open both links in a private browser window and confirm view-only access before submission. |
-| Unsplash attribution links | Unsplash returns HTTP 401 to the automated client. | Open the attribution links manually when reviewing `frontend/prototype/ATTRIBUTIONS.md`. |
+| Unsplash attribution links | Unsplash returns HTTP 401 to the automated client. | Open the attribution links manually when reviewing archived prototype materials outside the current repository tree. |
 | GitHub Pages deployment URL | The URL returns 404 until the first deployment from `main`, creating a circular dependency for the PR check. | Verify the URL after the Pages workflow succeeds on `main`. |
-| `frontend/faceguard-web/index.html` | The unused Vite starter references `/favicon.svg` as a web-root asset; Lychee resolves it as a repository-root file. | The Assignment 2 MVP uses `frontend/prototype`; verify its build instead. |
+| `frontend/faceguard-web/index.html` | The Vite app references web-root assets that are resolved at runtime by the frontend build. | Verify the active frontend with `frontend/faceguard-web` build instructions. |
 
 All other repository Markdown and HTML links are checked automatically by Lychee. The excluded links require the manual checks described above. HTTP 429 is accepted because some public services rate-limit automated checks.
 
