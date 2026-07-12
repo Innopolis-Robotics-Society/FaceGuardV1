@@ -1,6 +1,6 @@
 # Sprint 4 Review — Transcript (Week 6)
 
-> If publication of the recording/transcript was refused by the customer, delete this file's content and instead maintain `reports/week6/sprint-review-notes.md`, and state in `reports/week6/README.md` that the transcript is shared privately via Moodle only.
+> [TODO — this meeting has not yet happened as of this draft (July 12, 2026), one day before Sprint 4 ends. Once it happens: if the customer allows publication, paste the English transcript below. If publication is refused, delete this file's content, maintain `reports/week6/sprint-review-notes.md` instead, and state in `reports/week6/README.md` that the transcript/notes are shared privately via Moodle only.]
 
 **Date:** [TODO]
 **Participants:** [TODO]
@@ -8,7 +8,7 @@
 
 ---
 
-[TODO: paste or write the English transcript of the meeting covering Sprint 4 goal review, Week 6 trial release demo, documentation review, transition-readiness discussion, customer trial/UAT feedback. If this meeting also covered customer-executed UAT and the transition-readiness discussion, note that here explicitly.]
+[TODO: paste or write the English transcript of the meeting covering Sprint 4 goal review, Week 6 trial release demo, documentation review, transition-readiness discussion, customer trial/UAT feedback.]
 
 ---
 
