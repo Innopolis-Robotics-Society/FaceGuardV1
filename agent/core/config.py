@@ -42,6 +42,12 @@ class Config:
     LIVENESS_MOTION_REQUIRED: bool = os.getenv("LIVENESS_MOTION_REQUIRED", "false").lower() == "true"
     LIVENESS_TIMEOUT_SECONDS: int = int(os.getenv("LIVENESS_TIMEOUT_SECONDS", "3"))
 
+    # MiniFASNet Anti-Spoofing settings
+    ANTISPOOFING_ENABLED: bool = os.getenv("ANTISPOOFING_ENABLED", "false").lower() == "true"
+    ANTISPOOFING_THRESHOLD: float = float(os.getenv("ANTISPOOFING_THRESHOLD", "0.5"))  # 0-1, higher = stricter
+    ANTISPOOFING_MODEL_PATH: Optional[str] = os.getenv("ANTISPOOFING_MODEL_PATH")  # Path to .pth model file
+    ANTISPOOFING_DEVICE: str = os.getenv("ANTISPOOFING_DEVICE", "cpu")  # cpu or cuda
+
     # Door control
     SERVO_GPIO_PIN: int = int(os.getenv("SERVO_GPIO_PIN", "17"))
     DOOR_OPEN_DURATION: int = int(os.getenv("DOOR_OPEN_DURATION", "5"))

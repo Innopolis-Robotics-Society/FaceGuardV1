@@ -55,14 +55,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libx264-dev \
     libgtk-3-0 \
     libcanberra-gtk3-module \
+    gcc \
+    g++ \
+    libcamera-dev \
+    libcamera-apps \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
 # Install Python dependencies
 # Note: picamera2 and GPIO libs will be installed only on ARM architecture
-# RUN pip install --no-cache-dir -r requirements.txt
-
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
@@ -73,6 +75,10 @@ RUN mkdir -p /data/faces \
     /data/events \
     /data/models \
     /data/logs
+
+# Download required models (anti-spoofing, etc.)
+RUN python scripts/download_models.py --skip-optional || \
+    echo "Warning: Optional models download failed - some features may be unavailable"
 
 ENV PYTHONUNBUFFERED=1
 ENV HARDWARE_MODE=raspberry_pi
