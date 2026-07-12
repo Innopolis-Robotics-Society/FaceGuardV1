@@ -27,7 +27,7 @@ The product is configured via a `.env` file (see `backend/.env.example` for the 
 
 ## 3. Setup, Deployment, Recovery & Verification Steps
 
-- **Setup / local run:** see [README.md § Access & Running the Product](../README.md#access--running-the-product)
+- **Setup / local run:** see [README.md § Access & Running the Product](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/README.md#access--running-the-product)
 - **Deployment:** [TODO: how MVP v3 is currently deployed — Docker Compose on customer server / cloud host / etc.]
 - **Recovery (if the service goes down):** [TODO: restart steps, where logs live, who to contact]
 - **Verification that the deployed instance is healthy:** [TODO: e.g. `GET /health` endpoint, or a specific dashboard check]
@@ -36,9 +36,9 @@ The product is configured via a `.env` file (see `backend/.env.example` for the 
 
 | Need | Document |
 |---|---|
-| First-time overview | [README.md](../README.md) |
+| First-time overview | [README.md](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/README.md) |
 | Day-to-day operation (enrollment, monitoring, alerts) | [Hosted docs](https://innopolis-robotics-society.github.io/FaceGuardV1/) |
-| Troubleshooting / support | [§5 below](#5-troubleshooting--support) |
+| Troubleshooting / support | [§5 below](#5-troubleshooting-support) |
 | Known limitations | [§6 below](#6-known-limitations) |
 
 ## 5. Troubleshooting & Support
@@ -46,7 +46,7 @@ The product is configured via a `.env` file (see `backend/.env.example` for the 
 | Symptom | Likely cause | What to do |
 |---|---|---|
 | [TODO: e.g. recognition accuracy drops in low light] | [TODO] | [TODO] |
-| [TODO: e.g. dashboard shows no live feed] | [TODO] | [TODO] |
+| [TODO: e.g. dashboard shows no live feedback] | [TODO] | [TODO] |
 
 **Support going forward:** [TODO: e.g. "no ongoing support contract; customer's technical contact is X" or "team available for Y weeks post-course for critical fixes only"]
 
@@ -66,4 +66,4 @@ The product is configured via a `.env` file (see `backend/.env.example` for the 
 
 - Confirmation was requested from the customer on [TODO date] via [TODO channel].
 - Private evidence of the request/response is included in the Week 7 Moodle submission (not committed here).
-- Public sanitized summary: see [reports/week7/README.md](../reports/week7/README.md).
+- Public sanitized summary: see [reports/week7/README.md](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week7/README.md).
