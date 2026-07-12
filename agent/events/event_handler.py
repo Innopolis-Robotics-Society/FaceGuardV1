@@ -14,9 +14,10 @@ logger = get_logger(__name__)
 class EventHandler:
     """Handles recognition events and triggers actions"""
 
-    def __init__(self, door_controller, sync_manager):
+    def __init__(self, door_controller, sync_manager, led_indicator=None):
         self.door = door_controller
         self.sync = sync_manager
+        self.led = led_indicator
 
     async def on_person_recognized(
         self,
@@ -34,8 +35,27 @@ class EventHandler:
         """
         logger.info(f"Person recognized: {person_id} (distance: {confidence:.1f})")
 
-        # Open door
-        door_opened = await asyncio.to_thread(self.door.open_door)
+        # Determine access based on confidence
+        # For LBPH: lower distance = better match
+        # Convert to confidence percentage: higher = better
+        confidence_percent = max(0, 100 - confidence)
+
+        if confidence_percent >= 60:
+            # Access granted - green LED
+            if self.led:
+                await asyncio.to_thread(self.led.show_access_granted)
+
+            # Open door
+            door_opened = await asyncio.to_thread(self.door.open_door)
+
+            logger.info(f"Access GRANTED: {confidence_percent:.1f}% confidence")
+        else:
+            # Recognized but low confidence - blue LED
+            if self.led:
+                await asyncio.to_thread(self.led.show_low_confidence)
+
+            door_opened = False
+            logger.info(f"Access DENIED (low confidence): {confidence_percent:.1f}%")
 
         # Create event
         event_data = {
@@ -66,6 +86,10 @@ class EventHandler:
             snapshot_path: Path to event snapshot
         """
         logger.info(f"Unknown person detected (distance: {confidence:.1f})")
+
+        # Unknown person - red LED (access denied)
+        if self.led:
+            await asyncio.to_thread(self.led.show_access_denied)
 
         # Create event
         event_data = {
@@ -98,6 +122,10 @@ class EventHandler:
             snapshot_path: Path to event snapshot
         """
         logger.warning(f"Access denied: {reason}")
+
+        # Access denied - red LED
+        if self.led:
+            await asyncio.to_thread(self.led.show_access_denied)
 
         # Create event
         event_data = {

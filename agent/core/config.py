@@ -53,6 +53,12 @@ class Config:
     DOOR_OPEN_DURATION: int = int(os.getenv("DOOR_OPEN_DURATION", "5"))
     ACTION_COOLDOWN_SECONDS: int = int(os.getenv("ACTION_COOLDOWN_SECONDS", "5"))
 
+    # LED indicator
+    LED_RED_PIN: int = int(os.getenv("LED_RED_PIN", "17"))
+    LED_GREEN_PIN: int = int(os.getenv("LED_GREEN_PIN", "27"))
+    LED_BLUE_PIN: int = int(os.getenv("LED_BLUE_PIN", "22"))
+    LED_DURATION: float = float(os.getenv("LED_DURATION", "2.0"))
+
     # Data directories
     BASE_DIR: Path = Path(__file__).parent.parent.parent
     DATA_DIR: Path = BASE_DIR / "data"

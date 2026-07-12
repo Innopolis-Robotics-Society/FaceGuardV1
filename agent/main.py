@@ -21,6 +21,7 @@ from camera.capture_service import CaptureService
 from recognition.recognizer import RecognitionService
 from recognition.recognition_loop import RecognitionLoop
 from door.door_controller import DoorController
+from door.led_indicator import LEDIndicator
 from telemetry.telemetry_service import TelemetryService
 from sync.backend_client import BackendClient
 from sync.sync_manager import SyncManager
@@ -49,6 +50,7 @@ class FaceGuardAgent:
         # Hardware services
         self.camera = CameraService()
         self.door = DoorController()
+        self.led = LEDIndicator()
 
         # Recognition services
         self.recognition = RecognitionService()
@@ -68,7 +70,7 @@ class FaceGuardAgent:
         self.command_poller = CommandPoller(self.backend, self.command_executor)
 
         # Event handling
-        self.event_handler = EventHandler(self.door, self.sync_manager)
+        self.event_handler = EventHandler(self.door, self.sync_manager, self.led)
 
         # Recognition loop
         self.recognition_loop = RecognitionLoop(
@@ -226,6 +228,7 @@ class FaceGuardAgent:
         # Release hardware
         logger.info("Releasing hardware...")
         self.door.release()
+        self.led.release()
         self.camera.release()
 
         logger.info("Agent stopped successfully")
@@ -301,6 +304,7 @@ class FaceGuardAgent:
         logger.info(f"  Camera: {'[OK] Available' if self.camera.is_available() else '[!] Not available'}")
         logger.info(f"  Recognition: {'[OK] Trained' if self.recognition.is_trained else '[!] Not trained'}")
         logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
+        logger.info(f"  LED indicator: {'[OK] Ready' if self.led.get_status()['available'] else '[!] Not available'}")
 
         sync_status = self.sync_manager.get_sync_status()
         logger.info(f"  Backend: {'[OK] Online' if sync_status['is_online'] else '[!] Offline'}")
