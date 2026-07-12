@@ -49,8 +49,8 @@ class FaceGuardAgent:
 
         # Hardware services
         self.camera = CameraService()
-        self.door = DoorController()
-        self.led = LEDIndicator()
+        self.door = DoorController() if Config.use_servo() else None
+        self.led = LEDIndicator() if Config.use_led() else None
 
         # Recognition services
         self.recognition = RecognitionService()
@@ -126,6 +126,7 @@ class FaceGuardAgent:
 
         logger.info("Starting FaceGuard Agent...")
         logger.info(f"Hardware mode: {Config.HARDWARE_MODE}")
+        logger.info(f"Door control mode: {Config.DOOR_CONTROL_MODE}")
         logger.info(f"Backend URL: {Config.BACKEND_URL}")
         logger.info(f"Device code: {Config.DEVICE_CODE}")
 
@@ -227,8 +228,10 @@ class FaceGuardAgent:
 
         # Release hardware
         logger.info("Releasing hardware...")
-        self.door.release()
-        self.led.release()
+        if self.door:
+            self.door.release()
+        if self.led:
+            self.led.release()
         self.camera.release()
 
         logger.info("Agent stopped successfully")
@@ -303,8 +306,16 @@ class FaceGuardAgent:
         logger.info("Status:")
         logger.info(f"  Camera: {'[OK] Available' if self.camera.is_available() else '[!] Not available'}")
         logger.info(f"  Recognition: {'[OK] Trained' if self.recognition.is_trained else '[!] Not trained'}")
-        logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
-        logger.info(f"  LED indicator: {'[OK] Ready' if self.led.get_status()['available'] else '[!] Not available'}")
+
+        if self.door:
+            logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
+        else:
+            logger.info(f"  Door controller: [DISABLED]")
+
+        if self.led:
+            logger.info(f"  LED indicator: {'[OK] Ready' if self.led.get_status()['available'] else '[!] Not available'}")
+        else:
+            logger.info(f"  LED indicator: [DISABLED]")
 
         sync_status = self.sync_manager.get_sync_status()
         logger.info(f"  Backend: {'[OK] Online' if sync_status['is_online'] else '[!] Offline'}")
