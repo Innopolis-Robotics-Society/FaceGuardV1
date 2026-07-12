@@ -1,26 +1,29 @@
 # Sprint 4 Retrospective (Week 6)
 
-**Date:** [TODO — date of retro discussion]
-**Participants:** [TODO — team members present]
+**Date:** July 12, 2026
+**Participants:** Emil Vagizov, Danila Naboishchikov (@Sparta2016840), Oleg Korchagin (@privel), rmxqwo, etherealboop
 
 ## What Went Well
 
-- [TODO — e.g. docs polish / trial-release deployment went smoothly?]
-- [TODO]
+- #69 (trial release) and #72 (anti-spoofing) both closed by Sprint 4 end, delivered together through a single reviewed PR (#73).
+- Antispoofing is functionally working — an open-source model is integrated and demonstrated live to the customer, with acceptable performance (~58 FPS locally, stable ~24 FPS on Raspberry Pi).
+- Docs polish (#70) reviewed by @etherealboop and closed via this PR — customer-handover.md kept current for the trial release.
 
 ## What Didn't Go Well
 
-- Anti-spoofing / liveness detection (#72) turned out to be significantly harder than estimated for Oleg, [TODO: brief reason — e.g. dataset limitations, false-positive rate, integration with existing recognition pipeline] and became the main risk to finishing Sprint 4 on time.
-- [TODO — any other friction: review turnaround, documentation gaps, deployment issues]
+- The LED-vs-motor mismatch: Oleg built and tested a motor-based access indicator on the assumption it was the agreed design, but the customer expected LEDs. This wasn't caught until the July 12 check-in — a sign we should confirm hardware/UI decisions explicitly rather than assuming.
+- We hadn't confirmed in advance what the July 12 meeting would actually cover, so it ended up being a narrow technical check-in rather than the full documentation review / UAT / transition-readiness Sprint Review the assignment calls for. That conversation still needs to happen before Sprint 4 can be honestly closed out.
+- #72's original acceptance criteria (documented license, live-vs-spoof test pass/fail numbers) still aren't formally recorded, even though the feature works — this is a gap between "closed" on GitHub and "fully Done" against the PBI's own criteria.
 
 ## What We'll Change for Sprint 5
 
-| Change | Owner | How we'll verify it happened |
-|---|---|---|
-| [TODO — e.g. size hard/uncertain features like antispoofing more conservatively, or split into a spike + implementation] | [Name] | [TODO] |
-| [TODO] | [Name] | [TODO] |
+Sprint 5 is a finalization Sprint: the team is not introducing new process changes, but focusing on closing the open items below (LED swap, repo cleanup, docs, antispoofing license/test evidence, and the still-outstanding customer documentation review, UAT, and transition-readiness conversation) so the product can be transitioned cleanly.
 
 ## Action Items Carried Into Sprint 5
 
-- [TODO — e.g. finish/harden antispoofing if not fully done by Sprint 4 close]
-- [TODO — link to issues if applicable]
+- Swap the motor-based access indicator for the LED-based design (pin 17 → LED logic) and test with the customer on Monday.
+- Clean up the repository: remove unused/inefficient code, review memory efficiency.
+- Update README and setup/run documentation; add/complete the GitHub repo description and tags.
+- Stretch goal: publish function-level documentation on GitHub Pages, parsed from existing code comments.
+- Document the antispoofing model's source and license, and record live-vs-spoof test evidence (carried over from #72's original acceptance criteria).
+- Schedule a proper documentation review, UAT walkthrough, and transition-readiness discussion with the customer — still outstanding as of this draft.
