@@ -26,9 +26,9 @@
 
 Sprint 4 focused on turning MVP v2 into a customer-trialable handover candidate. #69 (trial release) and #72 (anti-spoofing) were both closed through [PR #73 — "Add Docker Compose and improve face recognition features"](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/73), merged by Danila Naboishchikov (@Sparta2016840). In substance, PR #73 synchronized the fork's `main` with the upstream repository, pulling in upstream MVP v2.0.0 documentation infrastructure (MkDocs, ADRs, architecture diagrams), CI quality gates, and the testing framework, while resolving a merge conflict in `agent/Dockerfile` to preserve the fork's Raspberry Pi camera dependencies and existing antispoofing setup. The antispoofing / liveness-detection capability itself was **preserved through this merge rather than newly built in Sprint 4** — it already existed on the fork beforehand. [TODO: confirm which earlier PR/commit originally introduced the antispoofing model and library, so that work can be credited and its license documented, since #72's acceptance criteria (library/license disclosure, live-vs-spoof test evidence, `docs/quality-requirements.md` / `docs/testing.md` updates) aren't evidenced in PR #73's description.]
 
-- **Product access artifact (trial release):** [TODO: confirm final link — expected at `https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v2.1.0`, following on from the v2.0.0 release cut in Week 5. Please confirm the tag was actually created on `main` before this goes in the final submission.]
+- **Product access artifact (trial release):** [v2.1.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v2.1.0), following on from the v2.0.0 release cut in Week 5.
 - **Access / run instructions:** [TODO link, likely README.md § Access & Running the Product. Note: PR #73's description only mentions `Dockerfile` conflict resolution, not a new `docker-compose.yml` — confirm whether run instructions actually changed before claiming a "Docker Compose" deployment path.]
-- **Week 6 SemVer release:** v2.1.0 (next release after Week 5's v2.0.0) — [TODO: confirm tag exists and link it]
+- **Week 6 SemVer release:** [v2.1.0](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/releases/tag/v2.1.0) (next release after Week 5's v2.0.0)
 
 ## Repository & Documentation Links
 
