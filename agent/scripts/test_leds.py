@@ -9,11 +9,18 @@ import sys
 import time
 from pathlib import Path
 
-# Add agent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add agent directory to path so imports work when run directly
+agent_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(agent_dir))
 
-from door.led_indicator import LEDIndicator, LEDStatus
-from core.logging import get_logger
+try:
+    from door.led_indicator import LEDIndicator, LEDStatus
+    from core.logging import get_logger
+except ImportError as e:
+    print(f"Error: Failed to import modules. Make sure you're running from the agent directory.")
+    print(f"Details: {e}")
+    print(f"\nTry running with: python -m scripts.test_leds")
+    sys.exit(1)
 
 logger = get_logger(__name__)
 

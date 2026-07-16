@@ -58,7 +58,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libcamera-dev \
-    libcamera-apps \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
