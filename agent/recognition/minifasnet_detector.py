@@ -77,14 +77,7 @@ class MiniFASNetDetector:
     """
 
     def __init__(self, model_path: Optional[Path] = None, device: str = 'cpu'):
-        """
-        Initialize MiniFASNet detector
-
-        Args:
-            model_path: Path to pre-trained model weights (.pth file)
-            device: 'cpu' or 'cuda'
-        """
-        self.device = torch.device(device if torch.cuda.is_available() and device == 'cuda' else 'cpu')
+        self.device = torch.device('cpu')
         self.model = None
         self.is_loaded = False
         self.model_path = model_path

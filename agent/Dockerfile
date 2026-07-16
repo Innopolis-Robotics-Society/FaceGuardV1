@@ -64,8 +64,10 @@ COPY requirements.txt .
 
 # Install Python dependencies
 # Note: picamera2 and GPIO libs will be installed only on ARM architecture
+ENV PIP_NO_CACHE_DIR=1
+ENV TORCH_CUDA_ARCH_LIST=""
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
 COPY . .
 
