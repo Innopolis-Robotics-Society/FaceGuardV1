@@ -186,7 +186,7 @@ class RecognitionLoop:
             return
 
         logger.info(
-            f"Person recognized: {person_id} (distance: {confidence:.1f})"
+            f"Person recognized: {person_id} (confidence: {confidence:.1f}%)"
         )
 
         # Save event snapshot
@@ -213,7 +213,7 @@ class RecognitionLoop:
         if current_time - last_time < Config.ACTION_COOLDOWN_SECONDS:
             return
 
-        logger.info(f"Unknown person detected (distance: {confidence:.1f})")
+        logger.info(f"Unknown person detected (confidence: {confidence:.1f}%)")
 
         # Save event snapshot
         snapshot_path = self._save_event_snapshot(frame, None, "unknown")
