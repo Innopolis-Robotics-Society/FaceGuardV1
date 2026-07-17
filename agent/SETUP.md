@@ -204,26 +204,78 @@ DEEPFACE_DISTANCE_METRIC=cosine
 
 ## Anti-Spoofing Setup
 
-### MiniFASNet Anti-Spoofing
+FaceGuard provides two layers of anti-spoofing protection:
 
-**What it detects:**
-- 📄 Printed photos
-- 📱 Photos on phone screens
-- 🎥 Video replay attacks
-- 🎭 Basic 3D masks
+### 1. LivenessDetector (Default - Recommended for Raspberry Pi)
 
-**Automatic Installation:**
-
-Models are downloaded automatically during setup. If needed manually:
-
-```bash
-./scripts/docker-run.sh scripts/download_models.py
-```
+**Fast, lightweight protection using OpenCV only:**
+- 🎯 Texture analysis - detects printed photos and screen replays
+- 👁️ Eye blink detection (optional)
+- 🏃 Motion detection (optional)
+- ⚡ Speed: ~1-2ms per frame
+- 💾 RAM: Minimal overhead
 
 **Configuration:**
 
 ```env
-# Enable anti-spoofing
+# Enabled by default on Raspberry Pi
+LIVENESS_ENABLED=true
+LIVENESS_BLINK_REQUIRED=false  # Fast texture-only mode
+LIVENESS_MOTION_REQUIRED=false
+LIVENESS_TIMEOUT_SECONDS=3
+```
+
+**Detection modes:**
+
+Fast mode (texture only - recommended):
+```env
+LIVENESS_ENABLED=true
+LIVENESS_BLINK_REQUIRED=false
+LIVENESS_MOTION_REQUIRED=false
+```
+
+Strict mode (requires blink - adds 1-3s delay):
+```env
+LIVENESS_ENABLED=true
+LIVENESS_BLINK_REQUIRED=true
+LIVENESS_MOTION_REQUIRED=false
+```
+
+**What it protects against:**
+- ✅ Glossy printed photos
+- ✅ Photos on phone/tablet screens
+- ✅ Basic video replay attacks
+- ⚠️ High-quality matte prints (may pass)
+
+### 2. MiniFASNet Anti-Spoofing (Optional - Requires PyTorch)
+
+**Advanced CNN-based detection:**
+- 📄 Printed photos (all types)
+- 📱 Photos on phone screens
+- 🎥 Video replay attacks
+- 🎭 Basic 3D masks
+- 🔬 Higher accuracy than LivenessDetector
+
+**⚠️ Requirements:**
+- PyTorch installation (~500MB+ download)
+- ~50-100ms inference time per frame
+- ~300-500MB additional RAM usage
+- **Not recommended for Raspberry Pi** (use LivenessDetector instead)
+
+**Installation (x86_64 systems only):**
+
+1. Install PyTorch:
+```bash
+pip install torch==2.5.1 torchvision==0.20.1 --extra-index-url https://download.pytorch.org/whl/cpu
+```
+
+2. Download model:
+```bash
+./scripts/docker-run.sh scripts/download_models.py
+```
+
+3. Enable in `.env`:
+```env
 ANTISPOOFING_ENABLED=true
 ANTISPOOFING_THRESHOLD=0.5
 ANTISPOOFING_MODEL_PATH=data/models/antispoofing/minifasnet_v2.pth
@@ -238,50 +290,53 @@ ANTISPOOFING_DEVICE=cpu
 | 0.5 | Medium | Moderate | **Recommended** |
 | 0.7 | High | More | Security priority |
 
-**Recommended Settings:**
+**Raspberry Pi Note:**
 
-High security (strict):
-```env
+MiniFASNet is **disabled by default** on Raspberry Pi in `.env.raspberry`. PyTorch is heavy and slow on ARM. Use `LivenessDetector` instead for optimal performance.
+
+If you still want to try MiniFASNet on Raspberry Pi:
+```bash
+# Install PyTorch for ARM (may be unstable)
+pip install torch==2.2.0 torchvision==0.17.0
+
+# Enable in .env
 ANTISPOOFING_ENABLED=true
-ANTISPOOFING_THRESHOLD=0.7
 ```
 
-Balanced (recommended):
+### Comparison
+
+| Feature | LivenessDetector | MiniFASNet |
+|---------|------------------|------------|
+| Speed | ~1-2ms | ~50-100ms |
+| Dependencies | OpenCV only | PyTorch + model |
+| RAM usage | Minimal | ~300-500MB |
+| Photo protection | ✅ Good | ✅ Excellent |
+| Video replay | ✅ Good | ✅ Excellent |
+| 3D mask | ❌ Limited | ✅ Basic |
+| Raspberry Pi | ✅ Perfect | ⚠️ Not recommended |
+
+### Recommended Configuration
+
+**For Raspberry Pi:**
 ```env
-ANTISPOOFING_ENABLED=true
-ANTISPOOFING_THRESHOLD=0.5
-```
-
-Lenient (fewer false rejects):
-```env
-ANTISPOOFING_ENABLED=true
-ANTISPOOFING_THRESHOLD=0.3
-```
-
-**Performance:**
-- Inference time: ~15-30ms (CPU)
-- Model size: ~2.5MB
-- Works well on Raspberry Pi 4/5
-
-**Combining with Liveness Detection:**
-
-For maximum security, use both:
-
-```env
-# Basic checks (texture, motion)
 LIVENESS_ENABLED=true
 LIVENESS_BLINK_REQUIRED=false
-LIVENESS_MOTION_REQUIRED=false
+ANTISPOOFING_ENABLED=false
+```
 
-# Advanced CNN-based detection
+**For x86_64 Server:**
+```env
+# Both layers for maximum security
+LIVENESS_ENABLED=true
+LIVENESS_BLINK_REQUIRED=false
 ANTISPOOFING_ENABLED=true
 ANTISPOOFING_THRESHOLD=0.5
 ```
 
 **Detection Pipeline:**
 1. Face Detection (Haar Cascade)
-2. Liveness Detection (texture, blink, motion)
-3. MiniFASNet Anti-Spoofing (CNN)
+2. Liveness Detection (texture, optional blink/motion)
+3. MiniFASNet (if enabled and PyTorch installed)
 4. Face Recognition (LBPH/DeepFace)
 
 Any check fails → access denied.

@@ -9,7 +9,9 @@ picamera2==0.3.17; platform_machine == 'aarch64'
 gpiozero==2.0.1; platform_machine == 'aarch64'
 pigpio==1.78; platform_machine == 'aarch64'
 
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.5.1+cpu
-torchvision==0.20.1+cpu
+# PyTorch removed for Raspberry Pi compatibility
+# MiniFASNet anti-spoofing is now optional and requires manual PyTorch installation
+# For x86_64 systems that need MiniFASNet, install separately:
+# pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+
 onnxruntime>=1.15.0

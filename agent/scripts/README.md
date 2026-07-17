@@ -35,10 +35,10 @@ cd agent/
 
 **What it does:**
 - Builds Docker image with correct Python version and dependencies
-- Downloads anti-spoofing models (MiniFASNet)
+- Downloads optional anti-spoofing models (MiniFASNet - only if PyTorch is installed)
 - Checks for `.env` file
 
-**When to use:** First time setup or after major changes
+**Note:** MiniFASNet models are optional. LivenessDetector works without them.
 
 ---
 

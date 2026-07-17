@@ -7,7 +7,7 @@ Autonomous face recognition and access control agent for Raspberry Pi.
 FaceGuard Agent is a Python application that runs on Raspberry Pi and provides:
 
 - **Face Recognition** using OpenCV LBPH (< 200ms per frame)
-- **Anti-Spoofing Protection** with MiniFASNet CNN-based detection
+- **Anti-Spoofing Protection** with lightweight texture-based liveness detection
 - **Door Control** via GPIO servo motor and LED indicators
 - **Offline Operation** - works without internet connection
 - **Backend Sync** - automatic event synchronization when online
@@ -150,10 +150,16 @@ For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Anti-Spoofing
 
-- **MiniFASNet** CNN-based detection (optional)
-- Detects printed photos, screen replays, video attacks
-- CPU-optimized for Raspberry Pi
-- Configurable threshold
+- **Liveness Detection** (enabled by default):
+  - Texture analysis - detects printed photos and screen replays
+  - Fast and lightweight - optimized for Raspberry Pi
+  - Protects against basic photo/video attacks
+  
+- **MiniFASNet CNN** (optional - requires PyTorch):
+  - Advanced deep learning detection
+  - Higher accuracy but requires more resources
+  - Disabled by default on Raspberry Pi
+  - To enable: install PyTorch manually and set `ANTISPOOFING_ENABLED=true`
 
 ### Hardware Control
 
