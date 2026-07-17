@@ -20,6 +20,7 @@ class EventHandler:
         self.led = led_indicator
         self.use_servo = Config.use_servo()
         self.use_led = Config.use_led()
+        self.is_door_opening = False  # Flag to block recognition during door operation
 
         logger.info(f"EventHandler initialized (mode: {Config.DOOR_CONTROL_MODE}, servo: {self.use_servo}, led: {self.use_led})")
 
@@ -42,18 +43,36 @@ class EventHandler:
         logger.info(f"Person recognized: {person_id} (confidence: {confidence:.1f}%)")
 
         door_opened = False
+        led_duration = Config.LED_DURATION
 
         if confidence >= Config.LED_CONFIDENCE_THRESHOLD:
             # Access granted
             logger.info(f"Access GRANTED: {confidence:.1f}% confidence")
 
-            # Show green LED if enabled
+            # Set flag to block recognition during LED/door operation
+            self.is_door_opening = True
+
+            # Calculate operation duration
+            # If servo enabled: LED duration = door open time
+            # If only LED: LED duration = DOOR_OPEN_DURATION (for consistency)
+            operation_duration = Config.DOOR_OPEN_DURATION
+            led_duration = operation_duration
+
+            # Show green LED if enabled (will stay on during operation)
             if self.use_led and self.led:
-                await asyncio.to_thread(self.led.show_access_granted)
+                # Start LED in background (non-blocking)
+                asyncio.create_task(self._show_led_async(self.led.show_access_granted, led_duration))
 
             # Open door if servo enabled
             if self.use_servo and self.door:
                 door_opened = await asyncio.to_thread(self.door.open_door)
+            else:
+                # If no servo, just wait for LED duration to keep recognition blocked
+                await asyncio.sleep(operation_duration)
+
+            # Clear flag after operation completes
+            self.is_door_opening = False
+
         else:
             # Recognized but low confidence
             logger.info(f"Access DENIED (low confidence): {confidence:.1f}%")
@@ -79,6 +98,13 @@ class EventHandler:
         await self.sync.add_event(event_data)
 
         logger.info(f"Event created: recognized person {person_id}")
+
+    async def _show_led_async(self, led_func, duration: float):
+        """Helper to show LED asynchronously"""
+        try:
+            await asyncio.to_thread(led_func, duration)
+        except Exception as e:
+            logger.error(f"Error showing LED: {e}")
 
     async def on_unknown_person(
         self,

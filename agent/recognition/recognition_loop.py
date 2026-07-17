@@ -25,12 +25,14 @@ class RecognitionLoop:
         camera_service: CameraService,
         recognition_service: RecognitionService,
         on_recognized: Optional[Callable] = None,
-        on_unknown: Optional[Callable] = None
+        on_unknown: Optional[Callable] = None,
+        event_handler=None
     ):
         self.camera = camera_service
         self.recognition = recognition_service
         self.on_recognized = on_recognized
         self.on_unknown = on_unknown
+        self.event_handler = event_handler  # Reference to check door opening status
 
         self.is_running = False
         self.loop_thread: Optional[threading.Thread] = None
@@ -103,6 +105,11 @@ class RecognitionLoop:
 
         while self.is_running:
             try:
+                # Check if door is opening - skip recognition to prevent LED flashing
+                if self.event_handler and getattr(self.event_handler, 'is_door_opening', False):
+                    time.sleep(0.1)
+                    continue
+
                 # Get current frame
                 frame = self.camera.get_frame()
 

@@ -77,7 +77,8 @@ class FaceGuardAgent:
             self.camera,
             self.recognition,
             on_recognized=self._on_recognized_wrapper,
-            on_unknown=self._on_unknown_wrapper
+            on_unknown=self._on_unknown_wrapper,
+            event_handler=self.event_handler
         )
 
         # Background tasks
