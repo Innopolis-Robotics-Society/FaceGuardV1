@@ -61,6 +61,7 @@ class Config:
     LED_GREEN_PIN: int = int(os.getenv("LED_GREEN_PIN", "27"))
     LED_BLUE_PIN: int = int(os.getenv("LED_BLUE_PIN", "22"))
     LED_DURATION: float = float(os.getenv("LED_DURATION", "2.0"))
+    LED_CONFIDENCE_THRESHOLD: float = float(os.getenv("LED_CONFIDENCE_THRESHOLD", "60"))
 
     # Data directories
     BASE_DIR: Path = Path(__file__).parent.parent.parent

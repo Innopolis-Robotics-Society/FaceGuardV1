@@ -91,10 +91,10 @@ class FaceGuardAgent:
 
         logger.info("Agent initialized successfully")
 
-    def _on_recognized_wrapper(self, person_id: str, confidence: float, snapshot_path: str):
+    def _on_recognized_wrapper(self, person_id: str, confidence: float, snapshot_path: str, raw_distance: float = None):
         """Schedule recognized-person handling from the recognition thread."""
         self._schedule_event_handler(
-            self.event_handler.on_person_recognized(person_id, confidence, snapshot_path)
+            self.event_handler.on_person_recognized(person_id, confidence, snapshot_path, raw_distance)
         )
 
     def _on_unknown_wrapper(self, confidence: float, snapshot_path: str):

@@ -27,28 +27,25 @@ class EventHandler:
         self,
         person_id: str,
         confidence: float,
-        snapshot_path: str
+        snapshot_path: str,
+        raw_distance: float = None
     ):
         """
         Handle recognized person event
 
         Args:
             person_id: UUID of recognized person
-            confidence: Raw OpenCV LBPH distance (lower is better)
+            confidence: Confidence percentage (0-100%, higher is better)
             snapshot_path: Path to event snapshot
+            raw_distance: Raw LBPH distance for backend compatibility (optional)
         """
-        logger.info(f"Person recognized: {person_id} (distance: {confidence:.1f})")
-
-        # Determine access based on confidence
-        # For LBPH: lower distance = better match
-        # Convert to confidence percentage: higher = better
-        confidence_percent = max(0, 100 - confidence)
+        logger.info(f"Person recognized: {person_id} (confidence: {confidence:.1f}%)")
 
         door_opened = False
 
-        if confidence_percent >= 60:
+        if confidence >= Config.LED_CONFIDENCE_THRESHOLD:
             # Access granted
-            logger.info(f"Access GRANTED: {confidence_percent:.1f}% confidence")
+            logger.info(f"Access GRANTED: {confidence:.1f}% confidence")
 
             # Show green LED if enabled
             if self.use_led and self.led:
@@ -59,17 +56,19 @@ class EventHandler:
                 door_opened = await asyncio.to_thread(self.door.open_door)
         else:
             # Recognized but low confidence
-            logger.info(f"Access DENIED (low confidence): {confidence_percent:.1f}%")
+            logger.info(f"Access DENIED (low confidence): {confidence:.1f}%")
 
             # Show blue LED if enabled
             if self.use_led and self.led:
                 await asyncio.to_thread(self.led.show_low_confidence)
 
         # Create event
+        # Send raw_distance to backend for compatibility (backend expects LBPH distance)
+        # If raw_distance not provided, use confidence for backward compatibility
         event_data = {
             "person_id": person_id,
             "event_type": "recognized",
-            "confidence": confidence,
+            "confidence": raw_distance if raw_distance is not None else confidence,
             "door_opened": door_opened,
             "photo_path": snapshot_path,
             "video_path": None,

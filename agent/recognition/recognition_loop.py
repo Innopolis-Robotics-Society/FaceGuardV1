@@ -177,6 +177,7 @@ class RecognitionLoop:
         """Handle recognized person"""
         person_id = result["person_id"]
         confidence = result["confidence"]
+        raw_distance = result.get("raw_distance")
 
         # Check cooldown
         current_time = time.time()
@@ -198,7 +199,8 @@ class RecognitionLoop:
         # Trigger callback
         if self.on_recognized:
             try:
-                self.on_recognized(person_id, confidence, snapshot_path)
+                # Pass both confidence (%) and raw_distance for backend compatibility
+                self.on_recognized(person_id, confidence, snapshot_path, raw_distance)
             except Exception as e:
                 logger.error(f"Error in on_recognized callback: {e}")
 
