@@ -13,7 +13,7 @@ services:
       - HARDWARE_MODE=raspberry_pi
       - DATA_DIR=/data
     volumes:
-      - agent-data:/data
+      - ./data:/data  # Changed from volume to local directory for easy access
       - /dev/video0:/dev/video0  # Camera device (USB cameras)
       - /dev/vchiq:/dev/vchiq     # Raspberry Pi camera interface
     devices:
@@ -29,6 +29,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Access host services (backend)
 
-volumes:
-  agent-data:
-    driver: local
+# volumes:
+  # agent-data:
+  #   driver: local  # Not needed anymore - using local directory instead
