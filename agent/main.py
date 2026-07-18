@@ -353,7 +353,7 @@ def main():
     try:
         from scripts.download_models import download_models
         print("Checking required models...")
-        download_models(force=False, skip_optional=False)
+        download_models(force=False, skip_optional=True)  # Skip optional models like MiniFASNet
         print()
     except Exception as e:
         logger.warning(f"Failed to download models: {e}")
