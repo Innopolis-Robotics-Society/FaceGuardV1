@@ -6,7 +6,7 @@ Bundling the trial-release deployment (#69) and the anti-spoofing work (#72) int
 
 ## What We Learned From the Documentation Review
 
-The July 12 customer check-in didn't include a documentation walkthrough — it turned out to be a narrower technical check-in on antispoofing and hardware rather than the full Sprint Review we'd planned. That's a process gap worth noting for ourselves: we hadn't confirmed in advance exactly what the meeting would cover, so the documentation review, UAT, and transition-readiness conversation never happened. [TODO: still need to schedule that conversation before the Sprint 4 deadline.]
+The July 12 customer check-in did not include a documentation walkthrough - it turned out to be a narrower technical check-in on antispoofing and hardware rather than the full Sprint Review we'd planned. That's a process gap worth noting for ourselves: we hadn't confirmed in advance exactly what the meeting would cover, so the documentation review, UAT, and transition-readiness conversation were carried into Week 7.
 
 ## What We Learned From the Customer Meeting
 
@@ -14,10 +14,10 @@ The meeting surfaced a mismatch we hadn't caught ourselves: the customer expecte
 
 ## Transition Blockers Discovered
 
-- The LED-vs-motor mismatch is a small but real transition risk: if we hadn't caught it now, it would have shown up at final handover. Oleg is switching to LEDs and testing with the customer on Monday.
+- The LED-vs-motor mismatch is a small but real transition risk: if we hadn't caught it now, it would have shown up at final handover. The Week 7 technical follow-up switched the code path to LEDs; customer-side hardware confirmation is still separate evidence.
 - Anti-spoofing / liveness detection (#72) is functionally working — an open-source model is integrated and Oleg demonstrated it live — but the license and formal live-vs-spoof test evidence from the original PBI acceptance criteria are still undocumented. This is a real gap, not just a formality, since it affects whether #72 can honestly be called fully Done.
 - Documentation review, UAT, and transition-readiness sign-off are still outstanding with the customer — this is the main blocker to closing out Sprint 4 honestly.
 
 ## What We'd Do Differently
 
-Sprint 5 is a finalization Sprint rather than a place for new process experiments — the team's focus is closing out the open items above (LED swap, repo cleanup, docs, antispoofing license/test evidence) and finally holding the documentation review, UAT, and transition-readiness conversation with the customer that didn't happen this week.
+Sprint 5 is a finalization Sprint rather than a place for new process experiments. The team's focus is closing out the open items above: LED alignment, repo cleanup, docs, antispoofing license/test evidence, and the documentation review, UAT, and transition-readiness conversation with the customer that did not happen in Week 6.

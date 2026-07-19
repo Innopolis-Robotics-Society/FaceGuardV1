@@ -1,7 +1,8 @@
 # User Acceptance Tests - Assignments 4 and 5
 
 This document records customer-facing User Acceptance Test scenarios for the
-Assignment 4 / Week 4 Sprint Review and Assignment 5 / Week 5 MVP v2 review.
+Assignment 4 / Week 4 Sprint Review, Assignment 5 / Week 5 MVP v2 review, and
+Assignment 6 / Week 7 final handover review.
 
 - Execution status: Customer Review Completed; customer-executed UAT recording
   is provided in the private Moodle evidence package, and customer follow-up
@@ -25,6 +26,12 @@ public evidence is kept in `reports/week5/sprint-review-summary.md`,
 `reports/week5/sprint-review-notes.md`, and
 `reports/week5/sprint-review-transcript.md`.
 
+Assignment 6 / Week 7 update: the July 19, 2026 final handover review was
+recorded with permission. The customer reviewed the final presentation,
+handover file, and repository, then accepted the project as ready for
+independent use. The public sanitized evidence is kept in
+`reports/week7/final-customer-acceptance-summary.md`.
+
 ## Table of Contents
 
 - [UAT-001 - Review and filter access events](#uat-001-review-and-filter-access-events)
@@ -34,6 +41,7 @@ public evidence is kept in `reports/week5/sprint-review-summary.md`,
 - [UAT-005 - Authorized-person change is effective without manual agent restart](#uat-005-authorized-person-change-is-effective-without-manual-agent-restart)
 - [UAT-006 - Strong and weak recognition results use correct confidence meaning](#uat-006-strong-and-weak-recognition-results-use-correct-confidence-meaning)
 - [UAT-007 - Unavailable camera and service status are clear](#uat-007-unavailable-camera-and-service-status-are-clear)
+- [UAT-008 - Final handover package is sufficient for independent use](#uat-008-final-handover-package-is-sufficient-for-independent-use)
 
 <a id="uat-001-review-and-filter-access-events"></a>
 
@@ -86,7 +94,7 @@ results.
 | --- | --- |
 | Actual result | Access Logs were covered by the private customer-executed UAT evidence and included in the follow-up scenario checklist. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
-| Recording timecode | 00:03:13-00:05:28 |
+| Recording timecode | Private recording evidence only. |
 | Customer comments | "Everything seems fine. All USs are approved. Continue, you have the right vision." |
 | Follow-up issue | None. |
 
@@ -282,7 +290,7 @@ reflects the change immediately.
 | --- | --- |
 | Actual result | User-management improvements were covered by the private customer-executed UAT evidence, including photo-count choices during creation. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
-| Recording timecode | 00:00:02-00:00:56; 00:05:28-00:05:40 |
+| Recording timecode | Private recording evidence only. |
 | Customer comments | Customer asked for a follow-up message with what exactly should be tested or approved. |
 | Follow-up issue | None. |
 
@@ -332,7 +340,7 @@ removal, the UI shows success feedback and the list updates immediately.
 | --- | --- |
 | Actual result | Delete confirmation for people and logs was covered by the private customer-executed UAT evidence as a data-loss risk reduction. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
-| Recording timecode | 00:05:28-00:07:34 |
+| Recording timecode | Private recording evidence only. |
 | Customer comments | Customer asked to be reminded what was done; team summarized deletion confirmation and Dashboard refresh. |
 | Follow-up issue | None. |
 
@@ -377,6 +385,46 @@ feedback without a full page reload.
 | --- | --- |
 | Actual result | Dashboard refresh was covered by the private customer-executed UAT evidence as a completed Sprint improvement. |
 | Pass/fail | Passed; customer confirmed all user stories are approved. |
-| Recording timecode | 00:00:02-00:00:56; 00:07:04-00:07:34 |
+| Recording timecode | Private recording evidence only. |
 | Customer comments | Customer accepted the summary and moved to next-Sprint priorities. |
 | Follow-up issue | None. |
+
+<a id="uat-008-final-handover-package-is-sufficient-for-independent-use"></a>
+
+## UAT-008 - Final handover package is sufficient for independent use
+
+- Related report: [Week 7 final customer acceptance summary](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week7/final-customer-acceptance-summary.md)
+- Current implementation status: Accepted for independent local/private-network
+  use.
+- Objective: verify that the customer considers the final presentation,
+  handover file, and repository sufficient to run and continue the project.
+
+### Preconditions
+
+- Final presentation/demo video is available to the customer.
+- Repository and handover instructions are available to the customer.
+- Private credentials and access details are handled outside the public
+  repository.
+
+### Customer steps
+
+1. Review the final product presentation/demo.
+2. Review the handover file and repository.
+3. Confirm whether the materials are sufficient to launch and use the project.
+4. State whether the project is accepted or whether blockers remain.
+
+### Expected result
+
+The customer confirms that the handover materials and repository are sufficient
+for independent use, while any production deployment or hardware follow-up
+remains separately tracked.
+
+### Execution record
+
+| Field | Value |
+| --- | --- |
+| Actual result | Customer confirmed that the provided handover file and repository were sufficient, and accepted the project as ready for independent use. |
+| Pass/fail | Passed. |
+| Recording timecode | Private recording evidence only. |
+| Customer comments | Customer stated that the project was ready, looked good, and worked. |
+| Follow-up issue | None for final handover acceptance. Continue optional future improvements for more powerful hardware/models and production deployment if selected later. |

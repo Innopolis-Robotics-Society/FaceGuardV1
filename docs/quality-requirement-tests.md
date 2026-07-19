@@ -13,6 +13,7 @@ data, or a real PostgreSQL instance.
 - [QRT-SEC-001](#qrt-sec-001)
 - [QRT-USE-001](#qrt-use-001)
 - [QRT-REL-001](#qrt-rel-001)
+- [QRT-USE-002-MANUAL](#qrt-use-002-manual)
 
 ## Traceability Matrix
 
@@ -22,6 +23,7 @@ data, or a real PostgreSQL instance.
 | `QRT-SEC-001` | `QR-SEC-001` | `backend-service/tests/qrt/test_quality_requirements.py` | `test_qrt_sec_001_invalid_identity_is_rejected` | `Quality requirement tests` | Missing and malformed credentials return HTTP 401 or 403 without identity fields. |
 | `QRT-USE-001` | `QR-USE-001` | `backend-service/tests/qrt/test_quality_requirements.py` | `test_qrt_use_001_invalid_person_names_are_rejected`; `test_qrt_use_001_valid_person_name_boundaries_are_accepted` | `Quality requirement tests` | Invalid name boundaries raise `ValidationError`; valid boundary values create schema objects. |
 | `QRT-REL-001` | `QR-REL-001` | `backend-service/tests/unit/test_recognition_score.py`; `frontend/faceguard-web/src/utils/recognitionScore.test.mjs` | `test_distance_below_threshold_is_match`; `test_distance_equal_threshold_uses_documented_boundary`; `test_distance_above_threshold_is_not_match`; `test_good_match_has_positive_display`; `test_bad_match_has_negative_display` | `Backend tests and critical coverage`; `Frontend recognition score tests` | LBPH distance below threshold is accepted, equality and above-threshold distances are rejected, and UI helper state shows lower-distance matches as stronger. |
+| `QRT-USE-002-MANUAL` | `QR-USE-002` | `agent/core/config.py`; `agent/door/door_controller.py`; `agent/events/event_handler.py` | Hardware/manual Raspberry Pi LED check | Not automated in CI | Blue/yellow/red GPIO LEDs match granted/calibrating/denied states on target hardware. |
 
 ## Local Command
 
@@ -125,3 +127,31 @@ behaviour.
 - Pass condition: all five named tests pass.
 - Scope: deterministic score semantics only; no camera, model reload,
   WebSocket, dataset-version, or browser end-to-end coverage is claimed.
+
+## QRT-USE-002-MANUAL
+
+- Linked QR: `QR-USE-002`
+- Automation level: manual hardware validation with a syntax smoke check in the
+  repository.
+- Preconditions: Raspberry Pi hardware is available; LEDs are wired to the
+  configured BCM GPIO pins; `HARDWARE_MODE=raspberry_pi`.
+- Repository smoke check:
+
+  ```bash
+  python -m py_compile agent/core/config.py agent/door/door_controller.py agent/events/event_handler.py
+  ```
+
+- Manual test procedure:
+  1. Configure `LED_GRANTED_GPIO_PIN`, `LED_CALIBRATING_GPIO_PIN`, and
+     `LED_DENIED_GPIO_PIN` in `agent/.env`.
+  2. Start the agent on Raspberry Pi.
+  3. Trigger or directly exercise the granted signal and verify the blue LED.
+  4. Trigger or directly exercise the calibrating signal and verify the yellow
+     LED.
+  5. Trigger an unknown/denied recognition path and verify the red LED.
+  6. Record public sanitized summary evidence or private hardware evidence
+     according to Assignment 6 evidence rules.
+- Pass condition: all three customer-agreed states are visible, correctly
+  mapped, and documented.
+- Scope: this does not validate recognition accuracy, low-light performance,
+  audio feedback, GPIO electrical reliability, or customer acceptance by itself.

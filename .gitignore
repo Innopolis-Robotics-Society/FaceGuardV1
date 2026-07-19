@@ -12,6 +12,7 @@ __pycache__/
 coverage.xml
 coverage.json
 htmlcov/
+site/
 .pytest_cache/
 .env
 .venv

@@ -4,6 +4,30 @@ All notable user-visible changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added Week 7 finalization report structure for Assignment 6 / MVP v3.
+- Added maintained `CONTRIBUTING.md` and `AGENTS.md` guidance.
+- Added a public code reference page and linked it from MkDocs.
+- Added Raspberry Pi LED access-indicator configuration for blue/yellow/red
+  customer-facing states.
+- Added a public sanitized Week 7 final customer-acceptance summary based on
+  the July 19, 2026 recorded handover review.
+
+### Changed
+
+- Reworked the root README as the current public handover entry point.
+- Updated customer-handover status from pending confirmation to accepted for
+  independent use after the July 19, 2026 customer review.
+- Updated the roadmap for Assignment 6 / MVP v3 finalization.
+- Replaced the legacy servo/motor implementation with a backward-compatible
+  LED indicator controller behind the existing `open_door` command.
+
+### Fixed
+
+- Fixed agent SQLite cleanup so the configured `days` retention value is used.
+- Removed unused imports from the agent command executor.
+
 ## [v2.0.0] - 2026-07-04
 
 ### Added
