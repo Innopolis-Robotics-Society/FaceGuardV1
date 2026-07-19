@@ -48,10 +48,20 @@ class Config:
     ANTISPOOFING_MODEL_PATH: Optional[str] = os.getenv("ANTISPOOFING_MODEL_PATH")  # Path to .pth model file
     ANTISPOOFING_DEVICE: str = os.getenv("ANTISPOOFING_DEVICE", "cpu")  # cpu or cuda
 
+    # Door control mode: servo, led, both
+    DOOR_CONTROL_MODE: str = os.getenv("DOOR_CONTROL_MODE", "both")  # servo, led, both
+
     # Door control
     SERVO_GPIO_PIN: int = int(os.getenv("SERVO_GPIO_PIN", "17"))
     DOOR_OPEN_DURATION: int = int(os.getenv("DOOR_OPEN_DURATION", "5"))
     ACTION_COOLDOWN_SECONDS: int = int(os.getenv("ACTION_COOLDOWN_SECONDS", "5"))
+
+    # LED indicator
+    LED_RED_PIN: int = int(os.getenv("LED_RED_PIN", "17"))
+    LED_GREEN_PIN: int = int(os.getenv("LED_GREEN_PIN", "27"))
+    LED_BLUE_PIN: int = int(os.getenv("LED_BLUE_PIN", "22"))
+    LED_DURATION: float = float(os.getenv("LED_DURATION", "2.0"))
+    LED_CONFIDENCE_THRESHOLD: float = float(os.getenv("LED_CONFIDENCE_THRESHOLD", "60"))
 
     # Data directories
     BASE_DIR: Path = Path(__file__).parent.parent.parent
@@ -95,6 +105,16 @@ class Config:
         return cls.HARDWARE_MODE == "raspberry_pi"
 
     @classmethod
+    def use_servo(cls) -> bool:
+        """Check if servo motor should be used"""
+        return cls.DOOR_CONTROL_MODE in ("servo", "both")
+
+    @classmethod
+    def use_led(cls) -> bool:
+        """Check if LED indicator should be used"""
+        return cls.DOOR_CONTROL_MODE in ("led", "both")
+
+    @classmethod
     def validate(cls):
         """Validate configuration"""
         errors = []
@@ -107,6 +127,9 @@ class Config:
 
         if cls.HEARTBEAT_INTERVAL <= 0:
             errors.append("HEARTBEAT_INTERVAL must be positive")
+
+        if cls.DOOR_CONTROL_MODE not in ("servo", "led", "both"):
+            errors.append("DOOR_CONTROL_MODE must be 'servo', 'led', or 'both'")
 
         if errors:
             raise ValueError(f"Configuration errors: {', '.join(errors)}")

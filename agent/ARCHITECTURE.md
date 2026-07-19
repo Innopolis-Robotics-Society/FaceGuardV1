@@ -1,545 +1,567 @@
-# FaceGuard Agent - Архитектура и принцип работы
+# FaceGuard Agent - Architecture
 
-> Подробное описание внутреннего устройства агента
+System architecture and technical design documentation.
 
-## 📐 Архитектура системы
+## Table of Contents
 
-### Общая схема компонентов
+1. [System Overview](#system-overview)
+2. [Component Architecture](#component-architecture)
+3. [Data Flow](#data-flow)
+4. [Recognition Pipeline](#recognition-pipeline)
+5. [Synchronization](#synchronization)
+6. [Storage](#storage)
+7. [Performance](#performance)
+
+---
+
+## System Overview
+
+FaceGuard Agent is an autonomous face recognition system designed for Raspberry Pi that operates independently with optional backend synchronization.
+
+### Key Principles
+
+- **Autonomous Operation** - Works without backend connectivity
+- **Offline-First** - All critical functions work offline
+- **Event Buffering** - Local SQLite buffer for events and telemetry
+- **Asynchronous Sync** - Background synchronization when online
+- **Hardware Abstraction** - Mock implementations for development
+
+### Architecture Diagram
 
 ```
-main.py (FaceGuardAgent)
-    │
-    ├── Core Services
-    │   ├── Database (SQLite)          # Офлайн буфер
-    │   ├── Config                     # Конфигурация из .env
-    │   └── Logger                     # Логирование
-    │
-    ├── Hardware Layer
-    │   ├── CameraService              # Захват видео
-    │   │   ├── picamera2 (Pi Camera)
-    │   │   ├── OpenCV (USB Camera)
-    │   │   └── Simulated (Mock)
-    │   │
-    │   └── DoorController             # Управление дверью
-    │       ├── GPIO (Raspberry Pi)
-    │       └── Mock (Development)
-    │
-    ├── Recognition Layer
-    │   ├── RecognitionService         # LBPH модель
-    │   │   ├── train_model()
-    │   │   ├── load_model()
-    │   │   └── recognize_face()
-    │   │
-    │   ├── RecognitionLoop            # Фоновый поток
-    │   │   └── непрерывное распознавание
-    │   │
-    │   └── CaptureService             # Захват фото для регистрации
-    │
-    ├── Communication Layer
-    │   ├── BackendClient              # HTTP клиент
-    │   │   ├── send_heartbeat()
-    │   │   ├── send_event()
-    │   │   ├── send_telemetry()
-    │   │   └── get_pending_commands()
-    │   │
-    │   └── SyncManager                # Управление синхронизацией
-    │       ├── online/offline detection
-    │       ├── event buffering
-    │       └── batch sync
-    │
-    ├── Command Layer
-    │   ├── CommandExecutor            # Выполнение команд
-    │   │   ├── capture_photos
-    │   │   ├── rebuild_model
-    │   │   ├── open_door
-    │   │   └── restart_*
-    │   │
-    │   └── CommandPoller              # Опрос команд
-    │       └── polling каждые 5 сек
-    │
-    └── Event Layer
-        ├── EventHandler               # Обработка событий
-        │   ├── on_person_recognized
-        │   ├── on_unknown_person
-        │   └── on_access_denied
-        │
-        └── TelemetryService           # Системная телеметрия
-            ├── CPU/RAM/Temp
-            └── Camera FPS
+┌─────────────────────────────────────────────────────────────┐
+│                    FaceGuardAgent (main.py)                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   Core      │  │  Hardware    │  │ Recognition  │     │
+│  │  Services   │  │    Layer     │  │    Layer     │     │
+│  ├─────────────┤  ├──────────────┤  ├──────────────┤     │
+│  │ • Config    │  │ • Camera     │  │ • Service    │     │
+│  │ • Database  │  │ • Door       │  │ • Loop       │     │
+│  │ • Logger    │  │ • LED        │  │ • Capture    │     │
+│  └─────────────┘  └──────────────┘  └──────────────┘     │
+│                                                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ Communication│  │   Command    │  │    Event     │     │
+│  │    Layer    │  │    Layer     │  │    Layer     │     │
+│  ├─────────────┤  ├──────────────┤  ├──────────────┤     │
+│  │ • Backend   │  │ • Executor   │  │ • Handler    │     │
+│  │   Client    │  │ • Poller     │  │ • Telemetry  │     │
+│  │ • Sync Mgr  │  │              │  │              │     │
+│  └─────────────┘  └──────────────┘  └──────────────┘     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔄 Жизненный цикл агента
+## Component Architecture
 
-### 1. Запуск (main.py → FaceGuardAgent.__init__)
+### Core Layer
 
+#### Config (core/config.py)
+- Environment variable management
+- Default values and validation
+- Path configuration
+- Hardware mode detection
+
+#### Database (core/database.py)
+- SQLite connection management
+- Schema initialization
+- CRUD operations for events, telemetry, commands
+- Sync state tracking
+
+#### Logger (core/logging.py)
+- Structured logging
+- File and console output
+- Log rotation
+- Debug utilities
+
+### Hardware Layer
+
+#### CameraService (camera/camera_service.py)
+
+**Purpose:** Continuous frame capture from camera
+
+**Implementation:**
 ```python
-# 1. Инициализация базовых сервисов
-Database()          # Создаёт agent.db
-BackendClient()     # HTTP клиент
-
-# 2. Инициализация аппаратных сервисов
-CameraService()     # Определяет тип камеры и инициализирует
-DoorController()    # Определяет режим (GPIO/Mock)
-
-# 3. Инициализация распознавания
-RecognitionService()  # Загружает модель если существует
-CaptureService()      # Сервис для захвата фото
-
-# 4. Инициализация синхронизации
-SyncManager()       # Управление online/offline
-CommandExecutor()   # Обработчики команд
-CommandPoller()     # Опрос backend
-
-# 5. Инициализация событий
-EventHandler()      # Обработка событий распознавания
-RecognitionLoop()   # Фоновый цикл распознавания
-```
-
-### 2. Старт всех сервисов (FaceGuardAgent.start)
-
-```python
-# 1. Валидация конфигурации
-Config.validate()
-
-# 2. Запуск камеры
-camera.start()
-# → Создаёт background thread для захвата кадров
-
-# 3. Запуск sync manager
-await sync_manager.start()
-# → Создаёт asyncio task для синхронизации
-
-# 4. Запуск command poller
-await command_poller.start()
-# → Создаёт asyncio task для опроса команд
-
-# 5. Запуск recognition loop (если модель обучена)
-if recognition.is_trained:
-    recognition_loop.start()
-    # → Создаёт thread для непрерывного распознавания
-
-# 6. Запуск background tasks
-asyncio.create_task(heartbeat_loop())    # Heartbeat каждые 10 сек
-asyncio.create_task(telemetry_loop())    # Telemetry каждые 30 сек
-```
-
----
-
-## 🎥 Как работает камера
-
-### CameraService - Непрерывный захват
-
-```
-┌──────────────────────────────────────────┐
-│         CameraService.start()            │
-└──────────────┬───────────────────────────┘
-               │
-               v
-┌──────────────────────────────────────────┐
-│    Background Thread (_capture_loop)     │
-│                                          │
-│  while is_running:                       │
-│    frame = _grab_frame()                 │
-│    with frame_lock:                      │
-│        current_frame = frame             │
-│    sleep(1/FPS)                          │
-└──────────────┬───────────────────────────┘
-               │
-               v
-┌──────────────────────────────────────────┐
-│   _grab_frame() - платформо-зависимый   │
-│                                          │
-│   if picamera2:                          │
-│     → camera.capture_array()             │
-│   elif opencv:                           │
-│     → camera.read()                      │
-│   elif simulated:                        │
-│     → generate_test_frame()              │
-└──────────────────────────────────────────┘
-```
-
-**Использование:**
-
-```python
-# В любом месте можно получить текущий кадр
-frame = camera.get_frame()  # Неблокирующий вызов
-
-# Или захватить свежий кадр
-frame = camera.capture_frame()  # Блокирующий вызов
-```
-
----
-
-## 🧠 Как работает распознавание
-
-### Процесс обучения модели
-
-```
-1. СКАНИРОВАНИЕ ПАПОК
-   data/faces/
-   ├── person-uuid-1/processed/
-   │   ├── face_001.jpg  (200x200 grayscale)
-   │   ├── face_002.jpg
-   │   └── ...
-   └── person-uuid-2/processed/
-       └── ...
-
-2. ЗАГРУЗКА ФОТОГРАФИЙ
-   for person_dir in faces_dir:
-       label = current_label++
-       label_map[label] = person_uuid
-       
-       for photo in processed_dir:
-           face_img = cv2.imread(photo, GRAYSCALE)
-           faces.append(face_img)
-           labels.append(label)
-
-3. ОБУЧЕНИЕ LBPH
-   recognizer = cv2.face.LBPHFaceRecognizer_create()
-   recognizer.train(faces, labels)
-   
-4. СОХРАНЕНИЕ
-   recognizer.save('data/models/face_model.yml')
-   json.dump(label_map, 'data/models/labels.json')
-   
-   labels.json:
-   {
-     "0": "person-uuid-1",
-     "1": "person-uuid-2"
-   }
-```
-
-### RecognitionLoop - Непрерывное распознавание
-
-```
-┌────────────────────────────────────────────┐
-│   RecognitionLoop.start() в отдельном thread│
-└────────────┬───────────────────────────────┘
-             │
-             v
-┌────────────────────────────────────────────┐
-│    while is_running:                       │
-│                                            │
-│  1. frame = camera.get_frame()             │
-│  2. result = recognition.recognize_face()  │
-│     │                                      │
-│     ├─> None → no face detected           │
-│     │                                      │
-│     ├─> recognized=True                   │
-│     │   → _handle_recognized()            │
-│     │   → check cooldown                  │
-│     │   → door.open_door()                │
-│     │   → save snapshot                   │
-│     │   → on_recognized callback          │
-│     │                                      │
-│     └─> recognized=False                  │
-│         → _handle_unknown()               │
-│         → save snapshot                   │
-│         → on_unknown callback             │
-│                                            │
-│  3. sleep(0.1)                             │
-└────────────────────────────────────────────┘
-```
-
-### RecognitionService.recognize_face()
-
-```python
-def recognize_face(frame: np.ndarray) -> Optional[Dict]:
-    # 1. Конвертация в grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+class CameraService:
+    def start(self):
+        # Spawns background thread
+        self._thread = Thread(target=self._capture_loop)
+        
+    def _capture_loop(self):
+        while self.is_running:
+            frame = self._grab_frame()
+            with self.lock:
+                self.current_frame = frame
+            sleep(1 / FPS)
     
-    # 2. Детекция лица (Haar Cascade)
-    faces = face_detector.detectMultiScale(
-        gray,
-        scaleFactor=1.2,
-        minNeighbors=5,
-        minSize=(80, 80)
-    )
-    # ~80-150ms
-    
-    if len(faces) == 0:
-        return None  # Лицо не найдено
-    
-    # 3. Обработка первого лица
-    x, y, w, h = faces[0]
-    face_roi = gray[y:y+h, x:x+w]
-    face_resized = cv2.resize(face_roi, (200, 200))
-    
-    # 4. Распознавание (LBPH)
-    label, distance = recognizer.predict(face_resized)
-    # ~20-50ms
-    
-    # 5. Проверка порога: LBPH distance ниже threshold = match
-    recognized = distance < RECOGNITION_THRESHOLD
-    person_id = label_map.get(label) if recognized else None
-    
-    return {
-        "recognized": recognized,
-        "person_id": person_id,
-        "confidence": distance,  # compatibility field; raw LBPH distance
-        "face_bbox": {"x": x, "y": y, "w": w, "h": h}
-    }
+    def get_frame(self):
+        # Non-blocking, returns latest frame
+        with self.lock:
+            return self.current_frame.copy()
 ```
 
-**Итоговое время:** 80-150ms (детекция) + 20-50ms (распознавание) = **100-200ms**
+**Camera Types:**
+- `picamera2` - Raspberry Pi Camera Module
+- `opencv` - USB webcam
+- `simulated` - Mock for development
 
----
+#### DoorController (door/door_controller.py)
 
-## 🚪 Как работает дверь
+**Purpose:** GPIO servo motor control
 
-### DoorController
-
+**Implementation:**
 ```python
 class DoorController:
     def __init__(self):
         if Config.is_raspberry_pi():
-            # Реальный GPIO
             from gpiozero import Servo
             self.servo = Servo(Config.SERVO_GPIO_PIN)
-            self.servo_type = "gpio"
         else:
-            # Mock для разработки
-            self.servo = None
-            self.servo_type = "mock"
+            self.servo = None  # Mock
     
     def open_door(self, duration=5):
-        if self.servo_type == "gpio":
-            # Сервопривод на максимум (открыто)
-            self.servo.max()
+        if self.servo:
+            self.servo.max()  # Open
             time.sleep(duration)
-            # Сервопривод на минимум (закрыто)
-            self.servo.min()
-        
-        elif self.servo_type == "mock":
-            # Просто логируем
-            logger.info(f"[MOCK] Door opened for {duration}s")
-            time.sleep(duration)
-            logger.info("[MOCK] Door closed")
+            self.servo.min()  # Close
 ```
 
-**Timing:**
-- GPIO команда: ~5ms
-- Физическое движение сервопривода: ~1-2 секунды
-- Общее время открытия: 5 секунд (настраивается)
+#### LEDIndicator (door/led_indicator.py)
+
+**Purpose:** RGB LED status indicator
+
+**Status Colors:**
+- Red: Access denied
+- Green: Access granted
+- Blue: Low confidence
+
+**Implementation:**
+```python
+class LEDIndicator:
+    def __init__(self):
+        if Config.is_raspberry_pi():
+            from gpiozero import LED
+            self.red = LED(Config.LED_RED_PIN)
+            self.green = LED(Config.LED_GREEN_PIN)
+            self.blue = LED(Config.LED_BLUE_PIN)
+    
+    def show_access_granted(self, duration=2.0):
+        self.green.on()
+        time.sleep(duration)
+        self.green.off()
+```
+
+### Recognition Layer
+
+#### RecognitionService (recognition/recognizer.py)
+
+**Purpose:** Unified face recognition interface
+
+**Supports:**
+- LBPH (default) - Fast, local
+- DeepFace (optional) - High accuracy
+
+**Model Selection:**
+```python
+class RecognitionService:
+    def __init__(self):
+        model_type = Config.RECOGNITION_MODEL
+        if model_type == "lbph":
+            self._recognizer = LBPHRecognizer()
+        elif model_type == "deepface":
+            self._recognizer = DeepFaceRecognizer()
+```
+
+#### RecognitionLoop (recognition/recognition_loop.py)
+
+**Purpose:** Continuous face recognition thread
+
+**Pipeline:**
+```
+1. Get frame from camera (non-blocking)
+2. Recognize face (LBPH/DeepFace)
+3. Check anti-spoofing (if enabled)
+4. Handle result:
+   - Recognized → trigger door + event
+   - Unknown → trigger event only
+5. Sleep 100ms
+6. Repeat
+```
+
+**Implementation:**
+```python
+class RecognitionLoop:
+    def start(self):
+        self._thread = Thread(target=self._loop)
+        self._thread.start()
+    
+    def _loop(self):
+        while self._is_running:
+            frame = self.camera.get_frame()
+            result = self.recognition.recognize_face(frame)
+            
+            if result and result["recognized"]:
+                self._handle_recognized(result)
+            elif result:
+                self._handle_unknown(result)
+            
+            time.sleep(0.1)
+```
+
+**Cooldown Mechanism:**
+- Prevents repeated door opening
+- Default: 5 seconds between actions
+- Per-person tracking
+
+#### MiniFASNet Anti-Spoofing (recognition/minifasnet_detector.py)
+
+**Purpose:** CNN-based presentation attack detection
+
+**Architecture:**
+```
+Input: 80x80x3 RGB face crop
+↓
+Conv1 (3→64) + BN + ReLU + MaxPool
+Conv2 (64→128) + BN + ReLU + MaxPool
+Conv3 (128→196) + BN + ReLU + MaxPool
+Conv4 (196→128) + BN + ReLU
+Conv5 (128→128) + BN + ReLU
+Conv6 (128→128) + BN + ReLU
+FC (128→3)
+↓
+Output: [real, fake_print, fake_replay]
+```
+
+**Inference:**
+- Preprocessing: resize to 80x80, normalize
+- Model forward pass: ~15-30ms on CPU
+- Softmax: real vs fake score
+- Threshold: configurable (0-1)
+
+### Communication Layer
+
+#### BackendClient (sync/backend_client.py)
+
+**Purpose:** HTTP client for backend API
+
+**Endpoints:**
+```python
+# Device management
+POST /api/v1/devices/register
+POST /api/v1/devices/{id}/heartbeat
+
+# Events
+POST /api/v1/events/
+POST /api/v1/events/batch
+
+# Commands
+GET /api/v1/commands/pending?device_id={id}
+PATCH /api/v1/commands/{id}
+
+# Telemetry
+POST /api/v1/telemetry/
+POST /api/v1/telemetry/batch
+```
+
+**Connection Handling:**
+- Timeout: 10 seconds
+- Retry: Exponential backoff
+- Error handling: Logs and continues
+
+#### SyncManager (sync/sync_manager.py)
+
+**Purpose:** Manages online/offline state and synchronization
+
+**State Machine:**
+```
+┌─────────┐
+│ Offline │◄─────┐
+└────┬────┘      │
+     │ heartbeat │
+     │ success   │ heartbeat
+     ▼           │ fail
+┌─────────┐      │
+│ Online  │──────┘
+└────┬────┘
+     │
+     │ sync_loop (every 60s)
+     ├─> sync events
+     ├─> sync telemetry
+     └─> check connection
+```
+
+**Buffering:**
+- All events saved to SQLite first
+- Background sync when online
+- Batch sync (100 records at a time)
+- Marks records as synced
+
+### Command Layer
+
+#### CommandExecutor (commands/command_executor.py)
+
+**Purpose:** Execute remote commands from backend
+
+**Command Types:**
+- `capture_photos` - Capture training photos
+- `rebuild_model` - Retrain recognition model
+- `reload_model` - Reload model from disk
+- `open_door` - Manual door control
+- `restart_recognition` - Restart recognition loop
+- `restart_camera` - Restart camera service
+- `reboot_device` - Reboot Raspberry Pi
+
+**Execution Flow:**
+```
+1. Receive command from backend
+2. Update status → "running"
+3. Execute handler
+4. Update status → "completed"/"failed"
+5. Send result to backend
+```
+
+#### CommandPoller (commands/command_poller.py)
+
+**Purpose:** Poll backend for pending commands
+
+**Polling:**
+- Interval: 5 seconds (configurable)
+- Fetches pending commands for this device
+- Passes to CommandExecutor
+- Background asyncio task
+
+### Event Layer
+
+#### EventHandler (events/event_handler.py)
+
+**Purpose:** Handle recognition events
+
+**Event Types:**
+- `recognized` - Known person detected
+- `unknown` - Unknown person detected
+- `access_denied` - Recognition failed
+
+**Workflow:**
+```
+RecognitionLoop callback
+↓
+EventHandler.on_person_recognized()
+↓
+├─> Open door (if confidence ≥ 60%)
+├─> Show LED indicator
+├─> Save snapshot
+├─> Create event record
+└─> Add to sync queue
+```
+
+#### TelemetryService (telemetry/telemetry_service.py)
+
+**Purpose:** System monitoring
+
+**Metrics:**
+- CPU usage (%)
+- CPU temperature (°C)
+- RAM usage (%)
+- Disk usage (%)
+- Uptime (seconds)
+- Camera FPS
+- Network status
+- Recognition status
+
+**Collection:**
+- Interval: 30 seconds
+- Uses `psutil` library
+- Raspberry Pi thermal zone for temperature
 
 ---
 
-## 🔄 Синхронизация и офлайн режим
+## Data Flow
 
-### SyncManager - Управление состоянием
-
-```
-┌────────────────────────────────────────────┐
-│   SyncManager._sync_loop() каждые 60 сек   │
-└────────────┬───────────────────────────────┘
-             │
-             v
-┌────────────────────────────────────────────┐
-│  1. is_online = backend.check_connection() │
-│                                            │
-│  2. if online != previous_state:           │
-│       if online:                           │
-│         → _on_reconnect()                  │
-│           → register device                │
-│       else:                                │
-│         → logger.warning("offline mode")   │
-│                                            │
-│  3. if online:                             │
-│       → _sync_unsynced_events()            │
-│       → _sync_unsynced_telemetry()         │
-└────────────────────────────────────────────┘
-```
-
-### Добавление события
-
-```python
-async def add_event(event_data: dict):
-    # 1. ВСЕГДА сохраняем в SQLite
-    event_id = db.add_event(event_data)
-    
-    # 2. Пытаемся отправить сразу если online
-    if is_online:
-        success = await backend.send_event(event_data)
-        if success:
-            db.mark_events_synced([event_id])
-        else:
-            # Не получилось - останется в буфере
-            pass
-    else:
-        # Офлайн - останется в буфере до синхронизации
-        pass
-```
-
-### Batch синхронизация
-
-```python
-async def _sync_unsynced_events():
-    # 1. Получить до 100 несинхронизированных событий
-    unsynced = db.get_unsynced_events(limit=100)
-    
-    if not unsynced:
-        return
-    
-    # 2. Конвертировать в формат backend
-    events_to_sync = [convert_to_backend_format(e) for e in unsynced]
-    
-    # 3. Отправить одним запросом
-    success = await backend.sync_events_batch(events_to_sync)
-    
-    # 4. Пометить как синхронизированные
-    if success:
-        event_ids = [e["id"] for e in unsynced]
-        db.mark_events_synced(event_ids)
-```
-
----
-
-## 📡 Command Execution
-
-### Как работают команды
+### Recognition Flow
 
 ```
-┌───────────────────────────────────────────────────┐
-│ BACKEND: Админ создаёт команду                    │
-│ POST /api/v1/commands/                            │
-│ {                                                 │
-│   "device_id": "uuid",                            │
-│   "command_type": "capture_photos",               │
-│   "parameters": "{\"person_id\": \"...\"}"        │
-│ }                                                 │
-│ → Сохраняется в БД со status="pending"            │
-└───────────────┬───────────────────────────────────┘
-                │
-                v (каждые 5 секунд)
-┌───────────────────────────────────────────────────┐
-│ AGENT: CommandPoller.poll_loop()                  │
-│ GET /api/v1/commands/pending?device_id=uuid       │
-│ → Получает список pending команд                  │
-└───────────────┬───────────────────────────────────┘
-                │
-                v
-┌───────────────────────────────────────────────────┐
-│ AGENT: CommandExecutor.execute_command()          │
-│                                                   │
-│ 1. Обновить статус → "running"                    │
-│    PATCH /api/v1/commands/{id}                    │
-│                                                   │
-│ 2. Выполнить команду                              │
-│    handler = handlers[command_type]               │
-│    result = await handler(parameters)             │
-│                                                   │
-│ 3. Обновить статус → "completed"/"failed"         │
-│    PATCH /api/v1/commands/{id}                    │
-│    + отправить result или error                   │
-└───────────────────────────────────────────────────┘
+┌─────────────────┐
+│  CameraService  │ (Background thread)
+│  Continuous     │
+│  capture loop   │
+└────────┬────────┘
+         │ Non-blocking
+         ▼
+┌─────────────────┐
+│ RecognitionLoop │ (Background thread)
+│  • Get frame    │
+│  • Detect face  │
+│  • Anti-spoof   │
+│  • Recognize    │
+└────────┬────────┘
+         │
+         ├─ Recognized → EventHandler
+         │               ├─> Door control
+         │               ├─> LED indicator
+         │               ├─> Save snapshot
+         │               └─> Create event
+         │
+         └─ Unknown ───→ EventHandler
+                         ├─> LED red
+                         ├─> Save snapshot
+                         └─> Create event
 ```
 
-### Пример: capture_photos
+### Synchronization Flow
 
-```python
-async def _handle_capture_photos(params: Dict) -> Dict:
-    person_id = params["person_id"]
-    count = params.get("count", 15)
-    
-    # 1. Захват фотографий
-    result = capture_service.capture_person_photos(
-        person_id=person_id,
-        count=count,
-        interval=0.5
-    )
-    
-    # result содержит:
-    # - captured_count: сколько успешно
-    # - skipped_count: сколько пропущено
-    # - photos: список путей к файлам
-    
-    return result
+```
+┌──────────────────┐
+│   EventHandler   │
+│   Creates event  │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│    Database      │
+│  • Save event    │
+│  • synced=0      │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│   SyncManager    │ (Background task, every 60s)
+│  1. Check online │
+│  2. Get unsynced │
+│  3. Batch send   │
+│  4. Mark synced  │
+└──────────────────┘
+         │
+         ▼
+┌──────────────────┐
+│  BackendClient   │
+│  POST /events/   │
+│  batch           │
+└──────────────────┘
+```
+
+### Command Flow
+
+```
+┌──────────────────┐
+│   Backend API    │
+│  Admin creates   │
+│  command         │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│  CommandPoller   │ (Every 5 seconds)
+│  GET /commands/  │
+│  pending         │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ CommandExecutor  │
+│  1. Status→run   │
+│  2. Execute      │
+│  3. Status→done  │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│  BackendClient   │
+│  PATCH /commands │
+│  {result}        │
+└──────────────────┘
 ```
 
 ---
 
-## 📊 Telemetry
+## Recognition Pipeline
 
-### TelemetryService - Сбор метрик
+### Face Detection (Haar Cascade)
 
 ```python
-def collect_telemetry() -> Dict:
-    return {
-        "device_id": Config.DEVICE_ID,
-        "cpu_usage": psutil.cpu_percent(interval=1),
-        "cpu_temperature": read_thermal_zone(),  # Raspberry Pi
-        "ram_usage": psutil.virtual_memory().percent,
-        "disk_usage": psutil.disk_usage('/').percent,
-        "uptime": time.time() - boot_time,
-        "camera_fps": camera.get_fps(),
-        "network_status": check_network(),
-        "recognition_running": recognition_loop.is_active(),
-        "created_at": datetime.utcnow().isoformat()
-    }
+# 1. Convert to grayscale
+gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+# 2. Detect faces
+faces = face_cascade.detectMultiScale(
+    gray,
+    scaleFactor=1.2,
+    minNeighbors=5,
+    minSize=(80, 80)
+)
+
+# Time: ~80-150ms
 ```
 
-### Отправка телеметрии
+### Anti-Spoofing (MiniFASNet)
+
+```python
+# 1. Extract face region with padding
+face_region = frame[y1:y2, x1:x2]
+
+# 2. Preprocess
+face_tensor = preprocess(face_region)  # 80x80
+
+# 3. Inference
+with torch.no_grad():
+    logits = model(face_tensor)
+    probs = F.softmax(logits, dim=1)
+
+# 4. Check threshold
+real_score = probs[0]
+is_real = real_score > threshold
+
+# Time: ~15-30ms
+```
+
+### Face Recognition (LBPH)
+
+```python
+# 1. Extract face ROI
+face_roi = gray[y:y+h, x:x+w]
+
+# 2. Resize to standard size
+face_resized = cv2.resize(face_roi, (200, 200))
+
+# 3. Predict
+label, distance = recognizer.predict(face_resized)
+
+# 4. Check threshold
+recognized = distance < THRESHOLD
+person_id = label_map[label] if recognized else None
+
+# Time: ~20-50ms
+```
+
+### Total Pipeline Time
 
 ```
-┌────────────────────────────────────────────┐
-│   telemetry_loop() каждые 30 секунд       │
-└────────────┬───────────────────────────────┘
-             │
-             v
-┌────────────────────────────────────────────┐
-│  1. telemetry = collect_telemetry()        │
-│  2. await sync_manager.add_telemetry()     │
-│     → сохранить в SQLite                   │
-│     → если online: отправить в backend     │
-└────────────────────────────────────────────┘
+Face Detection:     80-150ms
+Anti-Spoofing:      15-30ms  (if enabled)
+Face Recognition:   20-50ms
+────────────────────────────
+Total:             115-230ms
 ```
+
+At 30 FPS camera: ~33ms per frame available  
+Recognition runs every ~100ms (10 FPS)
 
 ---
 
-## 🗂️ Data Storage
+## Synchronization
 
-### Структура файлов
+### Offline Buffer (SQLite)
 
-```
-data/
-├── faces/                      # Фотографии людей
-│   └── {person_uuid}/
-│       ├── original/           # Оригинальные фото с камеры
-│       │   ├── photo_20260615_120530_001.jpg
-│       │   └── photo_20260615_120531_002.jpg
-│       └── processed/          # Обработанные лица (200x200 grayscale)
-│           ├── face_20260615_120530_001.jpg
-│           └── face_20260615_120531_002.jpg
-│
-├── events/                     # Снапшоты событий
-│   └── 2026/06/15/
-│       ├── recognized_person-uuid_120545_123.jpg
-│       └── unknown_unknown_120612_456.jpg
-│
-├── models/                     # LBPH модель
-│   ├── face_model.yml         # Обученная модель OpenCV
-│   └── labels.json            # Маппинг: label_id → person_uuid
-│
-├── logs/
-│   └── agent.log              # Текстовые логи
-│
-└── agent.db                   # SQLite база
-    ├── events (id, person_id, event_type, synced)
-    ├── telemetry (id, cpu_usage, synced)
-    └── commands (id, command_type, status)
-```
-
-### SQLite Schema
-
+**Schema:**
 ```sql
--- События распознавания
 CREATE TABLE events (
     id INTEGER PRIMARY KEY,
     device_id TEXT,
     person_id TEXT,
-    event_type TEXT,        -- recognized, unknown, access_denied
+    event_type TEXT,
     confidence REAL,
     door_opened INTEGER,
     photo_path TEXT,
@@ -548,7 +570,6 @@ CREATE TABLE events (
     synced_at TEXT
 );
 
--- Телеметрия
 CREATE TABLE telemetry (
     id INTEGER PRIMARY KEY,
     device_id TEXT,
@@ -562,71 +583,191 @@ CREATE TABLE telemetry (
     synced INTEGER DEFAULT 0,
     synced_at TEXT
 );
+```
 
--- Команды
-CREATE TABLE commands (
-    id INTEGER PRIMARY KEY,
-    command_id TEXT UNIQUE,
-    command_type TEXT,
-    parameters TEXT,        -- JSON string
-    status TEXT,            -- pending, running, completed, failed
-    result TEXT,
-    error_message TEXT,
-    created_at TEXT,
-    executed_at TEXT,
-    completed_at TEXT
-);
+### Sync Strategy
+
+**Add Event:**
+```python
+async def add_event(event_data):
+    # 1. Always save to SQLite
+    event_id = db.add_event(event_data)
+    
+    # 2. Try immediate sync if online
+    if is_online:
+        success = await backend.send_event(event_data)
+        if success:
+            db.mark_events_synced([event_id])
+    
+    # 3. Otherwise wait for sync loop
+```
+
+**Batch Sync:**
+```python
+async def _sync_unsynced_events():
+    # 1. Get unsynced (limit 100)
+    unsynced = db.get_unsynced_events(limit=100)
+    
+    # 2. Send batch
+    success = await backend.sync_events_batch(unsynced)
+    
+    # 3. Mark synced
+    if success:
+        event_ids = [e["id"] for e in unsynced]
+        db.mark_events_synced(event_ids)
+```
+
+### Online Detection
+
+**Heartbeat:**
+```python
+async def _heartbeat_loop():
+    while True:
+        try:
+            await backend.send_heartbeat(telemetry)
+            # Heartbeat success = online
+        except:
+            # Heartbeat failed = offline
+        
+        await asyncio.sleep(10)
 ```
 
 ---
 
-## 🔐 Безопасность
+## Storage
 
-### Аутентификация с backend
+### Directory Structure
 
-Agent использует:
-- `DEVICE_CODE` - уникальный код устройства (в .env)
-- `DEVICE_ID` - UUID из backend (получается при регистрации)
+```
+data/
+├── faces/{person_uuid}/
+│   ├── original/           # Raw captures
+│   │   └── photo_*.jpg     # 640x480 or higher
+│   └── processed/          # Processed faces
+│       └── face_*.jpg      # 200x200 grayscale
+│
+├── events/{YYYY}/{MM}/{DD}/
+│   └── {type}_{id}_{timestamp}_{random}.jpg
+│
+├── models/
+│   ├── face_model.yml      # LBPH trained model
+│   ├── labels.json         # Label → Person ID mapping
+│   └── antispoofing/
+│       └── minifasnet_v2.pth
+│
+├── logs/
+│   └── agent.log
+│
+└── agent.db                # SQLite database
+```
 
-Backend проверяет device_code при heartbeat и регистрации.
+### Database Size Management
 
-### Локальная безопасность
+**Growth:**
+- Events: ~200 bytes per event
+- Telemetry: ~150 bytes per telemetry
+- Expected: ~100 events/day = 20KB/day
+- Monthly: ~600KB
 
-- SQLite база не содержит чувствительных данных
-- Фотографии хранятся по UUID (не по именам)
-- Логи не содержат личной информации
+**Cleanup:**
+- Synced records deleted after 7 days
+- Automatic cleanup in sync loop
+- Manual cleanup via SQL if needed
 
 ---
 
-## ⚙️ Конфигурация и параметры
+## Performance
 
-### Критичные параметры
+### Timing Breakdown
 
-| Параметр | Влияние | Рекомендация |
-|----------|---------|--------------|
-| `RECOGNITION_THRESHOLD` | Точность распознавания | 50-70 для баланса |
-| `ACTION_COOLDOWN_SECONDS` | Частота срабатываний | 5 сек минимум |
-| `CAMERA_FPS` | Нагрузка на CPU | 15-30 в зависимости от Pi |
-| `MIN_FACE_SIZE` | Дистанция распознавания | 80 для 1-2 метров |
-| `DOOR_OPEN_DURATION` | Время открытия двери | 5-10 секунд |
-
-### Оптимизация производительности
-
-**Для Raspberry Pi 3:**
-```env
-CAMERA_FPS=15
-MIN_FACE_SIZE=100
-FACE_SCALE_FACTOR=1.3
+**Recognition Loop (per iteration):**
+```
+Get frame:           <1ms   (non-blocking)
+Face detection:      80-150ms
+Anti-spoofing:       15-30ms (optional)
+Face recognition:    20-50ms
+Event handling:      5-10ms
+Sleep:              100ms
+────────────────────────────
+Total per loop:     ~220-340ms
 ```
 
-**Для Raspberry Pi 5:**
-```env
-CAMERA_FPS=30
-MIN_FACE_SIZE=80
-FACE_SCALE_FACTOR=1.2
-```
+**FPS:**
+- Recognition: ~3-5 FPS effective
+- Camera: 15-30 FPS continuous
+
+### Resource Usage (Raspberry Pi 5)
+
+**CPU:**
+- Idle: 5-10%
+- Recognition active: 30-50%
+- Peak (with anti-spoofing): 60-70%
+
+**RAM:**
+- Base: ~100MB
+- With DeepFace: ~300MB
+- With camera buffers: +50MB
+
+**Disk:**
+- Code: ~50MB
+- Models: ~10MB
+- Data (per month): ~1GB (events + snapshots)
+
+### Optimization Techniques
+
+1. **Non-blocking frame access** - Camera runs in separate thread
+2. **Sleep between recognition** - 100ms reduces CPU load
+3. **Cooldown mechanism** - Prevents repeated processing
+4. **Batch sync** - Reduces network overhead
+5. **Local models** - No network latency
+6. **CPU-only PyTorch** - No CUDA overhead
 
 ---
 
-**Версия:** 1.0.0  
-**Обновлено:** 2026-06-15
+## Threading Model
+
+```
+Main Thread (asyncio event loop)
+├─> heartbeat_loop (async task)
+├─> telemetry_loop (async task)
+├─> command_poller (async task)
+└─> sync_manager (async task)
+
+Background Thread 1: Camera capture
+└─> _capture_loop() continuously
+
+Background Thread 2: Recognition
+└─> _recognition_loop() continuously
+```
+
+**Thread Safety:**
+- Camera frame: protected by `threading.Lock`
+- Database: SQLite serialized mode
+- Events: asyncio-safe queue
+- No shared mutable state between threads
+
+---
+
+## Error Handling
+
+### Resilience Strategies
+
+1. **Camera failure** → Log error, retry initialization
+2. **Recognition error** → Skip frame, continue loop
+3. **Backend unavailable** → Buffer locally, auto-sync later
+4. **GPIO error** → Log, continue (graceful degradation)
+5. **Model not trained** → Disable recognition, wait for training
+
+### Recovery Mechanisms
+
+- Automatic reconnection on network restore
+- Graceful degradation (disable features if hardware unavailable)
+- Event buffering prevents data loss
+- Watchdog restart via systemd (optional)
+
+---
+
+## Version
+
+**Version:** 1.0.0  
+**Last Updated:** 2026-07-16

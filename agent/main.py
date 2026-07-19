@@ -21,6 +21,7 @@ from camera.capture_service import CaptureService
 from recognition.recognizer import RecognitionService
 from recognition.recognition_loop import RecognitionLoop
 from door.door_controller import DoorController
+from door.led_indicator import LEDIndicator
 from telemetry.telemetry_service import TelemetryService
 from sync.backend_client import BackendClient
 from sync.sync_manager import SyncManager
@@ -48,7 +49,8 @@ class FaceGuardAgent:
 
         # Hardware services
         self.camera = CameraService()
-        self.door = DoorController()
+        self.door = DoorController() if Config.use_servo() else None
+        self.led = LEDIndicator() if Config.use_led() else None
 
         # Recognition services
         self.recognition = RecognitionService()
@@ -68,14 +70,15 @@ class FaceGuardAgent:
         self.command_poller = CommandPoller(self.backend, self.command_executor)
 
         # Event handling
-        self.event_handler = EventHandler(self.door, self.sync_manager)
+        self.event_handler = EventHandler(self.door, self.sync_manager, self.led)
 
         # Recognition loop
         self.recognition_loop = RecognitionLoop(
             self.camera,
             self.recognition,
             on_recognized=self._on_recognized_wrapper,
-            on_unknown=self._on_unknown_wrapper
+            on_unknown=self._on_unknown_wrapper,
+            event_handler=self.event_handler
         )
 
         # Background tasks
@@ -89,10 +92,10 @@ class FaceGuardAgent:
 
         logger.info("Agent initialized successfully")
 
-    def _on_recognized_wrapper(self, person_id: str, confidence: float, snapshot_path: str):
+    def _on_recognized_wrapper(self, person_id: str, confidence: float, snapshot_path: str, raw_distance: float = None):
         """Schedule recognized-person handling from the recognition thread."""
         self._schedule_event_handler(
-            self.event_handler.on_person_recognized(person_id, confidence, snapshot_path)
+            self.event_handler.on_person_recognized(person_id, confidence, snapshot_path, raw_distance)
         )
 
     def _on_unknown_wrapper(self, confidence: float, snapshot_path: str):
@@ -124,6 +127,7 @@ class FaceGuardAgent:
 
         logger.info("Starting FaceGuard Agent...")
         logger.info(f"Hardware mode: {Config.HARDWARE_MODE}")
+        logger.info(f"Door control mode: {Config.DOOR_CONTROL_MODE}")
         logger.info(f"Backend URL: {Config.BACKEND_URL}")
         logger.info(f"Device code: {Config.DEVICE_CODE}")
 
@@ -225,7 +229,10 @@ class FaceGuardAgent:
 
         # Release hardware
         logger.info("Releasing hardware...")
-        self.door.release()
+        if self.door:
+            self.door.release()
+        if self.led:
+            self.led.release()
         self.camera.release()
 
         logger.info("Agent stopped successfully")
@@ -300,7 +307,16 @@ class FaceGuardAgent:
         logger.info("Status:")
         logger.info(f"  Camera: {'[OK] Available' if self.camera.is_available() else '[!] Not available'}")
         logger.info(f"  Recognition: {'[OK] Trained' if self.recognition.is_trained else '[!] Not trained'}")
-        logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
+
+        if self.door:
+            logger.info(f"  Door controller: {'[OK] Ready' if self.door.get_status()['available'] else '[!] Not available'}")
+        else:
+            logger.info(f"  Door controller: [DISABLED]")
+
+        if self.led:
+            logger.info(f"  LED indicator: {'[OK] Ready' if self.led.get_status()['available'] else '[!] Not available'}")
+        else:
+            logger.info(f"  LED indicator: [DISABLED]")
 
         sync_status = self.sync_manager.get_sync_status()
         logger.info(f"  Backend: {'[OK] Online' if sync_status['is_online'] else '[!] Offline'}")
@@ -337,7 +353,7 @@ def main():
     try:
         from scripts.download_models import download_models
         print("Checking required models...")
-        download_models(force=False, skip_optional=False)
+        download_models(force=False, skip_optional=True)  # Skip optional models like MiniFASNet
         print()
     except Exception as e:
         logger.warning(f"Failed to download models: {e}")

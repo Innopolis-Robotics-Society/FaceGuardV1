@@ -58,13 +58,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libcamera-dev \
-    libcamera-apps \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
 # Install Python dependencies
 # Note: picamera2 and GPIO libs will be installed only on ARM architecture
+# PyTorch is NOT included by default - install manually if MiniFASNet is needed
+ENV PIP_NO_CACHE_DIR=1
+ENV TORCH_CUDA_ARCH_LIST=""
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 

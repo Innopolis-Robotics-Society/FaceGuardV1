@@ -5,14 +5,13 @@ psutil==5.9.8
 python-dotenv==1.0.1
 fastapi==0.115.0
 uvicorn==0.32.0
-# DeepFace support (newer version that works with tf-keras)
-# deepface>=0.0.90
-# tf-keras>=2.16.0
 picamera2==0.3.17; platform_machine == 'aarch64'
 gpiozero==2.0.1; platform_machine == 'aarch64'
 pigpio==1.78; platform_machine == 'aarch64'
 
-# Anti-spoofing dependencies (MiniFASNet)
-torch>=2.0.0
-torchvision>=0.15.0
+# PyTorch removed for Raspberry Pi compatibility
+# MiniFASNet anti-spoofing is now optional and requires manual PyTorch installation
+# For x86_64 systems that need MiniFASNet, install separately:
+# pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+
 onnxruntime>=1.15.0
