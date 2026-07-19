@@ -32,6 +32,21 @@ The product is configured via a `.env` file (see `backend/.env.example` for the 
 - **Recovery (if the service goes down):** [TODO: restart steps, where logs live, who to contact]
 - **Verification that the deployed instance is healthy:** [TODO: e.g. `GET /health` endpoint, or a specific dashboard check]
 
+## 3a. Hardware — Access Indicator
+
+The physical access indicator was changed from motor-based to LED-based
+([issue #75](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/75),
+[PR #80](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/80)).
+It is driven from the same pin (pin 17) as the previous motor logic.
+
+| LED color | Meaning |
+|---|---|
+| Blue | Access granted |
+| Yellow | Calibrating |
+| Red | Access denied |
+
+Tested live on-site with the customer and confirmed working.
+
 ## 4. Main Documentation Entry Points for Normal Use
 
 | Need | Document |
