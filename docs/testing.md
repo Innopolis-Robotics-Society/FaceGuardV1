@@ -13,6 +13,7 @@ FaceGuard backend in `backend-service` and frontend in `frontend/faceguard-web`.
 - Recognition-score threshold and display helper tests for MVP v2.
 - Frontend production build verification.
 - Deployment configuration validation through Docker Compose.
+- Agent syntax checks for the Raspberry Pi LED access-indicator path.
 
 The tests do not require a physical camera, do not use production credentials,
 do not use biometric data, and the initial integration tests do not require a
@@ -136,6 +137,15 @@ Deployment configuration validation:
 docker compose -f backend-service/docker-compose.yml config --quiet
 ```
 
+Agent LED indicator syntax smoke check:
+
+```bash
+python -m py_compile agent/core/config.py agent/door/door_controller.py agent/events/event_handler.py
+```
+
+This check validates that the customer-requested LED indicator code path parses
+correctly. It does not replace Raspberry Pi GPIO hardware validation.
+
 ## CI Jobs
 
 The `.github/workflows/quality.yml` workflow runs on pull requests and pushes to
@@ -174,6 +184,8 @@ Compose before merge.
 - Sprint 3 / Assignment 5 score tests do not cover agent reload behaviour, dataset versioning,
   WebSockets, concurrency, real-face recognition, or full browser flows.
 - These tests do not replace security review or penetration testing.
+- The LED indicator check is a syntax smoke check only; physical blue/yellow/red
+  GPIO behavior must still be validated on Raspberry Pi hardware.
 
 ## Maintenance Policy
 

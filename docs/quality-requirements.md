@@ -11,6 +11,7 @@ linked to automated Quality Requirement Tests in
 - [QR-SEC-001 - Invalid administrator identity is rejected](#qr-sec-001-invalid-administrator-identity-is-rejected)
 - [QR-USE-001 - Invalid person names are rejected](#qr-use-001-invalid-person-names-are-rejected)
 - [QR-REL-001 - Recognition score semantics are consistent](#qr-rel-001-recognition-score-semantics-are-consistent)
+- [QR-USE-002 - Access decision signal is understandable](#qr-use-002-access-decision-signal-is-understandable)
 
 <a id="qr-perf-001-health-endpoint-response-time"></a>
 
@@ -196,3 +197,47 @@ This requirement verifies deterministic threshold and display semantics only.
 It does not test camera capture, real-face recognition accuracy, agent model
 reloads, dataset versioning, WebSocket delivery, concurrency, or browser
 end-to-end behaviour.
+
+<a id="qr-use-002-access-decision-signal-is-understandable"></a>
+
+## QR-USE-002 - Access decision signal is understandable
+
+- Stable ID: `QR-USE-002`
+- Characteristic: Usability
+- Sub-characteristic: Operability
+- Status: Assignment 6 manual/hardware validation required
+- Priority: Must Have
+- Linked issue: [#75](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/75)
+
+### Quality Scenario
+
+- Source: person requesting access and customer/operator.
+- Stimulus: granted, calibrating/operator-attention, and denied/unknown scanner
+  states.
+- Environment: Raspberry Pi hardware with the configured LED GPIO pins.
+- Artifact: FaceGuard recognition agent access-indicator controller.
+- Response: the scanner emits a visible LED signal matching the documented
+  customer color mapping.
+- Response measure:
+  - blue LED is used for granted/manual-open signal;
+  - yellow LED is available for calibrating/operator-attention signal;
+  - red LED is used for unknown or denied signal;
+  - the mapping is documented in README and customer handover.
+
+### Rationale
+
+The access requester needs immediate feedback without reading the administrator
+panel. The customer explicitly corrected the Week 6 motor-based assumption to an
+LED-based design.
+
+### Traceability
+
+- Implementation: `agent/door/door_controller.py`
+- Configuration: `agent/core/config.py`, `agent/.env.example`
+- Public handover: [customer-handover.md](customer-handover.md)
+
+### Limitations
+
+The repository can validate syntax and documentation only. Physical GPIO
+operation, brightness, wiring, and customer acceptance require Raspberry Pi
+hardware evidence and private/public confirmation artifacts.

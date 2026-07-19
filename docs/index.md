@@ -8,6 +8,7 @@ agent connected to local camera hardware.
 
 - [Roadmap](roadmap.md)
 - [Development process and configuration management](development-process.md)
+- [Customer handover](customer-handover.md)
 - [Architecture](architecture/README.md)
 - [Definition of Done](definition-of-done.md)
 - [Testing guide](testing.md)
@@ -15,9 +16,12 @@ agent connected to local camera hardware.
 - [Quality requirement tests](quality-requirement-tests.md)
 - [User acceptance tests](user-acceptance-tests.md)
 - [User stories](user-stories.md)
+- [Code reference](code-reference.md)
 
 ## Assignment Reports
 
+- [Week 7 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week7/README.md)
+- [Week 6 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week6/README.md)
 - [Week 5 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week5/README.md)
 - [Week 4 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week4/README.md)
 - [Week 3 report](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/blob/main/reports/week3/README.md)
