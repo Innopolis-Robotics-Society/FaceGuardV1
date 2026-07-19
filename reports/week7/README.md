@@ -40,13 +40,13 @@ sync — update as issues close):**
 | --- | --- | --- | --- | --- |
 | [#75](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/75) | PBI-S5-LED-INDICATOR: Swap motor-based access indicator for LED-based design | 2 | TODO | Open |
 | [#76](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/76) | PBI-S5-REPO-CLEANUP: Repository cleanup and memory-efficiency review | 3 | TODO | Open |
-| [#77](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/77) | PBI-S5-README-DOCS: Update README and setup/run documentation | 2 | TODO | Open |
+| [#77](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/77) | PBI-S5-README-DOCS: Update README and setup/run documentation | 2 | [#81](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/81) | PR open |
 | [#78](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/78) | PBI-S5-REPO-METADATA: Add GitHub repository description and tags | 1 | TODO | Open |
 | [#79](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/issues/79) | PBI-S5-FUNC-DOCS: Publish function-level documentation on GitHub Pages | 3 | TODO | Open |
 
 **Summary of changes (fill in once each issue is closed):**
 
-- **#77 (README/setup docs):** TODO — one-line summary of what changed once done
+- **#77 (README/setup docs):** [PR #81](https://github.com/Innopolis-Robotics-Society/FaceGuardV1/pull/81) updates README status/run instructions for v2.1.0, documents the previously-undocumented root `docker-compose.yml`/`DOCKER_SETUP.md` all-in-one stack, and fixes stale links — open, not yet merged
 - **#79 (function-level docs on Pages):** stretch goal requested by the
   customer; parses existing code comments into function/module-level docs
   integrated into the existing MkDocs site. TODO — summary once published
